@@ -1,0 +1,6 @@
+syntax:glob
+project/target/**
+project/project/**
+target/*
+logs/*
+
