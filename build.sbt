@@ -13,6 +13,5 @@ libraryDependencies ++= Seq(
   javaJpa,
   "org.hibernate" % "hibernate-entitymanager" % "4.3.9.Final",
   "org.postgresql" % "postgresql" % "9.4-1205-jdbc4",
-  "org.jsoup" % "jsoup" % "1.7.2",
-  "com.google.code.maven-play-plugin.org.playframework.modules.siena" % "play-siena" % "2.0.7"
+  "org.jsoup" % "jsoup" % "1.7.2"
 )

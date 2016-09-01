@@ -1,75 +1,59 @@
 package models;
 
 import java.util.*;
-import siena.*;
 
+import play.db.ebean.*;
+import play.data.validation.Constraints.*;
+
+import javax.persistence.*;
+
+@Entity
 public class Assignment extends Model {
 
-    @Id(Generator.AUTO_INCREMENT)
+    @Id
     public Long id;
 
     public String title;
 
-    @Filter("assignment")
-    public Query<AssignmentProblem> assignmentProblems;
-
-
-    @Index("user_index")
-    public User user;
-
-    public Assignment(User user, String title) {
+    public Assignment( String title) {
     	super();
     	this.title = title;
-        this.user = user;
     }
-	public Assignment() {
+    
+    public Assignment() {
 		super();
 	}
-    static Query<Assignment> all() {
-        return Model.all(Assignment.class);
+
+  public static Finder<Long,Assignment> find = new Finder<>(Assignment.class);
+    
+    public static List<Assignment> all() {
+        return find.all();
     }
 
     public static Assignment findById(Long id) {
-        return all().filter("id", id).get();
+        return find.ref(id);
     }
 
-    public static List<Assignment> findByUser(User user) {
-
-        //return all().filter("user", user).order("-created").fetch();
-		return all().filter("user", user).fetch();
-    }
-
-
-	public static void addProblem(Assignment assignment, Problem problem) {
-			AssignmentProblem assignmentProblem = new AssignmentProblem(assignment, problem);
-			assignmentProblem.insert();
+    public static void addProblem(Assignment assignment, Problem problem) {
+	assignment.insert(problem.url);
 	}
 
     public String toString() {
         return title;
     }
 
-	public List<Problem> findProblemsByAssignment() {
-
-		List<Problem> problems = AssignmentProblem.findByAssignment(this);
-
-		return problems;
-
-	}
-
-	/*public static void addTagsFromCSV(Link link, String tagcsv, User user) {
-		Collection<Tag> tags = null;
-		if(null != tagcsv || !tagcsv.equalsIgnoreCase("")) {
-			String [] tagArr = tagcsv.split(",");
-			tags = new ArrayList<Tag>();
-			for(String tagstr : tagArr) {
-				tagstr = play.templates.JavaExtensions.slugify(tagstr.trim()).trim();
-				if(null != tagstr && !tagstr.equals("")) {
-					Link.addTag(link, Tag.findOrCreateByName(tagstr,user));
+    public static void addProblems(Assignment assignment, String problemlist) {
+		Collection<Problem> problems = null;
+		if(null != problemlist || !problemlist.equals("")) {
+			String [] problemArr = problemlist.split(",");
+			problems = new ArrayList<Problem>();
+			for(String problemstr : problemArr) {
+				if(null != problemstr && !problemstr.equals("")) {
+					Assignment.addProblem(assignment, Problem.createProblem(problemstr));
 				}
 
 			}
 		}
-	}*/
+	}
 }
 

@@ -1,20 +1,26 @@
-@*
- * This template takes a single argument, a String containing a
- * message to display.
- *@
-@(message: String)
+
+@()
 
 @*
  * Call the `main` template with two arguments. The first
  * argument is a `String` with the title of the page, the second
  * argument is an `Html` object containing the body of the page.
  *@
-@main("Welcome to Play") {
+@import helper._
 
-    @*
-     * Get an `Html` object by calling the built-in Play welcome
-     * template and passing a `String` message.
-     *@
-    @play20.welcome(message, style = "Java")
+@main("Assignment") {
 
+@form(routes.HomeController.addAssignment()) {
+    <label>Assignment Name</label>
+    <input type="text"  name="title" />
+    <label>Problems  </label>
+    <div id="problem-form">
+    	<p>Comma separated problem Urls</p>
+	    <input type="text" name="problems" />
+    </div>
+
+    <input type="submit" name="submit" value="Save Assignment" />
+<br/><br/>
+</div>
+}
 }

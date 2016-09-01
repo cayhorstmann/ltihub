@@ -8,7 +8,16 @@ import java.io.InputStreamReader;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import play.*;
+import play.data.*;
+import static play.data.Form.*;
+import java.net.*;
+import net.htmlparser.jericho.*;
+import java.io.*;
+
+import play.Logger;
 import play.mvc.*;
+import models.*;
 
 import views.html.*;
 
@@ -24,8 +33,23 @@ public class HomeController extends Controller {
      * this method will be called when the application receives a
      * <code>GET</code> request with a path of <code>/</code>.
      */
+    
     public Result index() {
-	 return ok(index.render("Your new application is ready."));
+	 return ok(index.render());
     }
 
+    public Result addAssignment() {
+                System.out.println(Form.form().bindFromRequest());
+		DynamicForm bindedForm = Form.form().bindFromRequest();
+                String problemlist = bindedForm.get("problems");
+                System.out.println(problemlist);
+		Assignment assignment = new Assignment();
+		assignment.title = bindedForm.get("title");
+		assignment.insert();
+		if(null != problemlist) {
+			Assignment.addProblems(assignment, problemlist);
+		}
+		return ok("Assignment created");
+
+	}
 }

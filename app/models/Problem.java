@@ -1,45 +1,38 @@
 package models;
 
-import siena.*;
 import java.util.*;
 
+import play.db.ebean.*;
+import play.data.format.*;
+import play.data.validation.*;
+import com.avaje.ebean.Model;
+import javax.persistence.*;
+
+@Entity
 public class Problem extends Model {
 
-    @Id(Generator.AUTO_INCREMENT)
+    @Id
     public Long id;
 
+    @Constraints.Required
     public String url;
 
-	@Index("user_index")
-	public User user;
+    public static Finder<Long,Problem> find = new Finder<>(Problem.class);
 
-
-    public static Query<Problem> all() {
-        return Model.all(Problem.class);
+   public static List<Problem> all() {
+  	  return find.all();
     }
 
-	public static Problem findOrCreateByUrl(String url, User user) {
-        Problem problem = all().filter("user", user).filter("url", url).get();
-        if(null == problem) {
-			problem = new Problem();
-			problem.url = url;
-			problem.user = user;
-			problem.insert();
-		}
+    public static Problem createProblem(String url) {
+                Problem problem = new Problem();
+		problem.url = url;
+		problem.save();
 		return problem;
 	}
 
-	public static Problem findById(Long id) {
-		return  all().filter("id", id).get();
+    public static Problem findById(Long id) {
+	return find.ref(id);
 	}
-
-    public static Problem findByUrl(String url, User user) {
-        return all().filter("user", user).filter("url", url).get();
-    }
-
-    public static List<Problem> findByUser(User user) {
-        return all().filter("user", user).fetch();
-    }
 
     public String toString() {
         return url;

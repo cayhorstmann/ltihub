@@ -37,28 +37,10 @@ public class AssignmentProblem extends Model {
 
 		return problems;
 	}
-	public static List<Assignment> findByProblem(Problem problem) {
-		List<AssignmentProblem> assignmentProblems =  all().filter("problem", problem).fetch();
-		List<Assignment> assignments = new ArrayList<Assignment>();
-		for(AssignmentProblem assignmentProblem : assignmentProblems) {
-			assignments.add(Assignment.findById(assignmentProblem.assignment.id));
-		}
-
-		return assignments;
-	}
-
+	
 	public String toString() {
 		return assignment.toString() + " : " + problem.toString();
 	}
 
-	public static void deleteByAssignment(Assignment assignment) {
-
-		List<AssignmentProblem> assignmentProblems = all().filter("assignment", assignment).fetch();
-		if(null != assignmentProblems) {
-			for(AssignmentProblem assignmentProblem : assignmentProblems) {
-					assignmentProblem.delete();
-			}
-		}
-	}
 }
 
