@@ -11,7 +11,6 @@ libraryDependencies ++= Seq(
   cache,
   javaWs,
   javaJpa,
-  "org.hibernate" % "hibernate-entitymanager" % "4.3.9.Final",
-  "org.postgresql" % "postgresql" % "9.4-1205-jdbc4",
+  "mysql" % "mysql-connector-java" % "5.1.28",
   "org.jsoup" % "jsoup" % "1.7.2"
 )
