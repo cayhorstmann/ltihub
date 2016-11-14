@@ -34,13 +34,20 @@ public class HomeController extends Controller {
      * this method will be called when the application receives a
      * <code>GET</code> request with a path of <code>/</code>.
      */
+	 
     public Result index() {
-        return ok(index.render());
+        return ok("Your new application is ready");
     }
+	
+	public Result createAssignment() {
+        return ok(create_exercise.render());
+    }
+	
 	public Result addAssignment() {
         
 		DynamicForm bindedForm = Form.form().bindFromRequest();
-        String problemlist = bindedForm.get("problems");
+        String problemlist = bindedForm.get("url");
+		Assignment assignment = new Assignment();
         System.out.println(problemlist);
 		if(null != problemlist|| !problemlist.equals("")) {
 			String [] problemArr = problemlist.split(","); 
@@ -48,12 +55,48 @@ public class HomeController extends Controller {
 				if(null != problemstr && !problemstr.equals("")) {
 					Problem problem = new Problem();
 					problem.url = problemstr;
-					problem.save();
+					assignment.problems.add(problem);
+					//problem.save();
 				}	
+			}
+			assignment.save();
 		}
-		
+		return ok(Json.toJson(assignment.getProblems()));
+		//return ok(showassignment.render(assignment.getProblems()));
+
 	}
-	return ok(Json.toJson(Problem.getProblems()));
-}
+	
+	/**
+     * POST method
+     */
+    public Result setupExercises() throws UnsupportedEncodingException {
+        Map<String, String[]> postParams = request().body().asFormUrlEncoded();
+
+        if (postParams.get("lis_outcome_service_url") == null || postParams.get("lis_result_sourcedid") == null) {
+            flash("warning", "");
+        } else {
+            response().setCookie(new Http.Cookie("lis_outcome_service_url", postParams.get("lis_outcome_service_url")[0],
+                    null, null, null, false, false));
+            response().setCookie(new Http.Cookie("lis_result_sourcedid", postParams.get("lis_result_sourcedid")[0],
+                    null, null, null, false, false));
+        }
+       // String url = controllers.routes.HomeController.assignment().url();
+                //+ "?urls=" + URLEncoder.encode(request().getQueryString("urls"), "UTF-8");
+       // Logger.info(url);
+        //return redirect(url);
+		return ok("Done!");
+    }
+
+    /**
+     * GET method
+     */
+    public Result assignment(Long assignment) {
+		Assignment assignment1 = Assignment.find.ref(assignment);
+		System.out.println(assignment1);
+        List<Problem> problems = assignment1.getProblems();;
+        System.out.println(problems);
+        return ok(showassignment.render(problems));
+        
+    }
 }
 
