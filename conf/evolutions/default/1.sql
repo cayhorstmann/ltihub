@@ -3,20 +3,20 @@
 
 # --- !Ups
 
-create table Assignment (
+create table assignment (
   assignment_id             bigint auto_increment not null,
-  constraint pk_Assignment primary key (assignment_id))
+  constraint pk_assignment primary key (assignment_id))
 ;
 
-create table Problems (
-  id                        bigint auto_increment not null,
+create table problem (
+  problem_id                bigint auto_increment not null,
   url                       varchar(255),
-  assignment_id             bigint,
-  constraint pk_Problems primary key (id))
+  assignment_assignment_id  bigint,
+  constraint pk_problem primary key (problem_id))
 ;
 
-alter table Problems add constraint fk_Problems_assignment_1 foreign key (assignment_id) references Assignment (assignment_id) on delete restrict on update restrict;
-create index ix_Problems_assignment_1 on Problems (assignment_id);
+alter table problem add constraint fk_problem_assignment_1 foreign key (assignment_assignment_id) references assignment (assignment_id) on delete restrict on update restrict;
+create index ix_problem_assignment_1 on problem (assignment_assignment_id);
 
 
 
@@ -24,9 +24,9 @@ create index ix_Problems_assignment_1 on Problems (assignment_id);
 
 SET FOREIGN_KEY_CHECKS=0;
 
-drop table Assignment;
+drop table assignment;
 
-drop table Problems;
+drop table problem;
 
 SET FOREIGN_KEY_CHECKS=1;
 

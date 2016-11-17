@@ -39,32 +39,34 @@ public class HomeController extends Controller {
         return ok("Your new application is ready");
     }
 	
-	public Result createAssignment() {
+    public Result createAssignment() {
         return ok(create_exercise.render());
     }
 	
-	public Result addAssignment() {
+    public Result addAssignment() {
         
-		DynamicForm bindedForm = Form.form().bindFromRequest();
+	DynamicForm bindedForm = Form.form().bindFromRequest();
         String problemlist = bindedForm.get("url");
-		Assignment assignment = new Assignment();
+	Assignment assignment = new Assignment();
+        assignment.save();
         System.out.println(problemlist);
-		if(null != problemlist|| !problemlist.equals("")) {
-			String [] problemArr = problemlist.split(","); 
-			for(String problemstr : problemArr) {
-				if(null != problemstr && !problemstr.equals("")) {
-					Problem problem = new Problem();
-					problem.url = problemstr;
-					assignment.problems.add(problem);
-					//problem.save();
-				}	
-			}
-			assignment.save();
+	if(null != problemlist|| !problemlist.equals("")) {
+		String [] problemArr = problemlist.split(","); 
+		for(String problemstr : problemArr) {
+			if(null != problemstr && !problemstr.equals("")) {
+				Problem problem = new Problem();
+                                problem.setProblemUrl(problemstr);
+				problem.setAssignment(assignment);
+				assignment.getProblems().add(problem);
+				problem.save();
+			 }	
 		}
-		return ok(Json.toJson(assignment.getProblems()));
-		//return ok(showassignment.render(assignment.getProblems()));
-
+		assignment.save();
 	}
+	//return ok(Json.toJson(assignment.getProblems()));
+	return redirect(routes.HomeController.showAssignment(assignment.getAssignmentId()));
+
+   }
 	
 	/**
      * POST method
@@ -90,10 +92,10 @@ public class HomeController extends Controller {
     /**
      * GET method
      */
-    public Result assignment(Long assignment) {
-		Assignment assignment1 = Assignment.find.ref(assignment);
-		System.out.println(assignment1);
-        List<Problem> problems = assignment1.getProblems();;
+    public Result showAssignment(Long assignment) {
+	Assignment assignment1 = Assignment.find.byId(assignment);
+	System.out.println(assignment1.getAssignmentId());
+        List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment1.assignmentId).findList();
         System.out.println(problems);
         return ok(showassignment.render(problems));
         

@@ -1,34 +1,61 @@
 package models;
 
-        import java.util.*;
-        import javax.persistence.*;
+import java.util.*;
+import javax.persistence.*;
         import play.db.ebean.*;
         import play.data.format.*;
         import play.data.validation.*;
 	import com.avaje.ebean.Model;
 		
         @Entity
-        @Table(name = "Problems")
         public class Problem extends Model {
           
         @Id
-        public Long id;
+        public Long problemId;
       
         @Column
         @Constraints.Required
         public String url;
 
-        @ManyToOne(fetch=FetchType.LAZY)
-        @JoinColumn(name = "assignment_id")
+        @ManyToOne
         Assignment assignment;
 
         public static Finder<Long, Problem> find = new Finder<Long, Problem>(
           Long.class, Problem.class
         );
 		
-	public static List<Problem> getProblems() {
-		return find.all();
+	public Problem(){
+		}
+		
+	public Problem(Assignment assignment, String url){
+		this.assignment = assignment;
+		this.url = url;
 	}
+		
+	public Long getProblemId() {
+		return this.problemId;
+	}
+
+	public void setProblemId(Long problemId) {
+		this.problemId = problemId;
+	}
+
+	public String getProblemUrl() {
+		return this.url;
+	}
+
+	public void setProblemUrl(String url) {
+		this.url = url;
+	}
+       
+        public Assignment getAssignment() {
+		return this.assignment;
+	}
+
+	public void setAssignment(Assignment assignment) {
+		this.assignment = assignment;
+	}
+       // public static List<Problem> getProblems() {
+	//	return find.all();
+	//}
    }
-
-

@@ -5,26 +5,43 @@ package models;
         import play.db.ebean.*;
         import play.data.format.*;
         import play.data.validation.*;
-		import com.avaje.ebean.Model;
+	import com.avaje.ebean.Model;
 		
         @Entity
-        @Table(name = "Assignment")
         public class Assignment extends Model {
           
         @Id
-	@Column(name = "assignment_id")
-        public Long id;
+        public Long assignmentId;
       
-        @Column
-        @OneToMany(cascade = CascadeType.ALL)
+        @OneToMany(mappedBy="assignment")
 	public List<Problem> problems = new ArrayList<Problem>();	
 
         public static Finder<Long, Assignment> find = new Finder<Long, Assignment>(
           Long.class, Assignment.class
         );
 	
-        public List<Problem> getProblems(){
-		return problems;
+        public Assignment() {
+		}
+
+	public Assignment(List<Problem> problems) {
+		
+		this.problems = problems;
+	}
+
+	public Long getAssignmentId() {
+		return this.assignmentId;
+	}
+
+	public void setAssignmentId(Long assignmentId) {
+		this.assignmentId = assignmentId;
+	}  
+	
+	public List<Problem> getProblems(){
+			return this.problems;
+	}
+	
+	public void setProblems(List<Problem> problems) {
+		this.problems = problems;
 	}
 		
    }

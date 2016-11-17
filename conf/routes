@@ -7,10 +7,10 @@ GET     /                           controllers.HomeController.index
 
 # Get XML file for configuration
 #GET		/		    controllers.LtiConfigController.configuration
-
+POST	/createAssignment	controllers.HomeController.createAssignment
 GET		/createAssignment   controllers.HomeController.createAssignment
 POST	/ 			    controllers.HomeController.addAssignment
-GET		/assignment/:id	    controllers.HomeController.assignment(id: Long)
+GET		/assignment/:id	    controllers.HomeController.showAssignment(id: Long)
 
 # An example controller showing how to use dependency injection
 GET     /count                      controllers.CountController.count
