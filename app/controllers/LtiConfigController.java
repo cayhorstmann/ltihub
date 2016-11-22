@@ -19,10 +19,6 @@ public class LtiConfigController extends Controller {
         String resourceSelectionUrl = controllers.routes.HomeController.createAssignment().absoluteURL(request, true);
 
         return ok(views.xml.ltiConfig
-                .render("Interactive Exercises",
-                        domain,
-                        "ltihub.info",
-                        resourceSelectionUrl))
-                .as("application/xml");
+                .render()).as("application/xml");
     }
 }

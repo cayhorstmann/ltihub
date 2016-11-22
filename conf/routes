@@ -1,19 +1,26 @@
-#Routes
+# Routes
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
 # An example controller showing a sample home page
 GET     /                           controllers.HomeController.index
 
-# Get XML file for configuration
-#GET		/		    controllers.LtiConfigController.configuration
-POST	/createAssignment	controllers.HomeController.createAssignment
-GET		/createAssignment   controllers.HomeController.createAssignment
-POST	/ 			    controllers.HomeController.addAssignment
-GET		/assignment/:id	    controllers.HomeController.showAssignment(id: Long)
+GET		/createAssignment			controllers.HomeController.createAssignment
+POST	/							controllers.HomeController.addAssignment
+GET		/assignment					controllers.HomeController.showAssignment(id: Long)
+
+GET		/embedAssignment 			controllers.HomeController.embedAssignment(id: Long)
+
+GET		/assignment/editAssignment	controllers.HomeController.showEditPage(id: Long)	
+
+POST	/assignment/saveAssignment	controllers.HomeController.saveEditedAssignment(id: Long)
+
+GET		/login						controllers.HomeController.login
+POST	/checkvalidity				controllers.HomeController.checkStudentValidity
 
 # An example controller showing how to use dependency injection
 GET     /count                      controllers.CountController.count
+
 # An example controller showing how to write asynchronous code
 GET     /message                    controllers.AsyncController.message
 

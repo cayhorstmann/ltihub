@@ -1,0 +1,22 @@
+@()
+
+@import helper._
+	
+	@form(routes.HomeController.checkStudentValidity()) {
+     <form>
+  
+	<div class="container">
+		<label><b>StudentId</b></label>
+		<input type="text" placeholder="Enter StudentId" name="uId" required>
+
+    <label><b>Name</b></label>
+    <input type="text" placeholder="Enter name" name="uname" required>
+	
+	<label><b>AssignmentId</b></label>
+    <input type="text" placeholder="Enter assignmentId" name="aId" required>
+
+    <button type="submit">Login</button>
+   
+	</div>
+</form>
+	}

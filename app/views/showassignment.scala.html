@@ -1,16 +1,19 @@
-@(exercises: List[Problem])
+@(assignment: Assignment, problems: List[models.Problem])
 
-    @if(flash.containsKey("warning")) {
-        <p class="warning">
-            It looks like this LTI tool wasn't launched as an assignment, or you are trying to take it as a teacher rather than as a student. Make sure to set up an external tool assignment as outlined for this tool. <strong>Grade passback will not work outside the student view.</strong>
-        </p>
-    }
+<h2>@problems.size() problems(s) added to assignment</h2>
+    
+    <ul>
+        @for(problem <- problems) {
+            <li>
+                <a href="@problem.getProblemUrl()">@problem.getProblemUrl()</a>
+            </li>
+        }
+    </ul>
 
-    @for(exercise <- exercises) {
-        <iframe style='width : 100% ; height : 50em ;' class='exercise-iframe'
-        src='@exercise'></iframe>
-    }
+    <p>If you are done adding problems, please click on Done! button  otherwise please click on Edit! button</p>
+    
+		<a href="@routes.HomeController.embedAssignment(assignment.getAssignmentId())"><button>Done!!</button></a>
+		<a href="@routes.HomeController.showEditPage(assignment.getAssignmentId())"><button>Edit!!</button></a>
+  
 
-    <div> <input type="button" value="Save score in Canvas" /></div>
-    <div id='response'></div>
 
