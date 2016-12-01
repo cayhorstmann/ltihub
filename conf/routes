@@ -1,22 +1,24 @@
-# Routes
+#Routes
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
 # An example controller showing a sample home page
 GET     /                           controllers.HomeController.index
 
-GET		/createAssignment			controllers.HomeController.createAssignment
-POST	/							controllers.HomeController.addAssignment
-GET		/assignment					controllers.HomeController.showAssignment(id: Long)
-
-GET		/embedAssignment 			controllers.HomeController.embedAssignment(id: Long)
-
-GET		/assignment/editAssignment	controllers.HomeController.showEditPage(id: Long)	
+POST	/createAssignment	    controllers.HomeController.createAssignment
+POST	/			controllers.HomeController.addAssignment
+GET	/assignment1	controllers.HomeController.showAssignment(id: Long)
+POST	/assignment		controllers.HomeController.index
+GET	/embedAssignment    controllers.HomeController.embedAssignment(id: Long)
+GET	/assignment	    controllers.HomeController.getAssignment
+GET	/assignment/editAssignment	controllers.HomeController.showEditPage(id: Long)	
 
 POST	/assignment/saveAssignment	controllers.HomeController.saveEditedAssignment(id: Long)
 
-GET		/login						controllers.HomeController.login
-POST	/checkvalidity				controllers.HomeController.checkStudentValidity
+GET		/login				controllers.HomeController.login
+POST	/checkvalidity		controllers.HomeController.checkStudentValidity
+
+POST	/submissions				controllers.SubmissionController.addSubmission
 
 # An example controller showing how to use dependency injection
 GET     /count                      controllers.CountController.count

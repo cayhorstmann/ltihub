@@ -28,15 +28,23 @@ import views.html.*;
 public class HomeController extends Controller {
 	 
     public Result index() {
-        return ok("Your new application is ready");
-    }
+String url = controllers.routes.HomeController.getAssignment().url()
+                + "?id=" + request().getQueryString("id");
+        Logger.info(url);
+        return redirect(url);      
+ // return redirect(routes.HomeController.getAssignment());
+//  return ok("Done");
+  }
 	
 	public Result createAssignment() {
+        Map<String, String[]> postParams = request().body().asFormUrlEncoded();
+        response().setCookie(new Http.Cookie("launch_presentation_return_url", postParams.get("launch_presentation_return_url")[0],
+                    null, null, null, false, false));
+        System.out.println(postParams.get("launch_presentation_return_url")[0]);
         return ok(create_exercise.render());
     }
 	
-	public Result addAssignment() {
-        
+	public Result addAssignment() {        
 	DynamicForm bindedForm = Form.form().bindFromRequest();
         String problemlist = bindedForm.get("url");
 	Assignment assignment = new Assignment();
@@ -54,85 +62,93 @@ public class HomeController extends Controller {
 			}	
 		}
 		assignment.save();
+		List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).findList();
+		System.out.println(problems);
 	}
 	return redirect(routes.HomeController.showAssignment(assignment.getAssignmentId()));
-
-	}
+}
 	
-	public Result saveEditedAssignment(Long assignment) {
+public Result getAssignment(){
+	Long assignmentId = Long.parseLong(request().getQueryString("id"));
+	Assignment assignment = Assignment.find.byId(assignmentId);
+	List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).findList();
+        System.out.println(problems);
+        return ok(finalAssignment.render(problems));
+}	
+
+public Result saveEditedAssignment(Long assignment) {
         
-		DynamicForm bindedForm = Form.form().bindFromRequest();
-        	String problemlist = bindedForm.get("url");
-		Assignment assignment1 = Assignment.find.byId(assignment);
-		//assignment.save();
-        	System.out.println(problemlist);
-		if(null != problemlist|| !problemlist.equals("")) {
-			String [] problemArr = problemlist.split(","); 
-			for(String problemstr : problemArr) {
-			    if(null != problemstr && !problemstr.equals("")) {
+	DynamicForm bindedForm = Form.form().bindFromRequest();
+        String problemlist = bindedForm.get("url");
+	Assignment assignment1 = Assignment.find.byId(assignment);
+        System.out.println(problemlist);
+	if(null != problemlist|| !problemlist.equals("")) {
+		String [] problemArr = problemlist.split(","); 
+		for(String problemstr : problemArr) {
+			if(null != problemstr && !problemstr.equals("")) {
 				Problem problem = new Problem();
 				problem.setProblemUrl(problemstr);
 				problem.setAssignment(assignment1);
 				assignment1.getProblems().add(problem);
 				problem.save();
-			   }	
-			}
-			assignment1.save();
+			}	
 		}
-		List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment1.assignmentId).findList();
+		assignment1.save();
+	}
+	List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment1.assignmentId).findList();
         System.out.println(problems);
         return ok(finalAssignment.render(problems));
-
-}
+	}
     /**
      * GET method
      */
     public Result showAssignment(Long assignment) {
-	Map<String, String[]> postParams = request().body().asFormUrlEncoded();
+		
 	Assignment assignment1 = Assignment.find.byId(assignment);
 	System.out.println(assignment1.getAssignmentId());
         List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment1.assignmentId).findList();
+	Http.Cookie launchReturnUrlCookie = request().cookie("launch_presentation_return_url");
+
+	String returnUrl = launchReturnUrlCookie.value();
+	System.out.println("ReturnURL is: " + returnUrl);
         System.out.println(problems);
-        return ok(showassignment.render(assignment1,problems));    
+        return ok(showassignment.render(returnUrl,assignment1,problems));    
     }
 
-    public Result showEditPage(Long assignment) {
-	Map<String, String[]> postParams = request().body().asFormUrlEncoded();
-	Assignment assignment1 = Assignment.find.byId(assignment);
-	System.out.println(assignment1.getAssignmentId());
+	public Result showEditPage(Long assignment) {
+		Map<String, String[]> postParams = request().body().asFormUrlEncoded();
+		Assignment assignment1 = Assignment.find.byId(assignment);
+		System.out.println(assignment1.getAssignmentId());
         List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment1.assignmentId).findList();
         System.out.println(problems);
         return ok(editAssignment.render(assignment1, problems));    
     }
 	
-    public Result embedAssignment(Long assignment) {
-	Map<String, String[]> postParams = request().body().asFormUrlEncoded();
-       	Assignment assignment1 = Assignment.find.byId(assignment);
-	System.out.println(assignment1.getAssignmentId());
+	public Result embedAssignment(Long assignment) {
+		Map<String, String[]> postParams = request().body().asFormUrlEncoded();
+		Assignment assignment1 = Assignment.find.byId(assignment);
+		System.out.println(assignment1.getAssignmentId());
         List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment1.assignmentId).findList();
         System.out.println(problems);
         return ok(finalAssignment.render(problems));    
     }
 	
-    public Result login(){
-	return ok(loginPage.render());
-    }
-	
-    public Result checkStudentValidity(){
-	//System.out.println("Id is: " + Integer.parseInt(form().bindFromRequest().get("uId")));
-	//System.out.println("Assignmentid is: " + form().bindFromRequest().get("aId"));
-
-	if(((Integer.parseInt(form().bindFromRequest().get("uId")))== 1234567) &&((form().bindFromRequest().get("uname")).equals("test"))){
-		Long ID = Long.parseLong(form().bindFromRequest().get("aId"));
-		//System.out.println("Id is: " + ID);
-
-		Assignment assignment1 = Assignment.find.byId(ID);
-		if(assignment1 !=null)
-			return redirect(routes.HomeController.embedAssignment(assignment1.getAssignmentId()));
-		else 
-			return ok("Assignment doesn't exist");			
+	public Result login(){
+		return ok(loginPage.render());
 	}
-	return ok("Invalid values");
-    }
+	
+	public Result checkStudentValidity(){
+		if(((Integer.parseInt(form().bindFromRequest().get("uId")))== 1234567) &&((form().bindFromRequest().get("uname")).equals("test"))){
+			Long ID = Long.parseLong(form().bindFromRequest().get("aId"));
+			//System.out.println("Id is: " + ID);
+
+			Assignment assignment1 = Assignment.find.byId(ID);
+			if(assignment1 !=null)
+				return redirect(routes.HomeController.embedAssignment(assignment1.getAssignmentId()));
+			else 
+				return ok("Assignment doesn't exist");			
+		}
+		return ok("Invalid values");
+	}
 }
 
