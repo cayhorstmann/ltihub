@@ -3,14 +3,17 @@
 # ~~~~
 
 # An example controller showing a sample home page
-GET     /                           controllers.HomeController.index
+GET     /                       controllers.HomeController.index
 
+#App landing page when instructor opens the app in canvas
 POST	/createAssignment	    controllers.HomeController.createAssignment
-POST	/			controllers.HomeController.addAssignment
-GET	/assignment1	controllers.HomeController.showAssignment(id: Long)
+
+
+POST	/				controllers.HomeController.addAssignment
+GET  	/assignment1	controllers.HomeController.showAssignment(id: Long)
 POST	/assignment		controllers.HomeController.index
 GET	/embedAssignment    controllers.HomeController.embedAssignment(id: Long)
-GET	/assignment	    controllers.HomeController.getAssignment
+GET	/assignment	   		controllers.HomeController.getAssignment
 GET	/assignment/editAssignment	controllers.HomeController.showEditPage(id: Long)	
 
 POST	/assignment/saveAssignment	controllers.HomeController.saveEditedAssignment(id: Long)
