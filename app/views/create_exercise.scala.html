@@ -1,13 +1,7 @@
 @()
-
-@*
- *Call the `main` template with two arguments. The first
- * argument is a `String` with the title of the page, the second
- * argument is an `Html` object containing the body of the page.
- *@
 @import helper._
 
-	<p>Paste a list of comma separated problem URLs of exercises to be used for this assignment::</p>
+	<p>Paste a list of comma separated problem URLs of exercises to be used for this assignment</p>
 	
 	@form(routes.HomeController.addAssignment()) {
     
