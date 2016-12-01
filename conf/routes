@@ -7,7 +7,6 @@ GET     /                           controllers.HomeController.index
 
 POST	/createAssignment	    controllers.HomeController.createAssignment
 POST	/			controllers.HomeController.addAssignment
-GET	/assignment1	controllers.HomeController.showAssignment(id: Long)
 POST	/assignment		controllers.HomeController.index
 GET	/embedAssignment    controllers.HomeController.embedAssignment(id: Long)
 GET	/assignment	    controllers.HomeController.getAssignment
