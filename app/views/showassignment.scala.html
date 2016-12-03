@@ -3,8 +3,7 @@
                 function modifyURL()
                 {
                     var ltiToolUrl = window.location.protocol + "//" + window.location.host + "/assignment?id=";
-                    document.myform.ID.value = ltiToolUrl +document.myform.ID.value;
-alert(document.myform.ID.value);
+                    document.myform.url.value = ltiToolUrl +encodeURIComponent(document.myform.url.value);
                     return true;
                 }
         </script>
@@ -22,7 +21,7 @@ alert(document.myform.ID.value);
     
 	<form method="get" name="myform" action="@launchUrl" onsubmit="modifyURL();">
         <input type="hidden" name="return_type" value="lti_launch_url" />
-        <input type="text"  name="ID" value="" />
+	<textarea style="display: block" name="url" value="" ></textarea>
         <input type="submit" name="submit" value="Done!!" />
         </form>
 		<a href="@routes.HomeController.showEditPage(assignment.getAssignmentId())"><button>Edit!!</button></a>

@@ -27,9 +27,12 @@ import views.html.*;
  */
 public class HomeController extends Controller {
 	 
-    public Result index() {     
- 		 return redirect(routes.HomeController.getAssignment());
-		//return ok("Done");
+    public Result index() throws UnsupportedEncodingException{     
+	String url = controllers.routes.HomeController.getAssignment().url()
+                + "?id=" + URLEncoder.encode(request().getQueryString("id"), "UTF-8");
+        Logger.info(url);
+        return redirect(url);
+	//return ok("Done");
   }
   
 	//Method to show the assignment landing page
@@ -67,10 +70,11 @@ public class HomeController extends Controller {
 		String returnUrl = launchReturnUrlCookie.value();
 		System.out.println("ReturnURL is: " + returnUrl);
 	
-		return ok(showassignment.render(returnUrl,assignment1,problems));
+		return ok(showassignment.render(returnUrl,assignment,problems));
 	}
 	
 	public Result getAssignment(){
+                System.out.println("ID is: "+ request().getQueryString("id"));
 		Long assignmentId = Long.parseLong(request().getQueryString("id"));
 		Assignment assignment = Assignment.find.byId(assignmentId);
 		List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).findList();
@@ -99,6 +103,9 @@ public class HomeController extends Controller {
 		}
 		List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment1.assignmentId).findList();
     	System.out.println(problems);
+		Http.Cookie launchReturnUrlCookie = request().cookie("launch_presentation_return_url");
+		String returnUrl = launchReturnUrlCookie.value();
+		System.out.println("ReturnURL is: " + returnUrl);
         return ok(showassignment.render(returnUrl,assignment1,problems));
 	}
     
