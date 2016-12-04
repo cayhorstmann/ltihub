@@ -17,7 +17,7 @@ POST	/assignment/saveAssignment	controllers.HomeController.saveEditedAssignment(
 GET		/login				controllers.HomeController.login
 POST	/checkvalidity		controllers.HomeController.checkStudentValidity
 
-POST	/submissions				controllers.SubmissionController.addSubmission
+GET	/submissions				controllers.SubmissionController.addSubmission
 
 # An example controller showing how to use dependency injection
 GET     /count                      controllers.CountController.count

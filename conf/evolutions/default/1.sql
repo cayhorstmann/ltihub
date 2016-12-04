@@ -15,8 +15,16 @@ create table problem (
   constraint pk_problem primary key (problem_id))
 ;
 
+create table submission (
+  submission_id             bigint auto_increment not null,
+  problem_problem_id        bigint,
+  constraint pk_submission primary key (submission_id))
+;
+
 alter table problem add constraint fk_problem_assignment_1 foreign key (assignment_assignment_id) references assignment (assignment_id) on delete restrict on update restrict;
 create index ix_problem_assignment_1 on problem (assignment_assignment_id);
+alter table submission add constraint fk_submission_problem_2 foreign key (problem_problem_id) references problem (problem_id) on delete restrict on update restrict;
+create index ix_submission_problem_2 on submission (problem_problem_id);
 
 
 
@@ -27,6 +35,8 @@ SET FOREIGN_KEY_CHECKS=0;
 drop table assignment;
 
 drop table problem;
+
+drop table submission;
 
 SET FOREIGN_KEY_CHECKS=1;
 
