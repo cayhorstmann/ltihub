@@ -8,16 +8,12 @@ GET     /                           controllers.HomeController.index
 POST	/createAssignment	    controllers.HomeController.createAssignment
 POST	/			controllers.HomeController.addAssignment
 POST	/assignment		controllers.HomeController.index
-GET	/embedAssignment    controllers.HomeController.embedAssignment(id: Long)
 GET	/assignment	    controllers.HomeController.getAssignment
 GET	/assignment/editAssignment	controllers.HomeController.showEditPage(id: Long)	
 
 POST	/assignment/saveAssignment	controllers.HomeController.saveEditedAssignment(id: Long)
 
-GET		/login				controllers.HomeController.login
-POST	/checkvalidity		controllers.HomeController.checkStudentValidity
-
-GET	/submissions				controllers.SubmissionController.addSubmission
+GET	/submissions/:problemID		controllers.SubmissionController.addSubmission(problemID: Long)
 
 # An example controller showing how to use dependency injection
 GET     /count                      controllers.CountController.count

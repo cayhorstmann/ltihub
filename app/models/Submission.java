@@ -8,16 +8,21 @@ import play.data.validation.*;
 import com.avaje.ebean.Model;
 		
     @Entity
-    //@Table(name = "Submissions")
     public class Submission extends Model {
           
     @Id 
     public Long submissionId;
-		
-	//@ManyToOne(fetch = FetchType.LAZY) Line commented since last successful run
-	//@JoinColumn(name = "assignment_id") Line commented since last successful run
-	@ManyToOne
-	Problem problem;
+	
+    @Column
+    @Constraints.Required
+    public Long studentId;
+
+    @Column
+    @Constraints.Required
+    public Long canvasAssignmentId;
+	
+    @ManyToOne
+    Problem problem;
 
     public static Finder<Long, Submission> find = new Finder<Long, Submission>(
         Long.class, Submission.class);
@@ -25,7 +30,7 @@ import com.avaje.ebean.Model;
 	public Submission(){
 	}
 		
-	public Long SubmissionId() {
+	public Long getSubmissionId() {
 		return this.submissionId;
 	}
 
@@ -40,7 +45,22 @@ import com.avaje.ebean.Model;
 	public void setProblem(Problem problem) {
 		this.problem = problem;
 	}
+	
+	public Long getStudentId(){
+		return this.studentId;
+	}
 
+	public void setStudentId(Long studentId){
+		this.studentId = studentId;
+	}
+
+	public Long getcanvasAssignmentId(){
+		return this.canvasAssignmentId;
+	}
+
+	public void setcanvasAssignmentId(){
+		this.canvasAssignmentId = canvasAssignmentId;
+	}
 }
 
 

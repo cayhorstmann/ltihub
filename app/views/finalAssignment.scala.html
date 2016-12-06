@@ -5,7 +5,7 @@ function onLoadHandler() {
             var iframes = document.getElementsByClassName('exercise-iframe')
 			for (i = 0; i < iframes.length; i++) {
 				alert(iframes.length);
-				iframes[i].src = iframes[i].src + "&callback="+ encodeURIComponent(window.location.protocol + "//" + window.location.host + "/submissions");
+				iframes[i].src = iframes[i].src + "&callback="+ encodeURIComponent(window.location.protocol + "//" + window.location.host + "/submissions/"+ iframes[i].id);
 				alert(iframes[i].src);
 
 			}    
@@ -23,7 +23,7 @@ function onLoadHandler() {
     @for(problem <- problems) {
 	    
         <iframe style='width : 100% ; height : 50em ;' class='exercise-iframe'
-        src=@problem.url ></iframe>
+        id= @problem.problemId src=@problem.url ></iframe>
 	}
 
 

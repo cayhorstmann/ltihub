@@ -23,18 +23,26 @@ import static play.libs.Json.toJson;
 import play.Logger;
 import play.mvc.*;
 import models.*;
-import play.mvc.Http.RequestBody;
 import views.html.*;
 
 public class SubmissionController extends Controller {
 	
-	public Result addSubmission() {
-		RequestBody body = request().body();
-		System.out.println(body.asText());
+	public Result addSubmission(Long problemID) {
 		System.out.println("Result is received" );
 		System.out.println("Received score is:" + request().getQueryString("score"));
-		System.out.println("Received solution is:" + request().getQueryString("file"));
-		String callback = request().getQueryString("callback");
+		Http.Cookie launchReturnUrlCookie = request().cookie("lis_outcome_service_url");
+		String returnUrl = launchReturnUrlCookie.value();
+		System.out.println("ReturnURL is: " + returnUrl);
+		Http.Cookie canvasAssignmentIdCookie = request().cookie("custom_canvas_assignment_id");
+		String assignmentId = canvasAssignmentIdCookie.value();
+		System.out.println("AssignmentID is: " + assignmentId);
+		Http.Cookie userIdCookie = request().cookie("custom_canvas_user_login_id");
+		String userId = userIdCookie.value();
+		System.out.println("UserID is: " + userId);
+		
+		Problem problem = Problem.find.byId(problemID);
+		System.out.println("Problem is: " + problem);
+          	String callback = request().getQueryString("callback");
 		ObjectNode result = Json.newObject();
 		result.put("received", true);
 		result.put("score", request().getQueryString("score"));

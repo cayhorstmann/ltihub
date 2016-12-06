@@ -2,8 +2,8 @@ package models;
 
 import java.util.*;
 import javax.persistence.*;
-        import play.db.ebean.*;
-        import play.data.format.*;
+import play.db.ebean.*;
+import play.data.format.*;
         import play.data.validation.*;
 	import com.avaje.ebean.Model;
 		
@@ -19,6 +19,9 @@ import javax.persistence.*;
 
         @ManyToOne
         Assignment assignment;
+
+	@OneToMany(mappedBy="problem")
+	public List<Submission> submissions = new ArrayList<Submission>();
 
         public static Finder<Long, Problem> find = new Finder<Long, Problem>(
           Long.class, Problem.class
@@ -55,7 +58,12 @@ import javax.persistence.*;
 	public void setAssignment(Assignment assignment) {
 		this.assignment = assignment;
 	}
-       // public static List<Problem> getProblems() {
-	//	return find.all();
-	//}
+
+	public List<Submission> getSubmissions(){
+		return this.submissions;
+	}
+
+	public void setSubmission(List<Submission> submissions){
+		this.submissions = submissions;
+	}
    }
