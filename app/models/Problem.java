@@ -4,24 +4,24 @@ import java.util.*;
 import javax.persistence.*;
 import play.db.ebean.*;
 import play.data.format.*;
-        import play.data.validation.*;
-	import com.avaje.ebean.Model;
+import play.data.validation.*;
+import com.avaje.ebean.Model;
 		
-        @Entity
-        public class Problem extends Model {
+@Entity
+public class Problem extends Model {
           
-        @Id
-        public Long problemId;
+    @Id
+    public Long problemId;
       
-        @Column
-        @Constraints.Required
-        public String url;
+    @Column
+    @Constraints.Required
+    public String url;
 
-        @ManyToOne
-        Assignment assignment;
+    @ManyToOne
+    Assignment assignment;
 
-	@OneToMany(mappedBy="problem")
-	public List<Submission> submissions = new ArrayList<Submission>();
+    @OneToMany(mappedBy="problem")
+    public List<Submission> submissions = new ArrayList<Submission>();
 
         public static Finder<Long, Problem> find = new Finder<Long, Problem>(
           Long.class, Problem.class

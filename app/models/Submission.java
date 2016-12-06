@@ -20,6 +20,10 @@ import com.avaje.ebean.Model;
     @Column
     @Constraints.Required
     public Long canvasAssignmentId;
+
+    @Column
+    @Constraints.Required
+    public String score;
 	
     @ManyToOne
     Problem problem;
@@ -58,8 +62,16 @@ import com.avaje.ebean.Model;
 		return this.canvasAssignmentId;
 	}
 
-	public void setcanvasAssignmentId(){
+	public void setcanvasAssignmentId(Long canvasAssignmentId){
 		this.canvasAssignmentId = canvasAssignmentId;
+	}
+
+	public String getScore(){
+		return this.score;
+	}
+
+	public void setScore(String score){
+		this.score = score;
 	}
 }
 

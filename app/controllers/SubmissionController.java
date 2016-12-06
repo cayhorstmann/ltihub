@@ -29,19 +29,27 @@ public class SubmissionController extends Controller {
 	
 	public Result addSubmission(Long problemID) {
 		System.out.println("Result is received" );
+		String score = request().getQueryString("score");
 		System.out.println("Received score is:" + request().getQueryString("score"));
 		Http.Cookie launchReturnUrlCookie = request().cookie("lis_outcome_service_url");
 		String returnUrl = launchReturnUrlCookie.value();
 		System.out.println("ReturnURL is: " + returnUrl);
 		Http.Cookie canvasAssignmentIdCookie = request().cookie("custom_canvas_assignment_id");
-		String assignmentId = canvasAssignmentIdCookie.value();
+		Long assignmentId = Long.parseLong(canvasAssignmentIdCookie.value());
 		System.out.println("AssignmentID is: " + assignmentId);
 		Http.Cookie userIdCookie = request().cookie("custom_canvas_user_login_id");
-		String userId = userIdCookie.value();
+		Long userId = Long.parseLong(userIdCookie.value());
 		System.out.println("UserID is: " + userId);
 		
 		Problem problem = Problem.find.byId(problemID);
 		System.out.println("Problem is: " + problem);
+		Submission submission = new Submission();
+		submission.setcanvasAssignmentId(assignmentId);
+		submission.setStudentId(userId);
+		submission.setScore(score);
+		submission.setProblem(problem);
+		problem.getSubmissions().add(submission);
+		submission.save();
           	String callback = request().getQueryString("callback");
 		ObjectNode result = Json.newObject();
 		result.put("received", true);

@@ -19,6 +19,7 @@ create table submission (
   submission_id             bigint auto_increment not null,
   student_id                bigint,
   canvas_assignment_id      bigint,
+  score                     varchar(255),
   problem_problem_id        bigint,
   constraint pk_submission primary key (submission_id))
 ;
