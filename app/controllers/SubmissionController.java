@@ -43,13 +43,33 @@ public class SubmissionController extends Controller {
 		
 		Problem problem = Problem.find.byId(problemID);
 		System.out.println("Problem is: " + problem);
-		Submission submission = new Submission();
-		submission.setcanvasAssignmentId(assignmentId);
-		submission.setStudentId(userId);
-		submission.setScore(score);
-		submission.setProblem(problem);
-		problem.getSubmissions().add(submission);
-		submission.save();
+		List<Submission> submissions = Submission.find.fetch("problem").where().eq("problem.problemId",problemID).findList();
+		System.out.println(submissions);
+		if(submissions.size()==0){
+			Submission submission = new Submission();
+				submission.setcanvasAssignmentId(assignmentId);
+				submission.setStudentId(userId);
+				submission.setScore(score);
+				submission.setProblem(problem);
+				problem.getSubmissions().add(submission);
+				submission.save();
+		}
+		for(Submission s: submissions){
+			System.out.println("Submitted by: "+s.getStudentId());
+			if((s.getStudentId().compareTo(userId))==0){
+				System.out.println("Already submitted the solution");
+				break;
+			}
+                        else{
+				Submission submission = new Submission();
+				submission.setcanvasAssignmentId(assignmentId);
+				submission.setStudentId(userId);
+				submission.setScore(score);
+				submission.setProblem(problem);
+				problem.getSubmissions().add(submission);
+				submission.save();
+			}
+		}
           	String callback = request().getQueryString("callback");
 		ObjectNode result = Json.newObject();
 		result.put("received", true);
