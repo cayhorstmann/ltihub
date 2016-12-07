@@ -33,14 +33,19 @@ public class HomeController extends Controller {
         for(String key: postParams.keySet())
     	    System.out.println(key + " - " + Arrays.toString(postParams.get(key)));
 	    System.out.println();
+if (postParams.get("lis_outcome_service_url") == null || postParams.get("lis_result_sourcedid") == null) {
+            flash("warning", "");
+	}
+	else{
 	response().setCookie(new Http.Cookie("lis_outcome_service_url", postParams.get("lis_outcome_service_url")[0],
                     null, null, null, false, false));
-	response().setCookie(new Http.Cookie("resource_link_id", postParams.get("resource_link_id")[0],
+	response().setCookie(new Http.Cookie("lis_result_sourcedid", postParams.get("lis_result_sourcedid")[0],
                     null, null, null, false, false));
 	response().setCookie(new Http.Cookie("custom_canvas_assignment_id", postParams.get("custom_canvas_assignment_id")[0],
                     null, null, null, false, false));
-	response().setCookie(new Http.Cookie("custom_canvas_user_login_id", postParams.get("custom_canvas_user_login_id")[0],
+	response().setCookie(new Http.Cookie("custom_canvas_user_id", postParams.get("custom_canvas_user_id")[0],
                     null, null, null, false, false));
+}
 	 String url = controllers.routes.HomeController.getAssignment().url()
                 + "?id=" + URLEncoder.encode(request().getQueryString("id"), "UTF-8");
         Logger.info(url);
