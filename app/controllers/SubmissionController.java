@@ -54,7 +54,7 @@ public class SubmissionController extends Controller {
 		else{
 			System.out.println("Solution already submitted ");
 		}
-          	String callback = request().getQueryString("callback");
+        String callback = request().getQueryString("callback");
 		ObjectNode result = Json.newObject();
 		result.put("received", true);
 		result.put("score", request().getQueryString("score"));
