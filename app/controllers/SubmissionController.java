@@ -37,9 +37,10 @@ public class SubmissionController extends Controller {
 		Http.Cookie userIdCookie = request().cookie("custom_canvas_user_id");
 		Long userId = Long.parseLong(userIdCookie.value());
 		System.out.println("UserID is: " + userId);
-		
+
 		Problem problem = Problem.find.byId(problemID);
 		System.out.println("Problem is: " + problem);
+		
 		List<Submission> submissions = Submission.find.where().eq("problem.problemId",problemID).eq("canvasAssignmentId",assignmentId).eq("studentId",userId).findList();
 		System.out.println(submissions);
 		if(submissions.size()==0){

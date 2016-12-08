@@ -98,15 +98,33 @@ public class HomeController extends Controller {
 		Assignment assignment = Assignment.find.byId(assignmentId);
 		List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).findList();
         System.out.println(problems);
-        return ok(finalAssignment.render(problems));
+	Http.Cookie canvasAssignmentIdCookie = request().cookie("custom_canvas_assignment_id");
+	Long assignmentID = Long.parseLong(canvasAssignmentIdCookie.value());
+	System.out.println("AssignmentID is: " + assignmentID);
+	Http.Cookie userIdCookie = request().cookie("custom_canvas_user_id");
+	Long userId = Long.parseLong(userIdCookie.value());
+	System.out.println("UserID is: " + userId);
+	List<Submission> submissions = new ArrayList<Submission>();
+	
+	for(Problem problem: problems){
+	List<Submission> submission = Submission.find.where().eq("problem.problemId",problem.problemId).eq("canvasAssignmentId",assignmentID).eq("studentId",userId).findList();
+		if(submission.size()!=0){
+			submissions.add(submission.get(0));
+			problems.remove(problem);	
+		}		
+	}
+        System.out.println(submissions);
+	System.out.println(problems);
+	
+	return ok(finalAssignment.render(submissions, problems));
 	}	
 
 	public Result saveEditedAssignment(Long assignment) {
         
 		DynamicForm bindedForm = Form.form().bindFromRequest();
-        String problemlist = bindedForm.get("url");
+        	String problemlist = bindedForm.get("url");
 		Assignment assignment1 = Assignment.find.byId(assignment);
-        System.out.println(problemlist);
+        	System.out.println(problemlist);
 		if(null != problemlist|| !problemlist.equals("")) {
 			String [] problemArr = problemlist.split(","); 
 			for(String problemstr : problemArr) {
@@ -120,20 +138,20 @@ public class HomeController extends Controller {
 			}
 		}
 		List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment1.assignmentId).findList();
-    	System.out.println(problems);
+    		System.out.println(problems);
 		Http.Cookie launchReturnUrlCookie = request().cookie("launch_presentation_return_url");
 		String returnUrl = launchReturnUrlCookie.value();
 		System.out.println("ReturnURL is: " + returnUrl);
-        return ok(showassignment.render(returnUrl,assignment1,problems));
+        	return ok(showassignment.render(returnUrl,assignment1,problems));
 	}
     
 
 	public Result showEditPage(Long assignment) {
 		Assignment assignment1 = Assignment.find.byId(assignment);
 		System.out.println(assignment1.getAssignmentId());
-        List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment1.assignmentId).findList();
-        System.out.println(problems);
-        return ok(editAssignment.render(assignment1, problems));    
+        	List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment1.assignmentId).findList();
+        	System.out.println(problems);
+        	return ok(editAssignment.render(assignment1, problems));    
     }
 
 }

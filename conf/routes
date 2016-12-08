@@ -14,7 +14,6 @@ GET	/assignment/editAssignment	controllers.HomeController.showEditPage(id: Long)
 POST	/assignment/saveAssignment	controllers.HomeController.saveEditedAssignment(id: Long)
 
 GET	/submissions/:problemID		controllers.SubmissionController.addSubmission(problemID: Long)
-
 POST    /send-score                 controllers.GradeSubmitterController.submitGradeToCanvas
 # An example controller showing how to use dependency injection
 GET     /count                      controllers.CountController.count

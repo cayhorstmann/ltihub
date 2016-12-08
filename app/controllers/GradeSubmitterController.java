@@ -33,9 +33,9 @@ public class GradeSubmitterController extends Controller {
     public Result submitGradeToCanvas() {
         Http.Cookie outcomeServiceUrlCookie = request().cookie("lis_outcome_service_url");
         Http.Cookie sourcedIdCookie = request().cookie("lis_result_sourcedid");
-	Http.Cookie assignmentIdCookie = request().cookie("custom_canvas_assignment_id");
+       Http.Cookie assignmentIdCookie = request().cookie("custom_canvas_assignment_id");
 	Http.Cookie userIdCookie = request().cookie("custom_canvas_user_id");
-        if (outcomeServiceUrlCookie == null) {
+	if (outcomeServiceUrlCookie == null) {
             Logger.info("lis_outcome_service_url cookie not found.");
             return badRequest();
         }
@@ -43,25 +43,49 @@ public class GradeSubmitterController extends Controller {
             Logger.info("lis_result_sourcedid cookie not found.");
             return badRequest();
         }
-
+        if (sourcedIdCookie == null) {
+            Logger.info("lis_custom_canvas_assignment_id cookie not found.");
+            return badRequest();
+        }
+	if (sourcedIdCookie == null) {
+            Logger.info("custom_canvas_user_id cookie not found.");
+            return badRequest();
+        }
         String outcomeServiceUrl = outcomeServiceUrlCookie.value();
         String sourcedId = sourcedIdCookie.value();
+	String assignmentId = assignmentIdCookie.value();
+	Long assignmentID = Long.parseLong(assignmentId);
+	Long userId = Long.parseLong(userIdCookie.value());
         if (outcomeServiceUrl == null
                 || outcomeServiceUrl.equals("")
                 || sourcedId == null
-                || sourcedId.equals("")) {
+                || sourcedId.equals("")||assignmentID == null || assignmentID.equals("")) {
             return badRequest();
         }
 
         Logger.info("lis_outcome_service_url = {}", outcomeServiceUrl);
         Logger.info("lis_result_sourcedid = {}", sourcedId);
-	Long assignmentId = Long.parseLong(assignmentIdCookie.value());
-	Long userId = Long.parseLong(userIdCookie.value());
 	
-	List<Submission> submissions = Submission.find.where().eq("canvasAssignmentId",assignmentId).eq("studentId", userId).findList();
-	System.out.println(submissions);
+	List<Submission> submissions = Submission.find.where().eq("canvasAssignmentId",assignmentId).eq("studentId",userId).findList();
+		System.out.println(submissions);
+        double score = 0.0;
+	int correct = 0;
+	int maxscore = 0;
+	for(Submission s: submissions){
+		String[] scores = s.score.split("/");
+		System.out.println(scores[0]);
+		correct+=Integer.parseInt(scores[0]);
+		if(scores.length >1){
+			System.out.println(scores[1]);
+			maxscore+=Integer.parseInt(scores[1]);
+		}
+		
+	}
+	System.out.println("Correct is: " + correct);
+	System.out.println("Maxscore is: " +maxscore);
+	score = (double)correct/maxscore;
+	System.out.println("Score is: " + score);
 
-	double score = 0.5;
         Logger.info(views.xml.scorepassback.render(sourcedId, score).toString());
 
         try {
@@ -78,7 +102,7 @@ public class GradeSubmitterController extends Controller {
         } catch (OAuthCommunicationException e) {
             e.printStackTrace();
         }
-        return ok("Grade saved in gradebook.Thank You!!");
+        return ok("Grade saved in gradebook. Please check your grades.");
     }
 
     /**
