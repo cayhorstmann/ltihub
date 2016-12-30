@@ -43,16 +43,16 @@ public class GradeSubmitterController extends Controller {
             Logger.info("lis_result_sourcedid cookie not found.");
             return badRequest();
         }
-        if (sourcedIdCookie == null) {
+        if (assignmentIdCookie == null) {
             Logger.info("lis_custom_canvas_assignment_id cookie not found.");
             return badRequest();
         }
-	if (sourcedIdCookie == null) {
+	if (userIdCookie == null) {
             Logger.info("custom_canvas_user_id cookie not found.");
             return badRequest();
         }
-        String outcomeServiceUrl = outcomeServiceUrlCookie.value();
-        String sourcedId = sourcedIdCookie.value();
+    String outcomeServiceUrl = outcomeServiceUrlCookie.value();
+    String sourcedId = sourcedIdCookie.value();
 	String assignmentId = assignmentIdCookie.value();
 	Long assignmentID = Long.parseLong(assignmentId);
 	Long userId = Long.parseLong(userIdCookie.value());
@@ -67,7 +67,7 @@ public class GradeSubmitterController extends Controller {
         Logger.info("lis_result_sourcedid = {}", sourcedId);
 	
 	List<Submission> submissions = Submission.find.where().eq("canvasAssignmentId",assignmentId).eq("studentId",userId).findList();
-		System.out.println(submissions);
+	System.out.println(submissions);
         double score = 0.0;
 	int correct = 0;
 	int maxscore = 0;
