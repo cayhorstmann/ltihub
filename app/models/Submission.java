@@ -25,6 +25,9 @@ import com.avaje.ebean.Model;
     @Constraints.Required
     public String score;
 	
+	@Column
+	public String activity;
+	
     @ManyToOne
     Problem problem;
 
@@ -72,6 +75,14 @@ import com.avaje.ebean.Model;
 
 	public void setScore(String score){
 		this.score = score;
+	}
+	
+	public String getActivity(){
+		return this.activity;
+	}
+
+	public void setActivity(String activity){
+		this.activity = activity;
 	}
 }
 
