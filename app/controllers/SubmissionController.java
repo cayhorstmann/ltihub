@@ -64,5 +64,22 @@ public class SubmissionController extends Controller {
 		else
 			return ok(Jsonp.jsonp(callback, result));	
 	}
+
+	public Result addSubmissions(){
+	   JsonNode jsonPayload = request().body().asJson();
+           Logger.info("json from client = {}", jsonPayload);
+
+        // Add all the 'correct' and 'maxscore' values to get the total score
+        int correct = 0;
+        int maxScore = 0;
+        Iterator<JsonNode> nodeIterator = jsonPayload.elements();
+        while (nodeIterator.hasNext()) {
+            JsonNode exercise = nodeIterator.next();
+            Logger.info(exercise.toString());
+            correct = correct + exercise.get("correct").asInt();
+            maxScore = maxScore + exercise.get("maxscore").asInt();
+        }
+	return ok();
+}
 }
 

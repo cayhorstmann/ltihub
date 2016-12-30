@@ -6,7 +6,6 @@ import java.io.PrintWriter;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import play.*;
 import play.data.*;
@@ -110,7 +109,7 @@ public class HomeController extends Controller {
 	List<Submission> submission = Submission.find.where().eq("problem.problemId",problem.problemId).eq("canvasAssignmentId",assignmentID).eq("studentId",userId).findList();
 		if(submission.size()!=0){
 			submissions.add(submission.get(0));
-			problems.remove(problem);	
+		//	problems.remove(problem);	
 		}		
 	}
         System.out.println(submissions);
