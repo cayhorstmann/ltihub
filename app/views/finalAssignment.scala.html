@@ -16,11 +16,11 @@ function onLoadHandler() {
                         iframes[i].src = iframes[i].src;
            }
         }
-        window.onload = onLoadHandler;
+       // window.onload = onLoadHandler;
 </script>
 <script type='text/javascript'>
 var exerciseScores = [];
-
+var btn = document.getElementById('send');
 function checkScores() {
     exerciseScores = []; // reset the scores array to prevent incorrect data when button is pressed again
     $('.exercise-iframe').each(function (_, iframe) {
@@ -46,7 +46,7 @@ function receiveMessage(event) {
             });
  }
 
-  window.addEventListener("message", receiveMessage, false);
+  btn.addEventListener("message", receiveMessage, false);
 
      </script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
@@ -77,7 +77,7 @@ function receiveMessage(event) {
         id= @problem.problemId src=@problem.url ></iframe>}
         <div id='response'></div>
 
-<div> <input type="button" value="Save the incomplete assignment" onclick="checkScores(event)"/></div>
+<button id="send"> "Save the incomplete assignment" ></button>
 
 <form method="post" action="/send-score"><button>Send Score To Canvas!!</button></form>
 
