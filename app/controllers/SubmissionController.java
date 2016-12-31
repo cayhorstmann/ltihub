@@ -53,7 +53,8 @@ public class SubmissionController extends Controller {
 			submission.save();
 		}
 		else{
-			System.out.println("Solution already submitted ");
+			submission.setScore(score);
+			System.out.println("New score is added and the value is: "+ score);
 		}
         String callback = request().getQueryString("callback");
 		ObjectNode result = Json.newObject();
@@ -81,7 +82,7 @@ public class SubmissionController extends Controller {
             JsonNode exercise = nodeIterator.next();
             Logger.info(exercise.toString());
 	    if(exercise.has("activity")){
-	    List<Submission> submissions = Submission.find.where().eq("activity",exercise.get("activity").asText()).findList();
+	    List<Submission> submissions = Submission.find.where().eq("canvasAssignmentId",assignmentId).eq("studentId",userId).eq("activity",exercise.get("activity").asText()).findList();
 	    System.out.println(submissions);
 		if(submissions.size()==0){
 			Submission submission = new Submission();
