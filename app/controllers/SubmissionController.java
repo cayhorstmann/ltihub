@@ -69,35 +69,34 @@ public class SubmissionController extends Controller {
 	   JsonNode jsonPayload = request().body().asJson();
            Logger.info("json from client = {}", jsonPayload);
 
-        // Add all the 'correct' and 'maxscore' values to get the total score
-        int correct = 0;
-        int maxScore = 0;
-		Http.Cookie canvasAssignmentIdCookie = request().cookie("custom_canvas_assignment_id");
-		Long assignmentId = Long.parseLong(canvasAssignmentIdCookie.value());
-		System.out.println("AssignmentID is: " + assignmentId);
-		Http.Cookie userIdCookie = request().cookie("custom_canvas_user_id");
-		Long userId = Long.parseLong(userIdCookie.value());
-		System.out.println("UserID is: " + userId);
-        Iterator<JsonNode> nodeIterator = jsonPayload.elements();
+           Http.Cookie canvasAssignmentIdCookie = request().cookie("custom_canvas_assignment_id");
+	   Long assignmentId = Long.parseLong(canvasAssignmentIdCookie.value());
+	   System.out.println("AssignmentID is: " + assignmentId);
+	   Http.Cookie userIdCookie = request().cookie("custom_canvas_user_id");
+	   Long userId = Long.parseLong(userIdCookie.value());
+	   System.out.println("UserID is: " + userId);
+           Iterator<JsonNode> nodeIterator = jsonPayload.elements();
 		
         while (nodeIterator.hasNext()) {
             JsonNode exercise = nodeIterator.next();
             Logger.info(exercise.toString());
-			List<Submission> submissions = Submission.find.where().eq("activity",exercise.get("activity").asString()).findList();
-			System.out.println(submissions);
-			if(submissions.size()==0){
-				Submission submission = new Submission();
-				submission.setcanvasAssignmentId(assignmentId);
-				submission.setStudentId(userId);
-				submission.setActivity(exercise.get("activity").asString());
-				submission.setScore(exercise.get("correct")/exercise.get("maxscore"));
-				submission.save();
+	    if(exercise.has("activity")){
+	    List<Submission> submissions = Submission.find.where().eq("activity",exercise.get("activity").asText()).findList();
+	    System.out.println(submissions);
+		if(submissions.size()==0){
+			Submission submission = new Submission();
+			submission.setcanvasAssignmentId(assignmentId);
+			submission.setStudentId(userId);
+			submission.setActivity(exercise.get("activity").asText());
+			submission.setScore(exercise.get("correct").asText()+"/"+exercise.get("maxscore").asText());
+			submission.save();
 		}
 		else{
-			submission.setScore(exercise.get("correct")/exercise.get("maxscore"));
-			System.out.println("Solution is " +exercise.get("correct")/exercise.get("maxscore"));
+			submissions.get(0).setScore(exercise.get("correct").asText()+"/"+exercise.get("maxscore").asText());
+			System.out.println("Solution is " +exercise.get("correct").asText()+"/"+exercise.get("maxscore").asText());
 		}
-       
+      } 
+}
 	return ok();
 }
 }
