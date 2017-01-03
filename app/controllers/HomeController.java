@@ -40,11 +40,12 @@ public class HomeController extends Controller {
                  null, null, null, false, false));
 			response().setCookie(new Http.Cookie("lis_result_sourcedid", postParams.get("lis_result_sourcedid")[0],
                  null, null, null, false, false));
-			response().setCookie(new Http.Cookie("custom_canvas_assignment_id", postParams.get("custom_canvas_assignment_id")[0],
+			
+		}
+		response().setCookie(new Http.Cookie("custom_canvas_assignment_id", postParams.get("custom_canvas_assignment_id")[0],
                   null, null, null, false, false));
 			response().setCookie(new Http.Cookie("custom_canvas_user_id", postParams.get("custom_canvas_user_id")[0],
                   null, null, null, false, false));
-		}
 		 String url = controllers.routes.HomeController.getAssignment().url()
                 + "?id=" + URLEncoder.encode(request().getQueryString("id"), "UTF-8");
      	 Logger.info(url);
