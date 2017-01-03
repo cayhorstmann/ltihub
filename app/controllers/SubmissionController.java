@@ -53,7 +53,7 @@ public class SubmissionController extends Controller {
 			submission.save();
 		}
 		else{
-			submission.setScore(score);
+			submissions.get(0).setScore(score);
 			System.out.println("New score is added and the value is: "+ score);
 		}
         String callback = request().getQueryString("callback");
