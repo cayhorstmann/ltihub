@@ -121,9 +121,9 @@ public class HomeController extends Controller {
 	public Result saveEditedAssignment(Long assignment) {
         
 		DynamicForm bindedForm = Form.form().bindFromRequest();
-        	String problemlist = bindedForm.get("url");
+        String problemlist = bindedForm.get("url");
 		Assignment assignment1 = Assignment.find.byId(assignment);
-        	System.out.println(problemlist);
+        System.out.println(problemlist);
 		if(null != problemlist|| !problemlist.equals("")) {
 			String [] problemArr = problemlist.split(","); 
 			for(String problemstr : problemArr) {
@@ -137,7 +137,7 @@ public class HomeController extends Controller {
 			}
 		}
 		List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment1.assignmentId).findList();
-    		System.out.println(problems);
+    	System.out.println(problems);
 		Http.Cookie launchReturnUrlCookie = request().cookie("launch_presentation_return_url");
 		String returnUrl = launchReturnUrlCookie.value();
 		System.out.println("ReturnURL is: " + returnUrl);
