@@ -25,31 +25,30 @@ import views.html.*;
  * to the application's home page.
  */
 public class HomeController extends Controller {
-	 
-    public Result index() throws UnsupportedEncodingException{     
-		Map<String, String[]> postParams = request().body().asFormUrlEncoded();
-
-    	for(String key: postParams.keySet())
-    		System.out.println(key + " - " + Arrays.toString(postParams.get(key)));
-		System.out.println();
-		if (postParams.get("lis_outcome_service_url") == null || postParams.get("lis_result_sourcedid") == null) {
+     
+    public Result index() throws UnsupportedEncodingException{    
+ 	Map<String, String[]> postParams = request().body().asFormUrlEncoded();
+    //	for(String key: postParams.keySet())
+    //		System.out.println(key + " - " + Arrays.toString(postParams.get(key)));
+	System.out.println();
+	if (postParams.get("lis_outcome_service_url") == null || postParams.get("lis_result_sourcedid") == null) {
           	flash("warning", "");
-		}
-		else{
-			response().setCookie(new Http.Cookie("lis_outcome_service_url", postParams.get("lis_outcome_service_url")[0],
+	}
+	else{
+		response().setCookie(new Http.Cookie("lis_outcome_service_url", postParams.get("lis_outcome_service_url")[0],
                  null, null, null, false, false));
-			response().setCookie(new Http.Cookie("lis_result_sourcedid", postParams.get("lis_result_sourcedid")[0],
+		response().setCookie(new Http.Cookie("lis_result_sourcedid", postParams.get("lis_result_sourcedid")[0],
                  null, null, null, false, false));
 			
 		}
-		response().setCookie(new Http.Cookie("custom_canvas_assignment_id", postParams.get("custom_canvas_assignment_id")[0],
+	response().setCookie(new Http.Cookie("custom_canvas_assignment_id", postParams.get("custom_canvas_assignment_id")[0],
                   null, null, null, false, false));
-			response().setCookie(new Http.Cookie("custom_canvas_user_id", postParams.get("custom_canvas_user_id")[0],
+	response().setCookie(new Http.Cookie("custom_canvas_user_id", postParams.get("custom_canvas_user_id")[0],
                   null, null, null, false, false));
-		 String url = controllers.routes.HomeController.getAssignment().url()
+	String url = controllers.routes.HomeController.getAssignment().url()
                 + "?id=" + URLEncoder.encode(request().getQueryString("id"), "UTF-8");
-     	 Logger.info(url);
-     	 return redirect(url);
+     	
+     	return redirect(url);
   	}
   
 	//Method to show the assignment landing page
@@ -57,12 +56,12 @@ public class HomeController extends Controller {
 		System.out.println("Parameters received from canvas in instructor view:create assignment");
         Map<String, String[]> postParams = request().body().asFormUrlEncoded();
 
-	 	for(String key: postParams.keySet())
+	for(String key: postParams.keySet())
     		System.out.println(key + " - " + Arrays.toString(postParams.get(key)));
-	 	System.out.println();
-        response().setCookie(new Http.Cookie("launch_presentation_return_url", postParams.get("launch_presentation_return_url")[0],
+	 System.out.println();
+         response().setCookie(new Http.Cookie("launch_presentation_return_url", postParams.get("launch_presentation_return_url")[0],
                     null, null, null, false, false));
-        return ok(create_exercise.render());
+         return ok(create_exercise.render());
     }
 	
 	//Method to save the created assignment
@@ -94,29 +93,29 @@ public class HomeController extends Controller {
 	
 	//Get Assignment Method
 	public Result getAssignment(){
-		Long assignmentId = Long.parseLong(request().getQueryString("id"));
-		Assignment assignment = Assignment.find.byId(assignmentId);
-		List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).findList();
-        System.out.println(problems);
+	      Long assignmentId = Long.parseLong(request().getQueryString("id"));
+	 
+	      List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentId).findList();
+        
 	Http.Cookie canvasAssignmentIdCookie = request().cookie("custom_canvas_assignment_id");
 	Long assignmentID = Long.parseLong(canvasAssignmentIdCookie.value());
 	System.out.println("AssignmentID is: " + assignmentID);
 	Http.Cookie userIdCookie = request().cookie("custom_canvas_user_id");
 	Long userId = Long.parseLong(userIdCookie.value());
 	System.out.println("UserID is: " + userId);
-	List<Submission> submissions = new ArrayList<Submission>();
-	
-	for(Problem problem: problems){
+	//List<Submission> submissions = new ArrayList<Submission>();
+	List<Submission> submissions = Submission.find.where().eq("canvasAssignmentId",assignmentID).findList();
+/*	for(Problem problem: problems){
 	List<Submission> submission = Submission.find.where().eq("problem.problemId",problem.problemId).eq("canvasAssignmentId",assignmentID).eq("studentId",userId).findList();
-		if(submission.size()!=0){
+		if(submission.size() != 0){
 			submissions.add(submission.get(0));
 		//	problems.remove(problem);	
 		}		
-	}
+	}*/
         System.out.println(submissions);
 	System.out.println(problems);
 	
-	return ok(finalAssignment.render(submissions, problems));
+	return ok(finalAssignment.render(submissions, problems,assignmentID, userId));
 	}	
 
 	public Result saveEditedAssignment(Long assignment) {

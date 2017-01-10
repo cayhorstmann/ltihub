@@ -30,11 +30,11 @@ public class GradeSubmitterController extends Controller {
         this.ws = ws;
     }
 
-    public Result submitGradeToCanvas() {
+    public Result submitGradeToCanvas(Long assignmentID, Long userID) {
         Http.Cookie outcomeServiceUrlCookie = request().cookie("lis_outcome_service_url");
         Http.Cookie sourcedIdCookie = request().cookie("lis_result_sourcedid");
-       Http.Cookie assignmentIdCookie = request().cookie("custom_canvas_assignment_id");
-	Http.Cookie userIdCookie = request().cookie("custom_canvas_user_id");
+      // Http.Cookie assignmentIdCookie = request().cookie("custom_canvas_assignment_id");
+	//Http.Cookie userIdCookie = request().cookie("custom_canvas_user_id");
 	if (outcomeServiceUrlCookie == null) {
             Logger.info("lis_outcome_service_url cookie not found.");
             return badRequest();
@@ -43,19 +43,19 @@ public class GradeSubmitterController extends Controller {
             Logger.info("lis_result_sourcedid cookie not found.");
             return badRequest();
         }
-        if (assignmentIdCookie == null) {
-            Logger.info("lis_custom_canvas_assignment_id cookie not found.");
-            return badRequest();
-        }
-	if (userIdCookie == null) {
-            Logger.info("custom_canvas_user_id cookie not found.");
-            return badRequest();
-        }
+       // if (assignmentIdCookie == null) {
+         //   Logger.info("lis_custom_canvas_assignment_id cookie not found.");
+           // return badRequest();
+       // }
+//	if (userIdCookie == null) {
+  //          Logger.info("custom_canvas_user_id cookie not found.");
+    //        return badRequest();
+      //  }
     String outcomeServiceUrl = outcomeServiceUrlCookie.value();
     String sourcedId = sourcedIdCookie.value();
-	String assignmentId = assignmentIdCookie.value();
-	Long assignmentID = Long.parseLong(assignmentId);
-	Long userId = Long.parseLong(userIdCookie.value());
+	//String assignmentId = assignmentIdCookie.value();
+//	Long assignmentID = Long.parseLong(assignmentId);
+//	Long userId = Long.parseLong(userIdCookie.value());
         if (outcomeServiceUrl == null
                 || outcomeServiceUrl.equals("")
                 || sourcedId == null
@@ -66,7 +66,7 @@ public class GradeSubmitterController extends Controller {
         Logger.info("lis_outcome_service_url = {}", outcomeServiceUrl);
         Logger.info("lis_result_sourcedid = {}", sourcedId);
 	
-	List<Submission> submissions = Submission.find.where().eq("canvasAssignmentId",assignmentId).eq("studentId",userId).findList();
+	List<Submission> submissions = Submission.find.where().eq("canvasAssignmentId",assignmentID).eq("studentId",userID).findList();
 	System.out.println(submissions);
         double score = 0.0;
 	int correct = 0;
@@ -114,10 +114,8 @@ public class GradeSubmitterController extends Controller {
      * @param oauthKey the oauth consumer key
      * @param oauthSecret the oauth secret key
      */
-    public static void passbackGradeToCanvas(String gradePassbackURL, String xml,
-                                               String oauthKey, String oauthSecret)
-            throws URISyntaxException, IOException,
-            OAuthMessageSignerException, OAuthExpectationFailedException, OAuthCommunicationException
+    public static void passbackGradeToCanvas(String gradePassbackURL, String xml, String oauthKey, String oauthSecret) throws URISyntaxException, IOException,
+OAuthMessageSignerException, OAuthExpectationFailedException, OAuthCommunicationException
     {
         // Create an oauth consumer in order to sign the grade that will be sent.
         DefaultOAuthConsumer consumer = new DefaultOAuthConsumer(oauthKey, oauthSecret);
@@ -141,8 +139,7 @@ public class GradeSubmitterController extends Controller {
         request.setRequestProperty("Content-Length", Integer.toString(xml.length()));
 
         // Sign the request per the oauth 1.0 spec
-        consumer.sign(request); // Throws
-                                // OAuthMessageSignerException,
+        consumer.sign(request); // Throws OAuthMessageSignerException,
                                 // OAuthExpectationFailedException,
                                 // OAuthCommunicationException
 

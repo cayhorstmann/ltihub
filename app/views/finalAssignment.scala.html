@@ -1,26 +1,31 @@
-@(submissions: List[models.Submission], problems: List[models.Problem])
+@(submissions: List[models.Submission], problems: List[models.Problem], assignmentID: Long, userID: Long)
 @import helper._
 
 <script type='text/javascript'>
 function onLoadHandler() {
          var iframes = document.getElementsByClassName('exercise-iframe')
+         var assignId = @assignmentID;
+         var userId = @userID;
+
+         alert("Assignment ID is: " + assignId);
+         alert("USer ID is: " + userId);
              for (i = 0; i < iframes.length; i++) {
                 var str = iframes[i].src;
                 var patt = new RegExp("play.codecheck.ws");
 //              alert(iframes.length);
                 if(patt.test(str)){
-                        iframes[i].src = iframes[i].src + "&callback="+ encodeURIComponent(window.location.protocol + "//" + window.location.host + "/submissions/"+ iframes[i].id);
-//                      alert(iframes[i].src);
+                 
+	    iframes[i].src = iframes[i].src + "?scoreCallback="+window.location.protocol+"//"+window.location.host + "/submissions/"+assignId +"/" + userId +"/" +iframes[i].id;
+                      alert(iframes[i].src);
                 }
-                else
-                        iframes[i].src = iframes[i].src;
-           }
+                
         }
+}
        // window.onload = onLoadHandler;
 </script>
-<script type='text/javascript'>
+<script type="text/javascript">
 var exerciseScores = [];
-var btn = document.getElementById('send');
+
 function checkScores() {
     exerciseScores = []; // reset the scores array to prevent incorrect data when button is pressed again
     $('.exercise-iframe').each(function (_, iframe) {
@@ -32,8 +37,8 @@ function checkScores() {
 function receiveMessage(event) {
     var iframes = document.getElementsByClassName('exercise-iframe')
     exerciseScores.push(event.data)
-    var response = document.getElementById('response')
-    response.innerHTML = JSON.stringify(exerciseScores)
+   // var response = document.getElementById('response')
+   // response.innerHTML = JSON.stringify(exerciseScores)
     $.ajax({
                 url: '/send-interactivescore',
                 method: 'POST',
@@ -41,13 +46,27 @@ function receiveMessage(event) {
                 data: JSON.stringify(exerciseScores),
                 success: function(msg) {
                     var response = document.getElementById('response')
-                    response.innerHTML = "Your assignment is saved!";
+                    response.innerHTML = "Your partially complete assignment is saved!";
                 }
             });
  }
 
-  btn.addEventListener("message", receiveMessage, false);
-
+  window.addEventListener("message", receiveMessage, false);
+function addLoadEvent(func) {
+  var oldonload = window.onload;
+  if (typeof window.onload != 'function') {
+    window.onload = func;
+  } else {
+    window.onload = function() {
+      if (oldonload) {
+        oldonload();
+      }
+      func();
+    }
+  }
+}
+addLoadEvent(onLoadHandler);
+//addLoadEvent(receiveMessage);
      </script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
  <style>
@@ -64,20 +83,19 @@ function receiveMessage(event) {
         </p>
     }
 
-
-    @for(submission <- submissions) {
-
+    @for(problem <- problems) {
+        @for(submission <- submissions) {
+        
         <div style='width : 100% ; height : 5em ;'
         id= @submission.submissionId  ><p>You have solved this problem earlier and your score is <b>@submission.score</b></p></div>
+        
         }
-
-    @for(problem <- problems) {
-
         <iframe style='width : 100% ; height : 50em ;' class='exercise-iframe'
         id= @problem.problemId src=@problem.url ></iframe>}
         <div id='response'></div>
 
-<button id="send"> "Save the incomplete assignment" ></button>
+<input type="button" value="Save my work" onclick="checkScores(event)"/>
+<a href="@routes.GradeSubmitterController.submitGradeToCanvas(assignmentID, userID)"><button>Record my score</button></a>
 
-<form method="post" action="/send-score"><button>Send Score To Canvas!!</button></form>
+<p>If you want to take a break and continue later, click on "Save my work". If you are done with all questions, click on "Record my score"</p>
 

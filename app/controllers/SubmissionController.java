@@ -27,26 +27,32 @@ import views.html.*;
 
 public class SubmissionController extends Controller {
 	
-	public Result addSubmission(Long problemID) {
-		System.out.println("Result is received" );
-		String score = request().getQueryString("score");
-		System.out.println("Received score is:" + request().getQueryString("score"));
-		Http.Cookie canvasAssignmentIdCookie = request().cookie("custom_canvas_assignment_id");
-		Long assignmentId = Long.parseLong(canvasAssignmentIdCookie.value());
-		System.out.println("AssignmentID is: " + assignmentId);
-		Http.Cookie userIdCookie = request().cookie("custom_canvas_user_id");
-		Long userId = Long.parseLong(userIdCookie.value());
-		System.out.println("UserID is: " + userId);
+	public Result addSubmission(Long problemID, Long assignmentID, Long userID) {	
+	System.out.println("Result is received" );
+               JsonNode json = request().body().asJson();
+	if(json == null)
+			return badRequest("Expecting Json data");
 
-		Problem problem = Problem.find.byId(problemID);
+	String score = json.findPath("score").textValue();
+
+//      String score = request().getQueryString("score");
+	System.out.println("Received score is:" + score);
+	//Http.Cookie canvasAssignmentIdCookie = request().cookie("custom_canvas_assignment_id");
+	//Long assignmentId = Long.parseLong(canvasAssignmentIdCookie.value());
+	System.out.println("AssignmentID is: " + assignmentID);
+	//Http.Cookie userIdCookie = request().cookie("custom_canvas_user_id");
+	//Long userId = Long.parseLong(userIdCookie.value());
+	System.out.println("UserID is: " + userID);
+
+	Problem problem = Problem.find.byId(problemID);
 		System.out.println("Problem is: " + problem);
 		
-		List<Submission> submissions = Submission.find.where().eq("problem.problemId",problemID).eq("canvasAssignmentId",assignmentId).eq("studentId",userId).findList();
+		List<Submission> submissions = Submission.find.where().eq("problem.problemId",problemID).findList();
 		System.out.println(submissions);
 		if(submissions.size()==0){
 			Submission submission = new Submission();
-			submission.setcanvasAssignmentId(assignmentId);
-			submission.setStudentId(userId);
+			submission.setcanvasAssignmentId(assignmentID);
+			submission.setStudentId(userID);
 			submission.setScore(score);
 			submission.setProblem(problem);
 			problem.getSubmissions().add(submission);
@@ -56,21 +62,22 @@ public class SubmissionController extends Controller {
 			submissions.get(0).setScore(score);
 			System.out.println("New score is added and the value is: "+ score);
 		}
-        String callback = request().getQueryString("callback");
-		ObjectNode result = Json.newObject();
-		result.put("received", true);
-		result.put("score", request().getQueryString("score"));
-		if (callback == null)
-			return ok(result.asText());
-		else
-			return ok(Jsonp.jsonp(callback, result));	
-	}
+  //      String callback = request().getQueryString("callback");
+//		ObjectNode result = Json.newObject();
+//		result.put("received", true);
+//		result.put("score", request().getQueryString("score"));
+//		if (callback == null)
+//			return ok(result.asText());
+//		else
+//			return ok(Jsonp.jsonp(callback, result));	
+   return ok("Score is saved");	
+     }
 
 	public Result addSubmissions(){
 	   JsonNode jsonPayload = request().body().asJson();
            Logger.info("json from client = {}", jsonPayload);
 
-           Http.Cookie canvasAssignmentIdCookie = request().cookie("custom_canvas_assignment_id");
+          Http.Cookie canvasAssignmentIdCookie = request().cookie("custom_canvas_assignment_id");
 	   Long assignmentId = Long.parseLong(canvasAssignmentIdCookie.value());
 	   System.out.println("AssignmentID is: " + assignmentId);
 	   Http.Cookie userIdCookie = request().cookie("custom_canvas_user_id");
@@ -80,13 +87,15 @@ public class SubmissionController extends Controller {
 		
         while (nodeIterator.hasNext()) {
             JsonNode exercise = nodeIterator.next();
-            Logger.info(exercise.toString());
+      //      Logger.info(exercise.toString());
 	    if(exercise.has("activity")){
-	    List<Submission> submissions = Submission.find.where().eq("canvasAssignmentId",assignmentId).eq("studentId",userId).eq("activity",exercise.get("activity").asText()).findList();
-	    System.out.println(submissions);
-		if(submissions.size()==0){
-			Submission submission = new Submission();
+	    Problem problem = Problem.find.where().like("url", "%"+exercise.get("activity").asText()+"%").findList().get(0);
+	    List<Submission> submissions = Submission.find.where().eq("canvasAssignmentId",assignmentId).eq("studentId",userId).eq("problem.problemId",problem.problemId).eq("activity",exercise.get("activity").asText()).findList();
+	    System.out.println("Submission is: " + submissions);
+		if(submissions.size()== 0){
+		     Submission submission = new Submission();
 			submission.setcanvasAssignmentId(assignmentId);
+			submission.setProblem(problem);
 			submission.setStudentId(userId);
 			submission.setActivity(exercise.get("activity").asText());
 			submission.setScore(exercise.get("correct").asText()+"/"+exercise.get("maxscore").asText());
@@ -94,7 +103,7 @@ public class SubmissionController extends Controller {
 		}
 		else{
 			submissions.get(0).setScore(exercise.get("correct").asText()+"/"+exercise.get("maxscore").asText());
-			System.out.println("Solution is " +exercise.get("correct").asText()+"/"+exercise.get("maxscore").asText());
+			System.out.println("Updated Solution is " + exercise.get("correct").asText()+"/"+exercise.get("maxscore").asText());
 		}
       } 
 }

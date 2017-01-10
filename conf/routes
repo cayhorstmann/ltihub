@@ -3,7 +3,7 @@
 # ~~~~
 
 # An example controller showing a sample home page
-GET     /                           controllers.HomeController.index
+#GET     /                           controllers.HomeController.index
 
 POST	/createAssignment	    controllers.HomeController.createAssignment
 POST	/			controllers.HomeController.addAssignment
@@ -13,8 +13,8 @@ GET	/assignment/editAssignment	controllers.HomeController.showEditPage(id: Long)
 
 POST	/assignment/saveAssignment	controllers.HomeController.saveEditedAssignment(id: Long)
 
-GET	/submissions/:problemID		controllers.SubmissionController.addSubmission(problemID: Long)
-POST    /send-score                 controllers.GradeSubmitterController.submitGradeToCanvas
+POST	/submissions/:assignmentID/:userID/:problemId		controllers.SubmissionController.addSubmission(problemId: Long, assignmentID: Long, userID: Long)
+GET    /send-score/:assignmentID/:userID   controllers.GradeSubmitterController.submitGradeToCanvas(assignmentID: Long, userID: Long)
 
 POST	/send-interactivescore	   controllers.SubmissionController.addSubmissions
 # An example controller showing how to use dependency injection
