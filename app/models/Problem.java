@@ -23,9 +23,8 @@ public class Problem extends Model {
     @OneToMany(mappedBy="problem")
     public List<Submission> submissions = new ArrayList<Submission>();
 
-        public static Finder<Long, Problem> find = new Finder<Long, Problem>(
-          Long.class, Problem.class
-        );
+    public static Finder<Long, Problem> find = new Finder<Long, Problem>(
+          Long.class, Problem.class);
 		
 	public Problem(){
 		}

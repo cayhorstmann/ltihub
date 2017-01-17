@@ -5,10 +5,10 @@
 # An example controller showing a sample home page
 #GET     /                           controllers.HomeController.index
 
-POST	/createAssignment	    controllers.HomeController.createAssignment
+POST	/createAssignment	controllers.HomeController.createAssignment
 POST	/			controllers.HomeController.addAssignment
 POST	/assignment		controllers.HomeController.index
-GET	/assignment	    controllers.HomeController.getAssignment
+GET	/assignment	        controllers.HomeController.getAssignment
 GET	/assignment/editAssignment	controllers.HomeController.showEditPage(id: Long)	
 
 POST	/assignment/saveAssignment	controllers.HomeController.saveEditedAssignment(id: Long)
@@ -16,7 +16,7 @@ POST	/assignment/saveAssignment	controllers.HomeController.saveEditedAssignment(
 POST	/submissions/:assignmentID/:userID/:problemId		controllers.SubmissionController.addSubmission(problemId: Long, assignmentID: Long, userID: Long)
 GET    /send-score/:assignmentID/:userID   controllers.GradeSubmitterController.submitGradeToCanvas(assignmentID: Long, userID: Long)
 
-POST	/send-interactivescore	   controllers.SubmissionController.addSubmissions
+POST	/send-interactivescore/:assignmentID   controllers.SubmissionController.addSubmissions(assignmentID: Long)
 # An example controller showing how to use dependency injection
 GET     /count                      controllers.CountController.count
 

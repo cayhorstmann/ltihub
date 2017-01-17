@@ -23,13 +23,15 @@ import com.avaje.ebean.Model;
 
     @Column
     @Constraints.Required
-    public String score;
-	
-	@Column
-	public String activity;
+    public Long correct;
+    
+    @Column
+    public Long maxscore;	
+    @Column
+    public String activity;
 	
     @ManyToOne
-    Problem problem;
+    public Problem problem;
 
     public static Finder<Long, Submission> find = new Finder<Long, Submission>(
         Long.class, Submission.class);
@@ -44,7 +46,8 @@ import com.avaje.ebean.Model;
 	public void setSubmissionId(Long submissionId) {
 		this.submissionId = submissionId;
 	}
-
+        
+        
 	public Problem getProblem() {
 		return this.problem;
 	}
@@ -69,14 +72,21 @@ import com.avaje.ebean.Model;
 		this.canvasAssignmentId = canvasAssignmentId;
 	}
 
-	public String getScore(){
-		return this.score;
+	public Long getCorrect(){
+		return this.correct;
 	}
 
-	public void setScore(String score){
-		this.score = score;
+	public void setCorrect(Long correct){
+		this.correct = correct;
 	}
 	
+        public Long getMaxScore(){
+		return this.maxscore;
+	}
+	
+	public void setMaxScore(Long maxscore){
+		this.maxscore = maxscore;
+	}
 	public String getActivity(){
 		return this.activity;
 	}

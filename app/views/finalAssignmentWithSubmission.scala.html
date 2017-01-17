@@ -1,4 +1,4 @@
-@(problems: List[Problem], assignmentID: Long, userID: Long)
+@(problems: List[Problem], submissions: List[Submission], assignmentID: Long, userID: Long)
 @import helper._
 
 <script type='text/javascript'>
@@ -79,17 +79,26 @@ addLoadEvent(receiveMessage);
         <p class="warning">
             It looks like this LTI tool wasn't launched as an assignment, or you are trying to take it as a teacher rather
                         than as a student. Make sure to set up an external tool assignment as outlined for this tool.
-                        <strong>Grade passback will not work outside the student view.</strong>
-        </p>
+                        <strong>Grade passback will not work outside the student view.</strong>        </p>
     }
+        
 
-    @for(problem <- problems) {
-       
+@for(problem <- problems) {
+        @for(submission <- submissions) {
+        @if(problem.problemId == submission.problem.problemId){   
+        <div style='width : 100% ; height : 5em ;'
+        id= @submission.submissionId  >
+                 <p>You have solved this problem earlier and highest score from your earlier attempts is : </p>    
+                             <b>  @submission.correct/ @submission.maxscore</b> 
+                        </div>}
+                           }
         <iframe style='width : 100% ; height : 50em ;' class='exercise-iframe'
-        id= @problem.problemId src=@problem.url ></iframe>}
-        <div id='response'></div>
+        id= @problem.problemId src=@problem.url ></iframe>
+}
+<div id='response'></div>
 
 <input type="button" value="Save my work" onclick="checkScores(event)"/>
 <a href="@routes.GradeSubmitterController.submitGradeToCanvas(assignmentID, userID)"><button>Record my score</button></a>
 
 <p>If you want to take a break and continue later, click on "Save my work". If you are done with all questions, click on "Record my score"</p>
+

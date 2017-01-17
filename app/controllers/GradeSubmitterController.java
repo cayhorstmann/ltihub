@@ -33,9 +33,7 @@ public class GradeSubmitterController extends Controller {
     public Result submitGradeToCanvas(Long assignmentID, Long userID) {
         Http.Cookie outcomeServiceUrlCookie = request().cookie("lis_outcome_service_url");
         Http.Cookie sourcedIdCookie = request().cookie("lis_result_sourcedid");
-      // Http.Cookie assignmentIdCookie = request().cookie("custom_canvas_assignment_id");
-	//Http.Cookie userIdCookie = request().cookie("custom_canvas_user_id");
-	if (outcomeServiceUrlCookie == null) {
+      	if (outcomeServiceUrlCookie == null) {
             Logger.info("lis_outcome_service_url cookie not found.");
             return badRequest();
         }
@@ -43,14 +41,7 @@ public class GradeSubmitterController extends Controller {
             Logger.info("lis_result_sourcedid cookie not found.");
             return badRequest();
         }
-       // if (assignmentIdCookie == null) {
-         //   Logger.info("lis_custom_canvas_assignment_id cookie not found.");
-           // return badRequest();
-       // }
-//	if (userIdCookie == null) {
-  //          Logger.info("custom_canvas_user_id cookie not found.");
-    //        return badRequest();
-      //  }
+      
     String outcomeServiceUrl = outcomeServiceUrlCookie.value();
     String sourcedId = sourcedIdCookie.value();
 	//String assignmentId = assignmentIdCookie.value();
@@ -59,30 +50,34 @@ public class GradeSubmitterController extends Controller {
         if (outcomeServiceUrl == null
                 || outcomeServiceUrl.equals("")
                 || sourcedId == null
-                || sourcedId.equals("")||assignmentID == null || assignmentID.equals("")) {
+                || sourcedId.equals("")) {
             return badRequest();
         }
 
         Logger.info("lis_outcome_service_url = {}", outcomeServiceUrl);
         Logger.info("lis_result_sourcedid = {}", sourcedId);
 	
-	List<Submission> submissions = Submission.find.where().eq("canvasAssignmentId",assignmentID).eq("studentId",userID).findList();
-	System.out.println(submissions);
-        double score = 0.0;
 	int correct = 0;
 	int maxscore = 0;
+	double score = 0.0;
+
+	List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentID).findList();
+       for(Problem problem: problems){
+       List<Submission> submissions = Submission.find.where().eq("problem.problemId",problem.problemId).eq("canvasAssignmentId",assignmentID).eq("studentId",userID).findList();
+	System.out.println(submissions);
+        int correctForThisProblem = 0;
+	int maxscoreForThisProblem = 0;
 	for(Submission s: submissions){
-		String[] scores = s.score.split("/");
-		System.out.println(scores[0]);
-		correct+=Integer.parseInt(scores[0]);
-		if(scores.length >1){
-			System.out.println(scores[1]);
-			maxscore+=Integer.parseInt(scores[1]);
-		}
-		
-	}
+		if(s.getMaxScore()>0)
+			maxscoreForThisProblem = (s.getMaxScore()).intValue();
+		if(s.getCorrect()> correctForThisProblem)
+			correctForThisProblem = (s.getCorrect()).intValue();
+        }	
+	correct+= correctForThisProblem;
+	maxscore+=maxscoreForThisProblem;
 	System.out.println("Correct is: " + correct);
 	System.out.println("Maxscore is: " +maxscore);
+	}
 	score = (double)correct/maxscore;
 	System.out.println("Score is: " + score);
 
