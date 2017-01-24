@@ -7,8 +7,8 @@ function onLoadHandler() {
          var assignId = @assignmentID;
          var userId = @userID;
 
-         alert("Assignment ID is: " + assignId);
-         alert("USer ID is: " + userId);
+         console.log("Assignment ID is: " + assignId);
+         console.log("USer ID is: " + userId);
              for (i = 0; i < iframes.length; i++) {
                 var str = iframes[i].src;
                 var patt = new RegExp("play.codecheck.ws");
@@ -16,7 +16,7 @@ function onLoadHandler() {
                 if(patt.test(str)){
                  
 	    iframes[i].src = iframes[i].src + "?scoreCallback="+window.location.protocol+"//"+window.location.host + "/submissions/"+assignId +"/" + userId +"/" +iframes[i].id;
-                      alert(iframes[i].src);
+                      console.log(iframes[i].src);
                 }
                 
         }
@@ -47,7 +47,7 @@ function receiveMessage(event) {
                 success: function(msg) {
                     var response = document.getElementById('response')
                     response.innerHTML = "Your partially complete assignment is saved!";
-                }
+setTimeout(function() { $("#response").hide(); }, 5000);               }
             });
  }
 
@@ -86,10 +86,10 @@ addLoadEvent(receiveMessage);
 @for(problem <- problems) {
         @for(submission <- submissions) {
         @if(problem.problemId == submission.problem.problemId){   
-        <div style='width : 100% ; height : 5em ;'
+        <div style='width : 100% ; height : 3em ;border:1px solid black;'
         id= @submission.submissionId  >
-                 <p>You have solved this problem earlier and highest score from your earlier attempts is : </p>    
-                             <b>  @submission.correct/ @submission.maxscore</b> 
+                 <p>You have solved the below problem earlier and highest score from your earlier attempts is :     
+                             <b>  @submission.correct/ @submission.maxscore</b> </p>
                         </div>}
                            }
         <iframe style='width : 100% ; height : 50em ;' class='exercise-iframe'

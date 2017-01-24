@@ -58,6 +58,7 @@ public class SubmissionController extends Controller {
 	submission.setProblem(problem);
 	problem.getSubmissions().add(submission);
 	submission.save();
+	
 	System.out.println("New score is added and the value is: "+ score);
   //      String callback = request().getQueryString("callback");
 //		ObjectNode result = Json.newObject();
@@ -86,7 +87,7 @@ public class SubmissionController extends Controller {
 	    Problem problem = Problem.find.where().like("url", "%"+exercise.get("activity").asText()+"%").findList().get(0);
 	    List<Submission> submissions = Submission.find.where().eq("canvasAssignmentId",assignmentID).eq("studentId",userId).findList();
 	    System.out.println("Submission is: " + submissions);
-
+	    
             Submission submission = new Submission();
 	    submission.setcanvasAssignmentId(assignmentID);
 	    submission.setProblem(problem);
@@ -95,7 +96,8 @@ public class SubmissionController extends Controller {
 	    submission.setCorrect(exercise.get("correct").asLong());
 	    submission.setMaxScore(exercise.get("maxscore").asLong());
 	    submission.save();
-	    }
+	    
+	}
 	 }
 	return ok();
 }

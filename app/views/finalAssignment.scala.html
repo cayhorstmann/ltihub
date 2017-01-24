@@ -7,8 +7,8 @@ function onLoadHandler() {
          var assignId = @assignmentID;
          var userId = @userID;
 
-         alert("Assignment ID is: " + assignId);
-         alert("USer ID is: " + userId);
+         console.log("Assignment ID is: " + assignId);
+         console.log("USer ID is: " + userId);
              for (i = 0; i < iframes.length; i++) {
                 var str = iframes[i].src;
                 var patt = new RegExp("play.codecheck.ws");
@@ -16,7 +16,7 @@ function onLoadHandler() {
                 if(patt.test(str)){
                  
 	    iframes[i].src = iframes[i].src + "?scoreCallback="+window.location.protocol+"//"+window.location.host + "/submissions/"+assignId +"/" + userId +"/" +iframes[i].id;
-                      alert(iframes[i].src);
+                      console.log(iframes[i].src);
                 }
                 
         }
@@ -47,7 +47,7 @@ function receiveMessage(event) {
                 success: function(msg) {
                     var response = document.getElementById('response')
                     response.innerHTML = "Your partially complete assignment is saved!";
-                }
+setTimeout(function() { $("#response").hide(); }, 5000);                }
             });
  }
 

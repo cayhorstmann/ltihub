@@ -25,9 +25,9 @@ public class HomeController extends Controller {
      
     public Result index() throws UnsupportedEncodingException{    
  	Map<String, String[]> postParams = request().body().asFormUrlEncoded();
-    /*	for(String key: postParams.keySet())
+    	for(String key: postParams.keySet())
     		System.out.println(key + " - " + Arrays.toString(postParams.get(key)));
-*/	
+	
 	if (postParams.get("lis_outcome_service_url") == null || postParams.get("lis_result_sourcedid") == null) {
           	flash("warning", "");
 	}
@@ -37,15 +37,18 @@ public class HomeController extends Controller {
 		response().setCookie(new Http.Cookie("lis_result_sourcedid", postParams.get("lis_result_sourcedid")[0],
                  null, null, null, false, false));
 	}
-//	response().setCookie(new Http.Cookie("custom_canvas_assignment_id", postParams.get("custom_canvas_assignment_id")[0],
-  //                null, null, null, false, false));
-	response().setCookie(new Http.Cookie("custom_canvas_user_id", postParams.get("custom_canvas_user_id")[0],
-                  null, null, null, false, false));
+
+if(postParams.get("custom_canvas_user_id")==null){
+	String userid = postParams.get("user_id")[0];
+	System.out.println("User ID from ilearn is: " + userid);
+}//else
+//	response().setCookie(new Http.Cookie("custom_canvas_user_id", postParams.get("custom_canvas_user_id")[0],
+//                  null, null, null, false, false));
 	String url = controllers.routes.HomeController.getAssignment().url()
                 + "?id=" + URLEncoder.encode(request().getQueryString("id"), "UTF-8");
      	
      	return redirect(url);
-  	}
+ 	}
   
 	//Method to show the assignment landing page
 	public Result createAssignment() {
@@ -98,22 +101,25 @@ public class HomeController extends Controller {
 	List<Submission> submissions = new ArrayList<Submission>();
 	for(Problem problem: problems){
 	List<Submission> submissionsAll = Submission.find.where().eq("problem.problemId",problem.problemId).eq("canvasAssignmentId",assignmentId).eq("studentId",userId).findList();
+	System.out.println("Submission list is: " + submissionsAll);
 	int correctForThisProblem = 0;
 	int maxscoreForThisProblem = 0;
-        if(submissionsAll.size()==0)
-		return ok(finalAssignment.render(problems, assignmentId, userId));
-	for(Submission s: submissionsAll){
+        if(submissionsAll.size()!=0){
+		for(Submission s: submissionsAll){
 		if(s.getMaxScore()>0)
 			maxscoreForThisProblem = (s.getMaxScore()).intValue();
 		if(s.getCorrect()> correctForThisProblem)
 			correctForThisProblem = (s.getCorrect()).intValue();
-	}
+		}
 	Submission submission = Submission.find.where().eq("problem.problemId", problem.problemId).eq("canvasAssignmentId", assignmentId).eq("studentId",userId).eq("correct",correctForThisProblem).findList().get(0);
 	submissions.add(submission);			
-	}
+	}}
         System.out.println("Submission list is: " + submissions);
 	System.out.println("Problems list is: " + problems);
-        return ok(finalAssignmentWithSubmission.render(problems,submissions, assignmentId, userId));
+        if(submissions.size()==0)
+	return ok(finalAssignment.render(problems,assignmentId, userId));
+
+	return ok(finalAssignmentWithSubmission.render(problems,submissions, assignmentId, userId));
 }	
 
 	public Result saveEditedAssignment(Long assignment) {
