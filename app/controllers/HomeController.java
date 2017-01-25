@@ -41,9 +41,9 @@ public class HomeController extends Controller {
 if(postParams.get("custom_canvas_user_id")==null){
 	String userid = postParams.get("user_id")[0];
 	System.out.println("User ID from ilearn is: " + userid);
-}//else
-//	response().setCookie(new Http.Cookie("custom_canvas_user_id", postParams.get("custom_canvas_user_id")[0],
-//                  null, null, null, false, false));
+}else
+	response().setCookie(new Http.Cookie("custom_canvas_user_id", postParams.get("custom_canvas_user_id")[0],
+                  null, null, null, false, false));
 	String url = controllers.routes.HomeController.getAssignment().url()
                 + "?id=" + URLEncoder.encode(request().getQueryString("id"), "UTF-8");
      	
