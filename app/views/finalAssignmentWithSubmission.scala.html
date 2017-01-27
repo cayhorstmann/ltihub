@@ -14,11 +14,11 @@ function onLoadHandler() {
                 var patt = new RegExp("play.codecheck.ws");
 //              alert(iframes.length);
                 if(patt.test(str) && str.includes("?")){
-	    iframes[i].src = iframes[i].src + "&scoreCallback="+window.location.protocol+"//"+window.location.host + @prefix + "/submissions/"+assignId +"/" + userId +"/" +iframes[i].id;
+	    iframes[i].src = iframes[i].src + "&scoreCallback="+window.location.protocol+"//"+window.location.host + "@prefix" + "/submissions/"+assignId +"/" + userId +"/" +iframes[i].id;
 //                      alert(iframes[i].src);
                 }
 		 else if(patt.test(str)){
-		iframes[i].src = iframes[i].src + "?scoreCallback="+window.location.protocol+"//"+window.location.host + @prefix + "/submissions/"+assignId +"/" + userId +"/" +iframes[i].id;
+		iframes[i].src = iframes[i].src + "?scoreCallback="+window.location.protocol+"//"+window.location.host + "@prefix" + "/submissions/"+assignId +"/" + userId +"/" +iframes[i].id;
   //                    alert(iframes[i].src);
         }
 	else
