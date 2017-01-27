@@ -11,13 +11,13 @@ import play.*;
 import play.data.*;
 import play.libs.Json;
 import static play.data.Form.*;
+
 import java.net.*;
 import java.io.*;
 
 import play.Logger;
 import play.mvc.*;
 import models.*;
-
 import views.html.*;
 
 
@@ -123,10 +123,15 @@ if(postParams.get("custom_canvas_user_id")==null){
         System.out.println("Submission list is: " + submissions);
 	System.out.println("Problems list is: " + problems);
         if(submissions.size()==0)
-	return ok(finalAssignment.render(problems,assignmentId, userId));
+	return ok(finalAssignment.render(problems,assignmentId, userId, getPrefix()));
 
-	return ok(finalAssignmentWithSubmission.render(problems,submissions, assignmentId, userId));
+	return ok(finalAssignmentWithSubmission.render(problems,submissions, assignmentId, userId, getPrefix()));
 }	
+	
+	public String getPrefix() { 
+		String prefix = System.getProperty("play.http.context");
+		if (prefix == null) return ""; else return prefix;
+	}
 
 	public Result saveEditedAssignment(Long assignment) {
         
