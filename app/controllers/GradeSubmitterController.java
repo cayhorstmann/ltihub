@@ -10,15 +10,16 @@ import play.libs.ws.WSClient;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
-
+//import play.utils.*;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.util.Iterator;
 import java.util.*;
-
+import java.io.*;
 import models.*;
 
 public class GradeSubmitterController extends Controller {
@@ -30,20 +31,22 @@ public class GradeSubmitterController extends Controller {
         this.ws = ws;
     }
 
-    public Result submitGradeToCanvas(Long assignmentID, Long userID) {
+    public Result submitGradeToCanvas(Long assignmentID, Long userID) throws UnsupportedEncodingException {
         Http.Cookie outcomeServiceUrlCookie = request().cookie("lis_outcome_service_url");
         Http.Cookie sourcedIdCookie = request().cookie("lis_result_sourcedid");
       	if (outcomeServiceUrlCookie == null) {
             Logger.info("lis_outcome_service_url cookie not found.");
-            return badRequest();
+           return badRequest();
         }
         if (sourcedIdCookie == null) {
             Logger.info("lis_result_sourcedid cookie not found.");
             return badRequest();
-        }
+       }
       
     String outcomeServiceUrl = outcomeServiceUrlCookie.value();
-    String sourcedId = sourcedIdCookie.value();
+//    String sourcedId = sourcedIdCookie.value();
+ String sourcedId = URLDecoder.decode(sourcedIdCookie.value(),"UTF-8");
+
 	//String assignmentId = assignmentIdCookie.value();
 //	Long assignmentID = Long.parseLong(assignmentId);
 //	Long userId = Long.parseLong(userIdCookie.value());
@@ -137,15 +140,64 @@ OAuthMessageSignerException, OAuthExpectationFailedException, OAuthCommunication
         consumer.sign(request); // Throws OAuthMessageSignerException,
                                 // OAuthExpectationFailedException,
                                 // OAuthCommunicationException
-
+	xml = xml.replace("&quot;","\"");
+	Logger.info("XML is: {}",xml);
         // POST the xml to the grade passback url
         request.getOutputStream().write(xml.getBytes("UTF8"));
 
         // send the request
         request.connect();
 
-        request.getInputStream(); 
-   }
+       try{
+	request.getInputStream();}
+	catch(Exception e){
+ 
+	int responseCode = request.getResponseCode();
+	System.out.println("GET Response Code : " + responseCode);
+	
+	InputStream in = request.getErrorStream();
+//	String encoding = request.getContentEncoding();
+//encoding = encoding == null ? "UTF-8" : encoding;
+String body = org.apache.commons.io.IOUtils.toString(in);
+System.out.println(body);
+}/*	StringBuilder response = new StringBuilder();
+	try (Scanner in = new Scanner(request.getInputStream()))
+ {
+ while (in.hasNextLine())
+ {
+ response.append(in.nextLine());
+ response.append("\n");
+ }
+	System.out.println("Response is:" + response);
+ }
+ catch (IOException e)
+ {
+ InputStream err = request.getErrorStream();
+ if (err == null) throw e;
+ try (Scanner in = new Scanner(err))
+ {
+ response.append(in.nextLine());
+ response.append("\n");
+ }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+*/}
+
     
     
 }

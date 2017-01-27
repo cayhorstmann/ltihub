@@ -32,15 +32,19 @@ public class HomeController extends Controller {
           	flash("warning", "");
 	}
 	else{
+		System.out.println("OutconeService URL is: " + postParams.get("lis_outcome_service_url")[0]);
 		response().setCookie(new Http.Cookie("lis_outcome_service_url", postParams.get("lis_outcome_service_url")[0],
                  null, null, null, false, false));
-		response().setCookie(new Http.Cookie("lis_result_sourcedid", postParams.get("lis_result_sourcedid")[0],
+		System.out.println("Result sourcedId is: " +postParams.get("lis_result_sourcedid")[0]);
+	response().setCookie(new Http.Cookie("lis_result_sourcedid", URLEncoder.encode(postParams.get("lis_result_sourcedid")[0],"UTF-8"),
                  null, null, null, false, false));
 	}
 
 if(postParams.get("custom_canvas_user_id")==null){
 	String userid = postParams.get("user_id")[0];
 	System.out.println("User ID from ilearn is: " + userid);
+	response().setCookie(new Http.Cookie("custom_canvas_user_id", postParams.get("user_id")[0],
+                  null, null, null, false, false));
 }else
 	response().setCookie(new Http.Cookie("custom_canvas_user_id", postParams.get("custom_canvas_user_id")[0],
                   null, null, null, false, false));
@@ -95,7 +99,9 @@ if(postParams.get("custom_canvas_user_id")==null){
 	     Long assignmentId = Long.parseLong(request().getQueryString("id"));
 	 
 	     List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentId).findList();
-             Http.Cookie userIdCookie = request().cookie("custom_canvas_user_id");
+	System.out.println("Inside Get Statement");
+	System.out.println("user ID value from cookie is: " + request().cookie("custom_canvas_user_id").value());
+	Http.Cookie userIdCookie = request().cookie("custom_canvas_user_id");
 	Long userId = Long.parseLong(userIdCookie.value());
 	System.out.println("UserID is: " + userId);
 	List<Submission> submissions = new ArrayList<Submission>();
