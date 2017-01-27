@@ -13,12 +13,17 @@ function onLoadHandler() {
                 var str = iframes[i].src;
                 var patt = new RegExp("play.codecheck.ws");
 //              alert(iframes.length);
-                if(patt.test(str)){
+                if(patt.test(str) && str.includes("?")){
                  
-	    iframes[i].src = iframes[i].src + "?scoreCallback="+window.location.protocol+"//"+window.location.host + "/submissions/"+assignId +"/" + userId +"/" +iframes[i].id;
-                      console.log(iframes[i].src);
+	    iframes[i].src = iframes[i].src + "&scoreCallback="+window.location.protocol+"//"+window.location.host + "/submissions/"+assignId +"/" + userId +"/" +iframes[i].id;
+                      alert(iframes[i].src);
                 }
-                
+		 else if(patt.test(str)){
+		iframes[i].src = iframes[i].src + "?scoreCallback="+window.location.protocol+"//"+window.location.host + "/submissions/"+assignId +"/" + userId +"/" +iframes[i].id;
+                      alert(iframes[i].src);
+        }
+	else
+		iframes[i].src = iframes[i].src;        
         }
 }
        // window.onload = onLoadHandler;

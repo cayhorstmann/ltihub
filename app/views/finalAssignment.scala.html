@@ -13,18 +13,18 @@ function onLoadHandler() {
                 var str = iframes[i].src;
                 var patt = new RegExp("play.codecheck.ws");
 //              alert(iframes.length);
-                if(patt.test(str)){
-                if(str.includes("?"){ 
+                if(patt.test(str) && str.includes("?") ){
 	    iframes[i].src = iframes[i].src + "&scoreCallback="+window.location.protocol+"//"+window.location.host + "/submissions/"+assignId +"/" + userId +"/" +iframes[i].id;
                       alert(iframes[i].src);
                 }
-		else{
+		else if(patt.test(str)){
 		iframes[i].src = iframes[i].src + "?scoreCallback="+window.location.protocol+"//"+window.location.host + "/submissions/"+assignId +"/" + userId +"/" +iframes[i].id;
                       alert(iframes[i].src);
 
 		}
-             }
-        }
+             else
+		iframes[i].src = iframes[i].src;
+} 
 }
        // window.onload = onLoadHandler;
 </script>
@@ -52,7 +52,7 @@ function receiveMessage(event) {
                 success: function(msg) {
                     var response = document.getElementById('response')
                     response.innerHTML = "Your partially complete assignment is saved!";
-setTimeout(function() { $("#response").hide(); }, 5000);                }
+setTimeout(function() { $("#response").hide(); }, 4000);                }
             });
  }
 
