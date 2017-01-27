@@ -101,6 +101,5 @@ public class SubmissionController extends Controller {
 	 }
 	return ok();
 }
-
 }
 
