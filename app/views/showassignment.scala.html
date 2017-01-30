@@ -2,7 +2,7 @@
 <script type="text/javascript">
                 function modifyURL()
                 {
-                    var ltiToolUrl = window.location.protocol + "//" + window.location.host + "/assignment?id=";
+                    var ltiToolUrl = window.location.protocol + "//" + window.location.host + "/lti/assignment?id=";
                     document.myform.url.value = ltiToolUrl +encodeURIComponent(document.myform.url.value);
                     return true;
                 }
