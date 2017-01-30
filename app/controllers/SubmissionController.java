@@ -28,24 +28,24 @@ import views.html.*;
 public class SubmissionController extends Controller {
 	
    public Result addSubmission(Long problemID, Long assignmentID, Long userID) {	
-	System.out.println("Result is received" );
+	Logger.info("Result is received" );
         JsonNode json = request().body().asJson();
 	if(json == null)
 		return badRequest("Expecting Json data");
 
 	String score = json.findPath("score").textValue();
 
-	System.out.println("Received score is:" + score);
+	Logger.info("Received score is:" + score);
 	String[] scores = score.split("/");
 	
-	System.out.println("AssignmentID is: " + assignmentID);
-	System.out.println("UserID is: " + userID);
+	Logger.info("AssignmentID is: " + assignmentID);
+	Logger.info("UserID is: " + userID);
 
 	Problem problem = Problem.find.byId(problemID);
-	System.out.println("Problem is: " + problem);
+	Logger.info("Problem is: " + problem);
 		
 	List<Submission> submissions = Submission.find.where().eq("canvasAssignmentId",assignmentID).eq("studentId",userID).findList();
-	System.out.println(submissions);
+	Logger.info(submissions);
 	
 	Submission submission = new Submission();
 	submission.setcanvasAssignmentId(assignmentID);
@@ -59,7 +59,7 @@ public class SubmissionController extends Controller {
 	problem.getSubmissions().add(submission);
 	submission.save();
 	
-	System.out.println("New score is added and the value is: "+ score);
+	Logger.info("New score is added and the value is: "+ score);
   //      String callback = request().getQueryString("callback");
 //		ObjectNode result = Json.newObject();
 //		result.put("received", true);
@@ -75,10 +75,10 @@ public class SubmissionController extends Controller {
 	   JsonNode jsonPayload = request().body().asJson();
            Logger.info("json from client = {}", jsonPayload);
 
-	   System.out.println("AssignmentID is: " + assignmentID);
+	   Logger.info("AssignmentID is: " + assignmentID);
 	   Http.Cookie userIdCookie = request().cookie("custom_canvas_user_id");
 	   Long userId = Long.parseLong(userIdCookie.value());
-	   System.out.println("UserID is: " + userId);
+	   Logger.info("UserID is: " + userId);
            Iterator<JsonNode> nodeIterator = jsonPayload.elements();
 		
         while (nodeIterator.hasNext()) {
@@ -86,7 +86,7 @@ public class SubmissionController extends Controller {
 	    if(exercise.has("activity")){
 	    Problem problem = Problem.find.where().like("url", "%"+exercise.get("activity").asText()+"%").findList().get(0);
 	    List<Submission> submissions = Submission.find.where().eq("canvasAssignmentId",assignmentID).eq("studentId",userId).findList();
-	    System.out.println("Submission is: " + submissions);
+	    Logger.info("Submission is: " + submissions);
 	    
             Submission submission = new Submission();
 	    submission.setcanvasAssignmentId(assignmentID);
