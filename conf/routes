@@ -6,6 +6,7 @@
 #GET     /                           controllers.HomeController.index
 
 POST	/createAssignment	controllers.HomeController.createAssignment
+POST    /addAssignment          controllers.HomeController.addAssignment
 POST	/			controllers.HomeController.addAssignment
 POST	/assignment		controllers.HomeController.index
 GET	/assignment	        controllers.HomeController.getAssignment
@@ -19,7 +20,7 @@ GET    /send-score/:assignmentID/:userID   controllers.GradeSubmitterController.
 POST	/send-interactivescore/:assignmentID   controllers.SubmissionController.addSubmissions(assignmentID: Long)
 # An example controller showing how to use dependency injection
 GET     /count                      controllers.CountController.count
-
+GET     /lti/count                      controllers.CountController.count
 # An example controller showing how to write asynchronous code
 GET     /message                    controllers.AsyncController.message
 
