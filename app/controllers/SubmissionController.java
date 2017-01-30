@@ -45,7 +45,7 @@ public class SubmissionController extends Controller {
 	Logger.info("Problem is: " + problem);
 		
 	List<Submission> submissions = Submission.find.where().eq("canvasAssignmentId",assignmentID).eq("studentId",userID).findList();
-	Logger.info(submissions);
+	Logger.info(submissions.toString());
 	
 	Submission submission = new Submission();
 	submission.setcanvasAssignmentId(assignmentID);
