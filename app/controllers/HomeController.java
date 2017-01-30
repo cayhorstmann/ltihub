@@ -61,7 +61,7 @@ if(postParams.get("custom_canvas_user_id")==null){
 
 	for(String key: postParams.keySet())
     		Logger.info(key + " - " + Arrays.toString(postParams.get(key)));
-	 Logger.info();
+	 
          response().setCookie(new Http.Cookie("launch_presentation_return_url", postParams.get("launch_presentation_return_url")[0],
                     null, null, null, false, false));
          return ok(create_exercise.render());
@@ -152,7 +152,7 @@ if(postParams.get("custom_canvas_user_id")==null){
 			}
 		}
 	     List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment1.assignmentId).findList();
-    	Logger.info(problems);
+    	Logger.info(problems.toString());
 	    Http.Cookie launchReturnUrlCookie = request().cookie("launch_presentation_return_url");
 	    String returnUrl = launchReturnUrlCookie.value();
 	Logger.info("ReturnURL is: " + returnUrl);
@@ -162,9 +162,9 @@ if(postParams.get("custom_canvas_user_id")==null){
 
 	public Result showEditPage(Long assignment) {
 		Assignment assignment1 = Assignment.find.byId(assignment);
-		Logger.info(assignment1.getAssignmentId());
+		Logger.info(assignment1.getAssignmentId().toString());
         	List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment1.assignmentId).findList();
-        	Logger.info(problems);
+        	Logger.info(problems.toString());
         	return ok(editAssignment.render(assignment1, problems));    
     }
 
