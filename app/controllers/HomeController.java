@@ -32,7 +32,7 @@ public class HomeController extends Controller {
           	flash("warning", "");
 	}
 	else{
-		Logger.info("OutconeService URL is: " + postParams.get("lis_outcome_service_url")[0]);
+		Logger.info("OutcomeService URL is: " + postParams.get("lis_outcome_service_url")[0]);
 		response().setCookie(new Http.Cookie("lis_outcome_service_url", postParams.get("lis_outcome_service_url")[0],
                  null, null, null, false, false));
 		Logger.info("Result sourcedId is: " +postParams.get("lis_result_sourcedid")[0]);
@@ -99,7 +99,6 @@ if(postParams.get("custom_canvas_user_id")==null){
 	     Long assignmentId = Long.parseLong(request().getQueryString("id"));
 	 
 	     List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentId).findList();
-	Logger.info("Inside Get Statement");
 	Logger.info("user ID value from cookie is: " + request().cookie("custom_canvas_user_id").value());
 	Http.Cookie userIdCookie = request().cookie("custom_canvas_user_id");
 	Long userId = Long.parseLong(userIdCookie.value());
@@ -152,7 +151,7 @@ if(postParams.get("custom_canvas_user_id")==null){
 			}
 		}
 	     List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment1.assignmentId).findList();
-    	Logger.info(problems.toString());
+    	System.out.println(problems);
 	    Http.Cookie launchReturnUrlCookie = request().cookie("launch_presentation_return_url");
 	    String returnUrl = launchReturnUrlCookie.value();
 	Logger.info("ReturnURL is: " + returnUrl);
@@ -162,9 +161,9 @@ if(postParams.get("custom_canvas_user_id")==null){
 
 	public Result showEditPage(Long assignment) {
 		Assignment assignment1 = Assignment.find.byId(assignment);
-		Logger.info(assignment1.getAssignmentId().toString());
+		
         	List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment1.assignmentId).findList();
-        	Logger.info(problems.toString());
+        	
         	return ok(editAssignment.render(assignment1, problems));    
     }
 

@@ -1,8 +1,8 @@
-@(launchUrl: String, assignment: Assignment, problems: List[models.Problem])
+@(launchUrl: String, assignment: Assignment, problems: List[models.Problem], prefix: String)
 <script type="text/javascript">
                 function modifyURL()
                 {
-                    var ltiToolUrl = window.location.protocol + "//" + window.location.host + "/lti/assignment?id=";
+                    var ltiToolUrl = window.location.protocol + "//" + window.location.host + "@prefix" + "/assignment?id=";
                     document.myform.url.value = ltiToolUrl +encodeURIComponent(document.myform.url.value);
                     return true;
                 }
