@@ -129,6 +129,7 @@ if(postParams.get("custom_canvas_user_id")==null){
 	
 	public String getPrefix() { 
 		String prefix = System.getProperty("play.http.context");
+		Logger.info("Prefix is: " + prefix);
 		if (prefix == null) return ""; else return prefix;
 	}
 
