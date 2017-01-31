@@ -1,4 +1,4 @@
-@(problems: List[Problem], submissions: List[Submission], assignmentID: Long, userID: Long, prefix: String)
+@(problems: List[Problem], submissions: List[Submission], assignmentID: Long, userID: Long, preFix: String)
 @import helper._
 
 <script type='text/javascript'>
@@ -6,19 +6,21 @@ function onLoadHandler() {
          var iframes = document.getElementsByClassName('exercise-iframe')
          var assignId = @assignmentID;
          var userId = @userID;
+         var prefix = @preFix;
 
          console.log("Assignment ID is: " + assignId);
          console.log("USer ID is: " + userId);
+         console.log("Prefix is: " + prefix);
              for (i = 0; i < iframes.length; i++) {
                 var str = iframes[i].src;
                 var patt = new RegExp("play.codecheck.ws");
 //              alert(iframes.length);
                 if(patt.test(str) && str.includes("?")){
-	    iframes[i].src = iframes[i].src + "&scoreCallback="+window.location.protocol+"//"+window.location.host + "@prefix" + "/submissions/"+assignId +"/" + userId +"/" +iframes[i].id;
+	    iframes[i].src = iframes[i].src + "&scoreCallback="+window.location.protocol+"//"+window.location.host + "/" + prefix + "/submissions/"+assignId +"/" + userId +"/" +iframes[i].id;
 //                      alert(iframes[i].src);
                 }
 		 else if(patt.test(str)){
-		iframes[i].src = iframes[i].src + "?scoreCallback="+window.location.protocol+"//"+window.location.host + "@prefix" + "/submissions/"+assignId +"/" + userId +"/" +iframes[i].id;
+		iframes[i].src = iframes[i].src + "?scoreCallback="+window.location.protocol+"//"+window.location.host + "/" + prefix + "/submissions/"+assignId +"/" + userId +"/" +iframes[i].id;
   //                    alert(iframes[i].src);
         }
 	else
