@@ -91,7 +91,7 @@ if(postParams.get("custom_canvas_user_id")==null){
 		Http.Cookie launchReturnUrlCookie = request().cookie("launch_presentation_return_url");
 		String returnUrl = launchReturnUrlCookie.value();
 	
-		return ok(showassignment.render(returnUrl,assignment,problems));
+		return ok(showassignment.render(returnUrl,assignment,problems, getPrefix()));
 	}
 	
 	//Get Assignment Method
@@ -155,7 +155,7 @@ if(postParams.get("custom_canvas_user_id")==null){
 	    Http.Cookie launchReturnUrlCookie = request().cookie("launch_presentation_return_url");
 	    String returnUrl = launchReturnUrlCookie.value();
 	Logger.info("ReturnURL is: " + returnUrl);
-        return ok(showassignment.render(returnUrl,assignment1,problems));
+        return ok(showassignment.render(returnUrl,assignment1,problems, getPrefix()));
 	}
     
 
