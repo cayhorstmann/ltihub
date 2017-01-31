@@ -37,7 +37,7 @@ public class SubmissionController extends Controller {
 
 	Logger.info("Received score is:" + score);
 	String[] scores = score.split("/");
-	
+
 	Logger.info("AssignmentID is: " + assignmentID);
 	Logger.info("UserID is: " + userID);
 
@@ -45,7 +45,7 @@ public class SubmissionController extends Controller {
 	Logger.info("Problem is: " + problem);
 		
 	List<Submission> submissions = Submission.find.where().eq("canvasAssignmentId",assignmentID).eq("studentId",userID).findList();
-	Logger.info(submissions.toString());
+	System.out.println(submissions);
 	
 	Submission submission = new Submission();
 	submission.setcanvasAssignmentId(assignmentID);
@@ -59,7 +59,7 @@ public class SubmissionController extends Controller {
 	problem.getSubmissions().add(submission);
 	submission.save();
 	
-	Logger.info("New score is added and the value is: "+ score);
+	System.out.println("New score is added and the value is: "+ score);
   //      String callback = request().getQueryString("callback");
 //		ObjectNode result = Json.newObject();
 //		result.put("received", true);
