@@ -4,4 +4,4 @@ project/project/**
 target/*
 logs/*
 conf/*
-application-log-2017-*
+
