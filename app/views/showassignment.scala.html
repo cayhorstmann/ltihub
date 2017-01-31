@@ -2,9 +2,8 @@
 <script type="text/javascript">
                 function modifyURL()
                 {
-                    var prefix = @preFix;
-                    console.log("Prefix is: " + prefix);
-                    var ltiToolUrl = window.location.protocol + "//" + window.location.host + "/" + lti + "/assignment?id=";
+                    
+                    var ltiToolUrl = window.location.protocol + "//" + window.location.host + "/lti/assignment?id=";
                     document.myform.url.value = ltiToolUrl +encodeURIComponent(document.myform.url.value);
                     return true;
                 }
