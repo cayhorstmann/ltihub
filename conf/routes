@@ -5,10 +5,10 @@
 # An example controller showing a sample home page
 #GET     /                           controllers.HomeController.index
 
-POST    /          controllers.HomeController.addAssignment(contextID: String, resourceLinkID: String, toolConsumerInstanceGuID: String)
-#POST	/addAssignment			controllers.HomeController.addAssignment
+#POST    /          controllers.HomeController.addAssignment(contextID: String, resourceLinkID: String, toolConsumerInstanceGuID: String)
+POST	/			controllers.HomeController.addAssignment
 POST	/assignment		controllers.HomeController.index
-GET	/assignment	        controllers.HomeController.getAssignment(contextID: String, resourceLinkID: String, toolConsumerInstanceGuID: String, role: String)
+GET	/assignment	        controllers.HomeController.getAssignment(role: String, assignmentId: Long)
 GET	/assignment/editAssignment	controllers.HomeController.showEditPage(id: Long)	
 
 POST	/assignment/saveAssignment	controllers.HomeController.saveEditedAssignment(id: Long)
