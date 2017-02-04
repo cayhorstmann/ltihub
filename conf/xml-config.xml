@@ -15,7 +15,7 @@
       <lticm:property name="domain">https://www.ltihub.info</lticm:property>
       <lticm:options name="resource_selection">
         <lticm:property name="enabled">true</lticm:property>
-        <lticm:property name="url">https://www.ltihub.info/createAssignment</lticm:property>
+        <lticm:property name="url">https://www.ltihub.info/assignment</lticm:property>
         <lticm:property name="text">Exercise Selector</lticm:property>
         <lticm:property name="selection_width">800</lticm:property>
         <lticm:property name="selection_height">600</lticm:property>

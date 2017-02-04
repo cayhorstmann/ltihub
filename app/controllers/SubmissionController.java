@@ -27,7 +27,7 @@ import views.html.*;
 
 public class SubmissionController extends Controller {
 	
-   public Result addSubmission(Long problemID, Long assignmentID, Long userID) {	
+   public Result addSubmission(Long problemID, Long assignmentID, String userID) {	
 	Logger.info("Result is received" );
         JsonNode json = request().body().asJson();
 	if(json == null)
@@ -44,11 +44,11 @@ public class SubmissionController extends Controller {
 	Problem problem = Problem.find.byId(problemID);
 	Logger.info("Problem is: " + problem);
 		
-	List<Submission> submissions = Submission.find.where().eq("canvasAssignmentId",assignmentID).eq("studentId",userID).findList();
+	List<Submission> submissions = Submission.find.where().eq("assignmentId",assignmentID).eq("studentId",userID).findList();
 	System.out.println(submissions);
 	
 	Submission submission = new Submission();
-	submission.setcanvasAssignmentId(assignmentID);
+	submission.setAssignmentId(assignmentID);
 	submission.setStudentId(userID);
 	submission.setCorrect(Long.parseLong(scores[0]));
 	if(scores.length >1)
@@ -77,7 +77,7 @@ public class SubmissionController extends Controller {
 
 	   Logger.info("AssignmentID is: " + assignmentID);
 	   Http.Cookie userIdCookie = request().cookie("custom_canvas_user_id");
-	   Long userId = Long.parseLong(userIdCookie.value());
+	   String userId = userIdCookie.value();
 	   Logger.info("UserID is: " + userId);
            Iterator<JsonNode> nodeIterator = jsonPayload.elements();
 		
@@ -85,11 +85,11 @@ public class SubmissionController extends Controller {
             JsonNode exercise = nodeIterator.next();
 	    if(exercise.has("activity")){
 	    Problem problem = Problem.find.where().like("url", "%"+exercise.get("activity").asText()+"%").findList().get(0);
-	    List<Submission> submissions = Submission.find.where().eq("canvasAssignmentId",assignmentID).eq("studentId",userId).findList();
+	    List<Submission> submissions = Submission.find.where().eq("assignmentId",assignmentID).eq("studentId",userId).findList();
 	    Logger.info("Submission is: " + submissions);
 	    
             Submission submission = new Submission();
-	    submission.setcanvasAssignmentId(assignmentID);
+	    submission.setAssignmentId(assignmentID);
 	    submission.setProblem(problem);
 	    submission.setStudentId(userId);
 	    submission.setActivity(exercise.get("activity").asText());

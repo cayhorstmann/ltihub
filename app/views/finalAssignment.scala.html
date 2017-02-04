@@ -7,28 +7,24 @@ function onLoadHandler() {
          var assignId = @assignmentID;
          var userId = @userID;
 
-         console.log("Assignment ID is: " + assignId);
-         console.log("USer ID is: " + userId);
-         
              for (i = 0; i < iframes.length; i++) {
                 var str = iframes[i].src;
                 var patt = new RegExp("play.codecheck.ws");
-//              alert(iframes.length);
+
                 if(patt.test(str) && str.includes("?") ){
-	    iframes[i].src = iframes[i].src + "&scoreCallback="+window.location.protocol+"//"+window.location.host + "@preFix"+ "/submissions/"+assignId +"/" + userId +"/" +iframes[i].id;
-//                      alert(iframes[i].src);
+	           iframes[i].src = iframes[i].src + "&scoreCallback="+window.location.protocol+"//"+window.location.host  +"@preFix" + "/submissions/"+assignId +"/" + userId +"/" +iframes[i].id;
                 }
 		else if(patt.test(str)){
-		iframes[i].src = iframes[i].src + "?scoreCallback="+window.location.protocol+"//"+window.location.host + "@preFix" + "/submissions/"+assignId +"/" + userId +"/" +iframes[i].id;
-  //                    alert(iframes[i].src);
-
+		   iframes[i].src = iframes[i].src + "?scoreCallback="+window.location.protocol+"//"+window.location.host + "@preFix" + "/submissions/"+assignId +"/" + userId +"/" +iframes[i].id;
 		}
-             else
-		iframes[i].src = iframes[i].src;
-} 
+                else
+		   iframes[i].src = iframes[i].src;
+             } 
 }
-       // window.onload = onLoadHandler;
+     
+window.onload = onLoadHandler;
 </script>
+
 <script type="text/javascript">
 var exerciseScores = [];
 
@@ -43,10 +39,9 @@ function checkScores() {
 function receiveMessage(event) {
     var iframes = document.getElementsByClassName('exercise-iframe')
     exerciseScores.push(event.data)
-   // var response = document.getElementById('response')
-   // response.innerHTML = JSON.stringify(exerciseScores)
+    if (exerciseScores.length === iframes.length) {
     $.ajax({
-                url: '/send-interactivescore/@assignmentID',
+                url: '@preFix/send-interactivescore/@assignmentID',
                 method: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(exerciseScores),
@@ -55,25 +50,12 @@ function receiveMessage(event) {
                     response.innerHTML = "Your partially complete assignment is saved!";
 setTimeout(function() { $("#response").hide(); }, 4000);                }
             });
- }
-
-  window.addEventListener("message", receiveMessage, false);
-function addLoadEvent(func) {
-  var oldonload = window.onload;
-  if (typeof window.onload != 'function') {
-    window.onload = func;
-  } else {
-    window.onload = function() {
-      if (oldonload) {
-        oldonload();
-      }
-      func();
-    }
   }
 }
-addLoadEvent(onLoadHandler);
-addLoadEvent(receiveMessage);
-     </script>
+  
+window.addEventLaddLoadEvent(receiveMessage);
+
+</script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
  <style>
     .warning {

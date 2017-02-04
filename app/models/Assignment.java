@@ -12,7 +12,15 @@ package models;
           
         @Id
         public Long assignmentId;
-      
+     
+        @Column
+        public String contextId;
+
+        @Column
+        public String resourceLinkId;
+    
+        @Column String toolConsumerInstanceGuId;
+ 
         @OneToMany(mappedBy="assignment")
 	public List<Problem> problems = new ArrayList<Problem>();	
 
@@ -43,7 +51,30 @@ package models;
 	public void setProblems(List<Problem> problems) {
 		this.problems = problems;
 	}
+
+	public String getResourceLinkId(){
+		return this.resourceLinkId;
+	}
+
+	public void setResourceLinkId(String resourceLinkId){
+		this.resourceLinkId = resourceLinkId;
+	}
+
+	public String getContextId() {
+		return this.contextId;
+	}
+
+	public void setContextId(String contextId) {
+		this.contextId = contextId;
+	}
 		
+	public String getToolConsumerInstanceGuId() {
+		return this.toolConsumerInstanceGuId;
+	}
+
+	public void setToolConsumerInstanceGuId(String toolConsumerInstanceGuId) {
+		this.toolConsumerInstanceGuId = toolConsumerInstanceGuId;
+	}
    }
 
 
