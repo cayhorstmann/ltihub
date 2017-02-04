@@ -32,11 +32,9 @@ public class HomeController extends Controller {
           	flash("warning", "");
 	}
 	else{
-//		Logger.info("OutcomeService URL is: " + postParams.get("lis_outcome_service_url")[0]);
 		response().setCookie(new Http.Cookie("lis_outcome_service_url", postParams.get("lis_outcome_service_url")[0],
                  null, null, null, false, false));
-//		Logger.info("Result sourcedId is: " +postParams.get("lis_result_sourcedid")[0]);
-	response().setCookie(new Http.Cookie("lis_result_sourcedid", URLEncoder.encode(postParams.get("lis_result_sourcedid")[0],"UTF-8"),
+		response().setCookie(new Http.Cookie("lis_result_sourcedid", URLEncoder.encode(postParams.get("lis_result_sourcedid")[0],"UTF-8"),
                  null, null, null, false, false));
 	}
 
@@ -47,28 +45,32 @@ public class HomeController extends Controller {
 	}else
 	response().setCookie(new Http.Cookie("custom_canvas_user_id", postParams.get("custom_canvas_user_id")[0],null, null, null, false, false));
 	//String url = controllers.routes.HomeController.getAssignment().url()
-          //      + "?id=" + URLEncoder.encode(request().getQueryString("id"), "UTF-8");
-     	response().setCookie(new Http.Cookie("launch_presentation_return_url", postParams.get("launch_presentation_return_url")[0],
+          //      + "?id=" + URLEncoder.encode(request().getQueryString("id"), "UTF-8")
+	response().setCookie(new Http.Cookie("launch_presentation_return_url", postParams.get("launch_presentation_return_url")[0],
                     null, null, null, false, false));
 	String contextID = postParams.get("context_id")[0];
 	String resourceLinkID = postParams.get("resource_link_id")[0];
 	String toolConsumerInstanceGuID = postParams.get("tool_consumer_instance_guid")[0];
 	String role = postParams.get("roles")[0];
 	Logger.info("Role is: " + role);
+        String assignmentId = request().getQueryString("id");
+	Logger.info("Assignment id is: "+ assignmentId);
+	if(assignmentId == null && (role.contains("Faculty")|| role.contains("TeachingAssistant") || role.contains("Instructor")))
+		return ok(create_exercise.render(contextID, resourceLinkID, toolConsumerInstanceGuID));
 
-	return redirect(controllers.routes.HomeController.getAssignment(contextID, resourceLinkID, toolConsumerInstanceGuID, role));	
+	return redirect(controllers.routes.HomeController.getAssignment(role, Long.parseLong(assignmentId)));	
      	//return redirect(url);
  	}
 	
 	//Method to save the created assignment
-	public Result addAssignment(String contextID, String resourceLinkID, String toolConsumerInstanceGuID) {        
+	public Result addAssignment() {        
 		DynamicForm bindedForm = Form.form().bindFromRequest();
    		String problemlist = bindedForm.get("url");
 	
 		Assignment assignment = new Assignment();
-		assignment.setContextId(contextID);
-		assignment.setResourceLinkId(resourceLinkID);
-		assignment.setToolConsumerInstanceGuId(toolConsumerInstanceGuID);
+		assignment.setContextId(bindedForm.get("context_id"));
+		assignment.setResourceLinkId(bindedForm.get("resource_link_id"));
+		assignment.setToolConsumerInstanceGuId(bindedForm.get("tool_consumer_id"));
 		assignment.save();
  	        Logger.info(problemlist);
 		if(null != problemlist|| !problemlist.equals("")) {
@@ -92,21 +94,20 @@ public class HomeController extends Controller {
 	}
 	
 	//Get Assignment Method
-	public Result getAssignment(String contextID, String resourceLinkID, String toolConsumerInstanceGuID, String role){
-	if(Assignment.find.where().eq("contextId",contextID).eq("resourceLinkId",resourceLinkID).eq("toolConsumerInstanceGuId",toolConsumerInstanceGuID).findList().size()==0 && (role.contains("Faculty")|| role.contains("TeachingAssistant") || role.contains("Instructor")))
-		return ok(create_exercise.render(contextID, resourceLinkID, toolConsumerInstanceGuID));
-	Assignment assignment = Assignment.find.where().eq("contextId",contextID).eq("resourceLinkId", resourceLinkID).eq("toolConsumerInstanceGuId",toolConsumerInstanceGuID).findList().get(0);
+	public Result getAssignment(String role, Long assignmentId){
+	Assignment assignment = Assignment.find.byId(assignmentId);
+	
+	if(assignment != null && (role.contains("Faculty")|| role.contains("TeachingAssistant") || role.contains("Instructor"))){
 	List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).findList();
-	if(assignment != null && (role.contains("Faculty") || role.contains("TeachingAssistant") || role.contains("Instructor")))
-		return ok(editAssignment.render(assignment, problems));
-        
-	Logger.info("user ID value from cookie is: " + request().cookie("custom_canvas_user_id").value());
+	return ok(editAssignment.render(assignment, problems));
+	}
+	List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentId).findList();
 	Http.Cookie userIdCookie = request().cookie("custom_canvas_user_id");
 	String userId = userIdCookie.value();
 	Logger.info("UserID is: " + userId);
 	List<Submission> submissions = new ArrayList<Submission>();
 	for(Problem problem: problems){
-	List<Submission> submissionsAll = Submission.find.where().eq("problem.problemId",problem.problemId).eq("assignmentId",assignment.assignmentId).eq("studentId",userId).findList();
+	List<Submission> submissionsAll = Submission.find.where().eq("problem.problemId",problem.problemId).eq("assignmentId",assignmentId).eq("studentId",userId).findList();
 	Logger.info("Submission list is: " + submissionsAll);
 	int correctForThisProblem = 0;
 	int maxscoreForThisProblem = 0;
@@ -117,15 +118,15 @@ public class HomeController extends Controller {
 		if(s.getCorrect()> correctForThisProblem)
 			correctForThisProblem = (s.getCorrect()).intValue();
 		}
-	Submission submission = Submission.find.where().eq("problem.problemId", problem.problemId).eq("assignmentId", assignment.assignmentId).eq("studentId",userId).eq("correct",correctForThisProblem).findList().get(0);
+	Submission submission = Submission.find.where().eq("problem.problemId", problem.problemId).eq("assignmentId", assignmentId).eq("studentId",userId).eq("correct",correctForThisProblem).findList().get(0);
 	submissions.add(submission);			
 	}}
         Logger.info("Submission list is: " + submissions);
 	Logger.info("Problems list is: " + problems);
         if(submissions.size()==0)
-	return ok(finalAssignment.render(problems,assignment.assignmentId, userId, getPrefix()));
+	return ok(finalAssignment.render(problems,assignmentId, userId, getPrefix()));
 
-	return ok(finalAssignmentWithSubmission.render(problems,submissions, assignment.assignmentId, userId, getPrefix()));
+	return ok(finalAssignmentWithSubmission.render(problems,submissions, assignmentId, userId, getPrefix()));
 }	
 	
 	public String getPrefix() { 
