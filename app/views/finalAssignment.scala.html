@@ -53,8 +53,7 @@ setTimeout(function() { $("#response").hide(); }, 4000);                }
   }
 }
   
-window.addEventLaddLoadEvent(receiveMessage);
-
+window.addEventListener("message", receiveMessage, false);
 </script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
  <style>
