@@ -1,9 +1,9 @@
-@()
+@(contextID: String, resourceLinkID: String, toolConsumerInstanceGuID: String)
 @import helper._
 
 	<p>Paste a list of comma separated problem URLs of exercises to be used for this assignment</p>
 	
-	@form(routes.HomeController.addAssignment()) {
+	@form(routes.HomeController.addAssignment(contextID, resourceLinkID, toolConsumerInstanceGuID)) {
     
     <div id="problem-form">
 	    <textarea style="display: block; width: 90%;" name="url" value="" rows="10"></textarea>

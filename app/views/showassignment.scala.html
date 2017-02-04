@@ -2,10 +2,10 @@
 <script type="text/javascript">
                 function modifyURL()
                 {
-                    
-                    var ltiToolUrl = window.location.protocol + "//" + window.location.host + "/lti/assignment?id=";
+                    var ltiToolUrl = window.location.protocol + "//" + window.location.host + "@preFix" + "/assignment?id=";
                     document.myform.url.value = ltiToolUrl +encodeURIComponent(document.myform.url.value);
-                    return true;
+                    console.log("Return URL is: " + document.myform.url.value);
+return true;
                 }
         </script>
 <h2>@problems.size() problems(s) added to assignment</h2>

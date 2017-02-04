@@ -15,11 +15,11 @@ import com.avaje.ebean.Model;
 	
     @Column
     @Constraints.Required
-    public Long studentId;
+    public String studentId;
 
     @Column
     @Constraints.Required
-    public Long canvasAssignmentId;
+    public Long assignmentId;
 
     @Column
     @Constraints.Required
@@ -27,9 +27,16 @@ import com.avaje.ebean.Model;
     
     @Column
     public Long maxscore;	
+    
     @Column
     public String activity;
+
+    @Column
+    public Date submittedAt;        
 	
+    @Column
+    public String content;
+    
     @ManyToOne
     public Problem problem;
 
@@ -56,20 +63,20 @@ import com.avaje.ebean.Model;
 		this.problem = problem;
 	}
 	
-	public Long getStudentId(){
+	public String getStudentId(){
 		return this.studentId;
 	}
 
-	public void setStudentId(Long studentId){
+	public void setStudentId(String studentId){
 		this.studentId = studentId;
 	}
 
-	public Long getcanvasAssignmentId(){
-		return this.canvasAssignmentId;
+	public Long getAssignmentId(){
+		return this.assignmentId;
 	}
 
-	public void setcanvasAssignmentId(Long canvasAssignmentId){
-		this.canvasAssignmentId = canvasAssignmentId;
+	public void setAssignmentId(Long assignmentId){
+		this.assignmentId = assignmentId;
 	}
 
 	public Long getCorrect(){
@@ -93,6 +100,17 @@ import com.avaje.ebean.Model;
 
 	public void setActivity(String activity){
 		this.activity = activity;
+	}
+
+	@Override
+	public void save(){
+		submittedAt();
+		super.save();
+	}
+
+	@PrePersist
+	void submittedAt(){
+		this.submittedAt = new Date();
 	}
 }
 
