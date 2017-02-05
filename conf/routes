@@ -2,10 +2,10 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-# An example controller showing a sample home page
-#GET     /                           controllers.HomeController.index
+# CAUTION: Do NOT add a route / since it will confuse the Google
+# Cloud load balancer.
 GET	/config			controllers.HomeController.config
-POST	/			controllers.HomeController.addAssignment
+POST	/addAssignment		controllers.HomeController.addAssignment
 POST	/assignment		controllers.HomeController.index
 GET	/assignment	        controllers.HomeController.getAssignment(role: String, assignmentId: Long)
 GET	/assignment/editAssignment	controllers.HomeController.showEditPage(id: Long)	
