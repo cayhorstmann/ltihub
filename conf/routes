@@ -4,8 +4,7 @@
 
 # An example controller showing a sample home page
 #GET     /                           controllers.HomeController.index
-
-#POST    /          controllers.HomeController.addAssignment(contextID: String, resourceLinkID: String, toolConsumerInstanceGuID: String)
+GET	/config			controllers.HomeController.config
 POST	/			controllers.HomeController.addAssignment
 POST	/assignment		controllers.HomeController.index
 GET	/assignment	        controllers.HomeController.getAssignment(role: String, assignmentId: Long)
