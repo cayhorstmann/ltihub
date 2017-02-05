@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 
 import play.*;
 import play.data.*;
-import play.libs.Json;
 import static play.data.Form.*;
 import java.net.*;
 import java.io.*;
@@ -32,7 +31,7 @@ public class SubmissionController extends Controller {
         JsonNode json = request().body().asJson();
 	if(json == null)
 		return badRequest("Expecting Json data");
-
+//        Logger.info("Received file is: " + json.toString());
 	String score = json.findPath("score").textValue();
 
 	Logger.info("Received score is:" + score);
@@ -50,6 +49,7 @@ public class SubmissionController extends Controller {
 	Submission submission = new Submission();
 	submission.setAssignmentId(assignmentID);
 	submission.setStudentId(userID);
+        submission.setContent(json.toString());
 	submission.setCorrect(Long.parseLong(scores[0]));
 	if(scores.length >1)
 		submission.setMaxScore(Long.parseLong(scores[1]));
