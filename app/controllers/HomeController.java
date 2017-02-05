@@ -22,7 +22,14 @@ import views.html.*;
 
 
 public class HomeController extends Controller {
-     
+
+    public Result config() throws UnknownHostException {
+        Http.Request request = request();
+        return ok(views.xml.lti_config
+                .render())
+                .as("application/xml");
+    }     
+    
     public Result index() throws UnsupportedEncodingException{    
  	Map<String, String[]> postParams = request().body().asFormUrlEncoded();
     	for(String key: postParams.keySet())
