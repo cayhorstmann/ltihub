@@ -112,6 +112,14 @@ import com.avaje.ebean.Model;
 	void submittedAt(){
 		this.submittedAt = new Date();
 	}
+
+	public String getContent(){
+		return this.content;
+	}
+
+	public void setContent(String content){
+		this.content = content;
+	}
 }
 
 
