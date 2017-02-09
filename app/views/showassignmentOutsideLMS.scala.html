@@ -1,0 +1,17 @@
+@(assignment: Assignment, problems: List[models.Problem], preFix: String)
+
+<h2>@problems.size() problems(s) added to assignment</h2>
+    
+    <ul>
+        @for(problem <- problems) {
+            <li>
+                <a href="@problem.getProblemUrl()">@problem.getProblemUrl()</a>
+            </li>
+        }
+    </ul>
+
+<p>Assignment is successfully created and the  URL of created assignment is:</p>
+<p id = "test"></p>
+<script>
+	document.getElementById("test").innerHTML = window.location.protocol+"//"+window.location.host  +"@preFix" +"/assignment?id=" + "@assignment.assignmentId";
+</script>    

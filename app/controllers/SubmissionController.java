@@ -76,7 +76,7 @@ public class SubmissionController extends Controller {
            Logger.info("json from client = {}", jsonPayload);
 
 	   Logger.info("AssignmentID is: " + assignmentID);
-	   Http.Cookie userIdCookie = request().cookie("custom_canvas_user_id");
+	   Http.Cookie userIdCookie = request().cookie("user_id");
 	   String userId = userIdCookie.value();
 	   Logger.info("UserID is: " + userId);
            Iterator<JsonNode> nodeIterator = jsonPayload.elements();

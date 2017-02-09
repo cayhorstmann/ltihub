@@ -65,4 +65,8 @@ public class Problem extends Model {
 	public void setSubmission(List<Submission> submissions){
 		this.submissions = submissions;
 	}
+
+	public static void delete(Long id) {
+ 		 find.ref(id).delete();
+	}
    }
