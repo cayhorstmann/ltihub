@@ -10,6 +10,7 @@ POST	/assignment		controllers.HomeController.index
 GET	/assignment	        controllers.HomeController.getAssignment(role: String, assignmentId: Long)
 GET	/assignment/editAssignment	controllers.HomeController.showEditPage(id: Long)	
 
+GET	/timedAssignment	controllers.HomeController.showTimedAssignment(assignmentId: Long, duration: Long)
 POST	/assignment/saveAssignment	controllers.HomeController.saveEditedAssignment(id: Long)
 
 POST	/submissions/:assignmentID/:userID/:problemId		controllers.SubmissionController.addSubmission(problemId: Long, assignmentID: Long, userID: String)

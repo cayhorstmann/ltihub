@@ -4,26 +4,25 @@
 <script type='text/javascript'>
 function onLoadHandler() {
          var iframes = document.getElementsByClassName('exercise-iframe')
-         var assignId = @assignmentID;
-         var userId = @userID;
+         
+         for (i = 0; i < iframes.length; i++) {
+             var str = iframes[i].src;
+             var patt = new RegExp("play.codecheck.ws");
 
-             for (i = 0; i < iframes.length; i++) {
-                var str = iframes[i].src;
-                var patt = new RegExp("play.codecheck.ws");
-
-                if(patt.test(str) && str.includes("?")){
-	           iframes[i].src = iframes[i].src + "&scoreCallback="+window.location.protocol+"//"+window.location.host + "@preFix" + "/submissions/"+assignId +"/" + userId +"/" +iframes[i].id;
-                }
-		 else if(patt.test(str)){
-		   iframes[i].src = iframes[i].src + "?scoreCallback="+window.location.protocol+"//"+window.location.host + "@preFix" + "/submissions/"+assignId +"/" + userId +"/" +iframes[i].id;
-
-                }
-	        else
-		   iframes[i].src = iframes[i].src;        
+             if(patt.test(str) && str.includes("?")){
+	        iframes[i].src = iframes[i].src + "&scoreCallback="+window.location.protocol+"//"+window.location.host + "@preFix" + "/submissions/"+"@assignmentID" +"/" + "@userID" +"/" +iframes[i].id;
              }
+	     else if(patt.test(str)){
+		iframes[i].src = iframes[i].src + "?scoreCallback="+window.location.protocol+"//"+window.location.host + "@preFix" + "/submissions/"+"@assignmentID" +"/" + "@userID" +"/" +iframes[i].id;
+
+             }
+	     else
+		iframes[i].src = iframes[i].src;        
+          }
 }
         window.onload = onLoadHandler;
 </script>
+
 <script type="text/javascript">
 var exerciseScores = [];
 
@@ -53,8 +52,8 @@ setTimeout(function() { $("#response").hide(); }, 5000);               }
 }
   window.addEventListener("message", receiveMessage, false);
 
-     </script>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+</script>
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
  <style>
     .warning {
         background-color: #FFF8C4;
@@ -63,9 +62,7 @@ setTimeout(function() { $("#response").hide(); }, 5000);               }
     </style>
        @if(flash.containsKey("warning")) {
         <p class="warning">
-            It looks like this LTI tool wasn't launched as an assignment, or you are trying to take it as a teacher rather
-                        than as a student. Make sure to set up an external tool assignment as outlined for this tool.
-                        <strong>Grade passback will not work outside the student view.</strong>        </p>
+            This LTI tool is launched as an assignment in instructor view.        </p>
     }
         
 
@@ -75,9 +72,10 @@ setTimeout(function() { $("#response").hide(); }, 5000);               }
         <div style='width : 100% ; height : 3em ;border:1px solid black;'
         id= @submission.submissionId  >
                  <p>You have solved the below problem earlier and highest score from your earlier attempts is :     
-                             <b>  @submission.correct/ @submission.maxscore</b> </p>
-                        </div>}
-                           }
+                  <b>  @submission.correct/ @submission.maxscore</b> </p>
+        </div>
+	}
+        }
         <iframe style='width : 100% ; height : 50em ;' class='exercise-iframe'
         id= @problem.problemId src=@problem.url ></iframe>
 }

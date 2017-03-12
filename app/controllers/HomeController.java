@@ -74,12 +74,15 @@ public class HomeController extends Controller {
 	public Result addAssignment() {        
 	       DynamicForm bindedForm = Form.form().bindFromRequest();
    	       String problemlist = bindedForm.get("url");
-	
+	       
                Assignment assignment = new Assignment();
 	       assignment.setContextId(bindedForm.get("context_id"));
 	       assignment.setResourceLinkId(bindedForm.get("resource_link_id"));
 	       assignment.setToolConsumerInstanceGuId(bindedForm.get("tool_consumer_id"));
-	       assignment.save();
+	       
+	       String duration = bindedForm.get("duration");
+	       assignment.setDuration(Long.parseLong(duration));
+               assignment.save();
  	       Logger.info(problemlist);
 	   
                if(null != problemlist|| !problemlist.equals("")) {
@@ -108,9 +111,11 @@ public class HomeController extends Controller {
    	      String problemlist = bindedForm.get("url");
 	      String key = bindedForm.get("key");
 	      String secret = bindedForm.get("secret");
+	      String duration = bindedForm.get("duration");
 
 	      if(key.equals("fred") && secret.equals("fred")){
 	      Assignment assignment = new Assignment();
+	      assignment.setDuration(Long.parseLong(duration));
 	      assignment.save();
 
  	      Logger.info(problemlist);
@@ -139,7 +144,7 @@ public class HomeController extends Controller {
 	
 	if(assignment != null && (role.contains("Faculty")|| role.contains("TeachingAssistant") || role.contains("Instructor"))){
 	List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).findList();
-	return ok(editAssignment.render(assignment, problems));
+	return ok(showAssignmentInstructorView.render(problems,assignmentId, "Teacher", getPrefix()));
 	}
 	List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentId).findList();
 	Http.Cookie userIdCookie = request().cookie("user_id");
@@ -163,12 +168,31 @@ public class HomeController extends Controller {
 	}}
         Logger.info("Submissions list is: " + submissions);
 	Logger.info("Problems list is: " + problems);
-        if(submissions.size()==0)
-	return ok(finalAssignment.render(problems,assignmentId, userId, getPrefix()));
+	Long duration = assignment.getDuration();
+        if(submissions.size()==0){
+		if(duration == 0)
+			return ok(finalAssignment.render(problems,assignmentId, userId, getPrefix()));
+		else
+		return ok(timedAssignmentWelcomeView.render(problems, assignmentId, duration));
+	}
+	else
+	{ 
+	if(duration != 0)
+		return ok("This was a timed assignment and you have already tried it once. Please look at the grade book to see your grades");
+	else 
+		return ok(finalAssignmentWithSubmission.render(problems,submissions, assignmentId, userId, getPrefix()));
+	}	
+}
 
-	return ok(finalAssignmentWithSubmission.render(problems,submissions, assignmentId, userId, getPrefix()));
-}	
-	
+	public Result showTimedAssignment(Long assignmentId, Long duration){
+		Assignment assignment = Assignment.find.byId(assignmentId);
+		List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).findList();
+		Http.Cookie userIdCookie = request().cookie("user_id");
+		String userId = userIdCookie.value();
+		return ok(timedFinalAssignment.render(problems, assignmentId, userId, getPrefix(), duration));
+}
+
+
 	public String getPrefix() { 
 		String prefix = System.getProperty("play.http.context");
 		Logger.info("Prefix is: " + prefix);
