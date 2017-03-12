@@ -19,8 +19,12 @@ package models;
         @Column
         public String resourceLinkId;
     
-        @Column String toolConsumerInstanceGuId;
+        @Column 
+	public String toolConsumerInstanceGuId;
  
+	@Column
+	public Long duration;
+
         @OneToMany(mappedBy="assignment")
 	public List<Problem> problems = new ArrayList<Problem>();	
 
@@ -48,6 +52,13 @@ package models;
 			return this.problems;
 	}
 	
+	public void setDuration(Long duration){
+		this.duration = duration;
+	}
+
+	public Long getDuration(){
+		return this.duration;
+	}
 	public void setProblems(List<Problem> problems) {
 		this.problems = problems;
 	}

@@ -25,7 +25,8 @@ import models.*;
 import views.html.*;
 
 public class SubmissionController extends Controller {
-	
+
+   // Method to save the codecheck submission that is sent back from codecheck server
    public Result addSubmission(Long problemID, Long assignmentID, String userID) {	
 	Logger.info("Result is received" );
         JsonNode json = request().body().asJson();
@@ -60,17 +61,10 @@ public class SubmissionController extends Controller {
 	submission.save();
 	
 	System.out.println("New score is added and the value is: "+ score);
-  //      String callback = request().getQueryString("callback");
-//		ObjectNode result = Json.newObject();
-//		result.put("received", true);
-//		result.put("score", request().getQueryString("score"));
-//		if (callback == null)
-//			return ok(result.asText());
-//		else
-//			return ok(Jsonp.jsonp(callback, result));	
-       return ok("Score is saved");	
+        return ok("Score is saved");	
      }
 
+	//Method to save interactive Exercise score
 	public Result addSubmissions(Long assignmentID){
 	   JsonNode jsonPayload = request().body().asJson();
            Logger.info("json from client = {}", jsonPayload);
@@ -84,22 +78,22 @@ public class SubmissionController extends Controller {
         while (nodeIterator.hasNext()) {
             JsonNode exercise = nodeIterator.next();
 	    if(exercise.has("activity")){
-	    Problem problem = Problem.find.where().like("url", "%"+exercise.get("activity").asText()+"%").findList().get(0);
-	    List<Submission> submissions = Submission.find.where().eq("assignmentId",assignmentID).eq("studentId",userId).findList();
-	    Logger.info("Submission is: " + submissions);
+	       Problem problem = Problem.find.where().like("url", "%"+exercise.get("activity").asText()+"%").findList().get(0);
+	       List<Submission> submissions = Submission.find.where().eq("assignmentId",assignmentID).eq("studentId",userId).findList();
+	       Logger.info("Submission is: " + submissions);
 	    
-            Submission submission = new Submission();
-	    submission.setAssignmentId(assignmentID);
-	    submission.setProblem(problem);
-	    submission.setStudentId(userId);
-	    submission.setActivity(exercise.get("activity").asText());
-	    submission.setCorrect(exercise.get("correct").asLong());
-	    submission.setMaxScore(exercise.get("maxscore").asLong());
-	    submission.save();
+               Submission submission = new Submission();
+	       submission.setAssignmentId(assignmentID);
+	       submission.setProblem(problem);
+	       submission.setStudentId(userId);
+	       submission.setActivity(exercise.get("activity").asText());
+	       submission.setCorrect(exercise.get("correct").asLong());
+	       submission.setMaxScore(exercise.get("maxscore").asLong());
+	       submission.save();
 	    
-	}
+           }
 	 }
 	return ok();
-}
+    }
 }
 

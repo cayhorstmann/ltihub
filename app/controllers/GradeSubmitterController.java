@@ -13,7 +13,8 @@ import play.mvc.Result;
 
 import javax.inject.Inject;
 import java.io.IOException;
-import java.net.HttpURLConnection;
+import javax.net.ssl.HttpsURLConnection;
+//import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -43,9 +44,8 @@ public class GradeSubmitterController extends Controller {
             return badRequest();
        }
       
-    String outcomeServiceUrl = outcomeServiceUrlCookie.value();
-//    String sourcedId = sourcedIdCookie.value();
- String sourcedId = URLDecoder.decode(sourcedIdCookie.value(),"UTF-8");
+       String outcomeServiceUrl = outcomeServiceUrlCookie.value();
+       String sourcedId = URLDecoder.decode(sourcedIdCookie.value(),"UTF-8");
 
         if (outcomeServiceUrl == null || outcomeServiceUrl.equals("")
                 || sourcedId == null || sourcedId.equals("")) {
@@ -60,8 +60,7 @@ public class GradeSubmitterController extends Controller {
 	double score = 0.0;
 
 	// TODO: Find a way to weigh the problems. The instructor would
-	// need to assign the weights because we don't know the weight of an unattempted
-	// problem.
+	// need to assign the weights because we don't know the weight of an unattempted problem.
 	List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentID).findList();
     for (Problem problem: problems) {
 	   List<Submission> submissions = Submission.find.where().eq("problem.problemId",problem.problemId).eq("assignmentId",assignmentID).eq("studentId",userID).findList();
@@ -78,7 +77,6 @@ public class GradeSubmitterController extends Controller {
     if (problems.size() > 0)
        score = score / problems.size();
 	Logger.info("Score is: " + score);
-
         Logger.info(views.xml.scorepassback.render(sourcedId, score).toString());
 
         try {
@@ -117,10 +115,8 @@ public class GradeSubmitterController extends Controller {
 			throws URISyntaxException, IOException,
 			OAuthMessageSignerException, OAuthExpectationFailedException,
 			OAuthCommunicationException {
-		// Create an oauth consumer in order to sign the grade that will be
-		// sent.
-		DefaultOAuthConsumer consumer = new DefaultOAuthConsumer(oauthKey,
-				oauthSecret);
+		// Create an oauth consumer in order to sign the grade that will be sent.
+		DefaultOAuthConsumer consumer = new DefaultOAuthConsumer(oauthKey, oauthSecret);
 
 		consumer.setTokenWithSecret("", "");
 
@@ -129,7 +125,7 @@ public class GradeSubmitterController extends Controller {
 		URL url = new URL(gradePassbackURL);
 
 		// This is the part where we send the HTTP request
-		HttpURLConnection request = (HttpURLConnection) url.openConnection();
+		HttpsURLConnection request = (HttpsURLConnection) url.openConnection();
 
 		// Set http request to POST
 		request.setRequestMethod("POST");
@@ -137,19 +133,22 @@ public class GradeSubmitterController extends Controller {
 
 		// Set the content type to accept xml
 		request.setRequestProperty("Content-Type", "application/xml");
-
+		
+		//Added for mmodle
+		request.setRequestProperty("Authorization","OAuth");
 		// Set the content-length to be the length of the xml
+		xml = xml.replace("&quot;","\"");
 		request.setRequestProperty("Content-Length",
 				Integer.toString(xml.length()));
 
 		// Sign the request per the oauth 1.0 spec
 		consumer.sign(request); // Throws OAuthMessageSignerException,
-								// OAuthExpectationFailedException,
-								// OAuthCommunicationException
-		xml = xml.replace("&quot;", "\"");
+				// OAuthExpectationFailedException,
+				// OAuthCommunicationException
 		Logger.info("XML is: {}", xml);
+
 		// POST the xml to the grade passback url
-		request.getOutputStream().write(xml.getBytes("UTF8"));
+		request.getOutputStream().write(xml.getBytes("UTF-8"));
 
 		// send the request
 		request.connect();
@@ -165,7 +164,7 @@ public class GradeSubmitterController extends Controller {
 			// String encoding = request.getContentEncoding();
 			// encoding = encoding == null ? "UTF-8" : encoding;
 			String body = org.apache.commons.io.IOUtils.toString(in);
-			Logger.info(body);
+			Logger.info("Response body received back from LMS in case of error" + body);
 		}
 	}
 

@@ -8,6 +8,7 @@ create table assignment (
   context_id                varchar(255),
   resource_link_id          varchar(255),
   tool_consumer_instance_gu_id varchar(255),
+  duration                  bigint,
   constraint pk_assignment primary key (assignment_id))
 ;
 

@@ -4,22 +4,20 @@
 <script type='text/javascript'>
 function onLoadHandler() {
          var iframes = document.getElementsByClassName('exercise-iframe')
-         var assignId = @assignmentID;
-         var userId = @userID;
+    
+         for (i = 0; i < iframes.length; i++) {
+             var str = iframes[i].src;
+             var patt = new RegExp("play.codecheck.ws");
 
-             for (i = 0; i < iframes.length; i++) {
-                var str = iframes[i].src;
-                var patt = new RegExp("play.codecheck.ws");
-
-                if(patt.test(str) && str.includes("?") ){
-	           iframes[i].src = iframes[i].src + "&scoreCallback="+window.location.protocol+"//"+window.location.host  +"@preFix" + "/submissions/"+assignId +"/" + userId +"/" +iframes[i].id;
-                }
-		else if(patt.test(str)){
-		   iframes[i].src = iframes[i].src + "?scoreCallback="+window.location.protocol+"//"+window.location.host + "@preFix" + "/submissions/"+assignId +"/" + userId +"/" +iframes[i].id;
-		}
-                else
-		   iframes[i].src = iframes[i].src;
-             } 
+             if(patt.test(str) && str.includes("?") ){
+	        iframes[i].src = iframes[i].src + "&scoreCallback="+window.location.protocol+"//"+window.location.host  +"@preFix" + "/submissions/"+"@assignmentID" +"/" + "@userID" +"/" +iframes[i].id;
+             }
+	     else if(patt.test(str)){
+		iframes[i].src = iframes[i].src + "?scoreCallback="+window.location.protocol+"//"+window.location.host + "@preFix" + "/submissions/"+"@assignmentID" +"/" + "@userID" +"/" +iframes[i].id;
+	     }
+             else
+	        iframes[i].src = iframes[i].src;
+        } 
 }
      
 window.onload = onLoadHandler;
@@ -40,22 +38,24 @@ function receiveMessage(event) {
     var iframes = document.getElementsByClassName('exercise-iframe')
     exerciseScores.push(event.data)
     if (exerciseScores.length === iframes.length) {
-    $.ajax({
-                url: '@preFix/send-interactivescore/@assignmentID',
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(exerciseScores),
-                success: function(msg) {
-                    var response = document.getElementById('response')
-                    response.innerHTML = "Your partially complete assignment is saved!";
+       $.ajax({
+           url: '@preFix/send-interactivescore/@assignmentID',
+           method: 'POST',
+           contentType: 'application/json',
+           data: JSON.stringify(exerciseScores),
+           success: function(msg) {
+            var response = document.getElementById('response')
+            response.innerHTML = "Your partially complete assignment is saved!";
 setTimeout(function() { $("#response").hide(); }, 4000);                }
             });
   }
 }
   
 window.addEventListener("message", receiveMessage, false);
+
 </script>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+   
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
  <style>
     .warning {
         background-color: #FFF8C4;
@@ -64,10 +64,7 @@ window.addEventListener("message", receiveMessage, false);
     </style>
        @if(flash.containsKey("warning")) {
         <p class="warning">
-            It looks like this LTI tool wasn't launched as an assignment, or you are trying to take it as a teacher rather
-                        than as a student. Make sure to set up an external tool assignment as outlined for this tool.
-                        <strong>Grade passback will not work outside the student view.</strong>
-        </p>
+            This LTI tool is launched as an assignment in instructor view. </p>
     }
 
     @for(problem <- problems) {
