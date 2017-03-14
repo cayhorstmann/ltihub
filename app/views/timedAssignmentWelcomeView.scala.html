@@ -1,0 +1,6 @@
+@(problems: List[Problem], assignmentID: Long, duration: Long)
+
+<p>This is a timed assignment and it has @problems.size() problems.
+The duration of this assignment is @duration minutes and counter will start as soon as you click on "Start" button</p>
+<a href="@routes.HomeController.showTimedAssignment(assignmentID, duration)"><button>Start!!</button></a>
+
