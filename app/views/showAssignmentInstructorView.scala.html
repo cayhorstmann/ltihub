@@ -1,0 +1,80 @@
+@(problems: List[Problem], assignmentID: Long, userID: String, preFix: String)
+@import helper._
+
+<script type='text/javascript'>
+function onLoadHandler() {
+         var iframes = document.getElementsByClassName('exercise-iframe')
+
+         for (i = 0; i < iframes.length; i++) {
+             var str = iframes[i].src;
+             var patt = new RegExp("play.codecheck.ws");
+
+             if(patt.test(str) && str.includes("?") ){
+                iframes[i].src = iframes[i].src + "&scoreCallback="+window.location.protocol+"//"+window.location.host  +"@preFix" + "/submissions/"+"@assignmentID" +"/" + "@userID" +"/" +iframes[i].id;
+             }
+             else if(patt.test(str)){
+                iframes[i].src = iframes[i].src + "?scoreCallback="+window.location.protocol+"//"+window.location.host + "@preFix" + "/submissions/"+"@assignmentID" +"/" + "@userID" +"/" +iframes[i].id;
+             }
+             else
+                iframes[i].src = iframes[i].src;
+        }
+}
+
+window.onload = onLoadHandler;
+</script>
+
+<script type="text/javascript">
+var exerciseScores = [];
+
+function checkScores() {
+    exerciseScores = []; // reset the scores array to prevent incorrect data when button is pressed again
+    $('.exercise-iframe').each(function (_, iframe) {
+        iframe.contentWindow.postMessage("scores", "*")
+    });
+    return false
+}
+
+function receiveMessage(event) {
+    var iframes = document.getElementsByClassName('exercise-iframe')
+    exerciseScores.push(event.data)
+    if (exerciseScores.length === iframes.length) {
+       $.ajax({
+           url: '@preFix/send-interactivescore/@assignmentID',
+           method: 'POST',
+           contentType: 'application/json',
+           data: JSON.stringify(exerciseScores),
+           success: function(msg) {
+            var response = document.getElementById('response')
+            response.innerHTML = "Your partially complete assignment is saved!";
+setTimeout(function() { $("#response").hide(); }, 4000);                }
+            });
+  }
+}
+
+window.addEventListener("message", receiveMessage, false);
+
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+ <style>
+    .warning {
+        background-color: #FFF8C4;
+        padding: 1em;
+    }
+    </style>
+       @if(flash.containsKey("warning")) {
+        <p class="warning">
+            This LTI tool is launched as an assignment in instructor view.This is how the assignment will look when the student loads it except this text and "Edit Assignment" button shown below. </p>
+    }
+
+    @for(problem <- problems) {
+
+        <iframe style='width : 100% ; height : 50em ;' class='exercise-iframe'
+        id= @problem.problemId src=@problem.url ></iframe>}
+        <div id='response'></div>
+
+<input type="button" value="Save my work" onclick="checkScores(event)"/>
+<a href="@routes.GradeSubmitterController.submitGradeToCanvas(assignmentID, userID)"><button>Record my score</button></a>
+
+<p>If you want to take a break and continue later, click on "Save my work". If you are done with all questions, click on "Record my score"</p>
+<a href ="@routes.HomeController.showEditPage(assignmentID)"><button>Edit Assignment!!</button></a>
