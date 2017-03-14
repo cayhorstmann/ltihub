@@ -1,0 +1,149 @@
+
+@(problems: List[Problem], assignmentID: Long, userID: String, preFix: String, duration: Long)
+@import helper._
+
+<script type='text/javascript'>
+function onLoadHandler() {
+         var iframes = document.getElementsByClassName('exercise-iframe')
+
+         for (i = 0; i < iframes.length; i++) {
+              var str = iframes[i].src;
+              var patt = new RegExp("play.codecheck.ws");
+
+              if(patt.test(str) && str.includes("?") ){
+                 iframes[i].src = iframes[i].src + "&scoreCallback="+window.location.protocol+"//"+window.location.host  +"@preFix" + "/submissions/"+"@assignmentID" +"/" + "@userID" +"/" +iframes[i].id;
+              }
+              else if(patt.test(str)){
+                 iframes[i].src = iframes[i].src + "?scoreCallback="+window.location.protocol+"//"+window.location.host + "@preFix" + "/submissions/"+"@assignmentID" +"/" + "@userID" +"/" +iframes[i].id;
+              }
+              else
+                iframes[i].src = iframes[i].src;
+        }
+}
+
+//window.onload = onLoadHandler;
+</script>
+
+<script type="text/javascript">
+var exerciseScores = [];
+
+function checkScores() {
+    exerciseScores = []; // reset the scores array to prevent incorrect data when button is pressed again
+    $('.exercise-iframe').each(function (_, iframe) {
+        iframe.contentWindow.postMessage("scores", "*")
+    });
+    return false
+}
+
+function receiveMessage(event) {
+    var iframes = document.getElementsByClassName('exercise-iframe')
+    exerciseScores.push(event.data)
+    if (exerciseScores.length === iframes.length) {
+    $.ajax({
+                url: '@preFix/send-interactivescore/@assignmentID',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(exerciseScores),
+                success: function(msg) {
+                    var response = document.getElementById('response')
+                    response.innerHTML = "Your partially complete assignment is saved!";
+setTimeout(function() { $("#response").hide(); }, 4000);                }
+            });
+  }
+}
+
+window.addEventListener("message", receiveMessage, false);
+</script>
+
+<script type ="text/javascript" >
+        var tim;       
+        var min = @duration;
+        var sec = 0;
+        var f = new Date();
+        function f1() {
+            f2();
+            document.getElementById("starttime").innerHTML = "Assignment started at " + f.getHours() + ":" + f.getMinutes();
+             
+          
+        }
+        function f2() {
+            if (parseInt(sec) > 0) {
+                sec = parseInt(sec) - 1;
+                document.getElementById("showtime").innerHTML = "Time left "+min+" Minutes :" + sec+" Seconds";
+                tim = setTimeout("f2()", 1000);
+            }
+            else {
+                if (parseInt(sec) == 0) {
+                    min = parseInt(min);
+                    if (parseInt(min) == 0) {
+                        clearTimeout(tim);
+                        alert("Time over. Your grade will be saved in canvas.");
+			location.href = "@preFix/send-score/@assignmentID/@userID";
+                    }
+                    else {
+                        sec = 60;
+			min = parseInt(min) - 1;
+                        document.getElementById("showtime").innerHTML = "Your Left Time  is :" + min + " Minutes ," + sec + " Seconds";
+                        tim = setTimeout("f2()", 1000);
+                    }
+                }
+               
+            }
+        }
+    </script>
+
+<script type="text/javascript">
+function addLoadEvent(func) {
+  var oldonload = window.onload;
+  if (typeof window.onload != 'function') {
+    window.onload = func;
+  } else {
+    window.onload = function() {
+      if (oldonload) {
+        oldonload();
+      }
+      func();
+    }
+  }
+}
+addLoadEvent(onLoadHandler);
+addLoadEvent(f1);
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+ <style>
+    .warning {
+        background-color: #FFF8C4;
+        padding: 1em;
+    }
+    .duration {
+        position: fixed;
+        right: 0;
+        top: 50%;
+        width: 10em;
+	background-color: #FFF8C4;
+  	margin-top: -2.5em;
+	border-style: solid;
+	color: red;
+    }
+</style>
+       @if(flash.containsKey("warning")) {
+        <p class="warning">
+            This LTI tool is launched as an assignment in the teacher view.
+        </p>
+    }
+
+    <div class="duration">
+     <div id="starttime"></div><br />
+     <div id="showtime"></div>
+    </div>
+    
+    @for(problem <- problems) {
+
+        <iframe style='width : 100% ; height : 50em ;' class='exercise-iframe'
+        id= @problem.problemId src=@problem.url ></iframe>}
+        <div id='response'></div>
+
+<input type="button" value="Save my work" onclick="checkScores(event)"/>
+<a href="@routes.GradeSubmitterController.submitGradeToCanvas(assignmentID, userID)"><button>Record my score</button></a>
+
