@@ -81,7 +81,10 @@ public class HomeController extends Controller {
 	       assignment.setToolConsumerInstanceGuId(bindedForm.get("tool_consumer_id"));
 	       
 	       String duration = bindedForm.get("duration");
-	       assignment.setDuration(Long.parseLong(duration));
+	       if(duration.equals(""))
+			assignment.setDuration(0L);
+	       else
+			assignment.setDuration(Long.parseLong(duration));
                assignment.save();
  	       Logger.info(problemlist);
 	   

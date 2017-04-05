@@ -63,8 +63,11 @@ public class GradeSubmitterController extends Controller {
 	// need to assign the weights because we don't know the weight of an unattempted problem.
 	List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentID).findList();
     for (Problem problem: problems) {
+	   Logger.info("Problem is is ={}",problem.problemId);
 	   List<Submission> submissions = Submission.find.where().eq("problem.problemId",problem.problemId).eq("assignmentId",assignmentID).eq("studentId",userID).findList();
+	   Logger.info("Submission size is={}",submissions.size());
 	   int correctForThisProblem = 0;
+
 	   double maxscoreForThisProblem = 0.0;
 	   for (Submission s: submissions) {
 		   double maxScore = (s.getMaxScore()).intValue();
@@ -72,6 +75,7 @@ public class GradeSubmitterController extends Controller {
 			   maxscoreForThisProblem = Math.max(maxscoreForThisProblem, 
 					   (s.getCorrect()).intValue() / maxScore);        
 	   }
+	   Logger.info("maxscore for problem is = {}",maxscoreForThisProblem);
 	   score += maxscoreForThisProblem;
     }
     if (problems.size() > 0)
