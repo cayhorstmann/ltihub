@@ -78,7 +78,7 @@ public class SubmissionController extends Controller {
         while (nodeIterator.hasNext()) {
             JsonNode exercise = nodeIterator.next();
 	    if(exercise.has("activity")){
-	       Problem problem = Problem.find.where().like("url", "%"+exercise.get("activity").asText()+"%").findList().get(0);
+	       Problem problem = Problem.find.where().eq("assignment.assignmentId",assignmentID).like("url", "%"+exercise.get("activity").asText()+"%").findList().get(0);
 	       List<Submission> submissions = Submission.find.where().eq("assignmentId",assignmentID).eq("studentId",userId).findList();
 	       Logger.info("Submission is: " + submissions);
 	    

@@ -52,7 +52,7 @@ setTimeout(function() { $("#response").hide(); }, 4000);                }
 }
   
 window.addEventListener("message", receiveMessage, false);
-
+setInterval(checkScores,60000);
 </script>
    
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
@@ -73,7 +73,7 @@ window.addEventListener("message", receiveMessage, false);
         id= @problem.problemId src=@problem.url ></iframe>}
         <div id='response'></div>
 
-<input type="button" value="Save my work" onclick="checkScores(event)"/>
+<input type="button"  value="Save my work" onclick="checkScores(event)"/>
 <a href="@routes.GradeSubmitterController.submitGradeToCanvas(assignmentID, userID)"><button>Record my score</button></a>
 
 <p>If you want to take a break and continue later, click on "Save my work". If you are done with all questions, click on "Record my score"</p>
