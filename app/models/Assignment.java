@@ -1,42 +1,42 @@
 package models;
 
-        import java.util.*;
-        import javax.persistence.*;
-        import play.db.ebean.*;
-        import play.data.format.*;
-        import play.data.validation.*;
-	import com.avaje.ebean.Model;
-		
-        @Entity
-        public class Assignment extends Model {
-          
-        @Id
-        public Long assignmentId;
-     
-        @Column
-        public String contextId;
+import java.util.*;
+import javax.persistence.*;
+import play.db.ebean.*;
+import play.data.format.*;
+import play.data.validation.*;
+import com.avaje.ebean.Model;
 
-        @Column
-        public String resourceLinkId;
-    
-        @Column 
+@Entity
+public class Assignment extends Model {
+
+	@Id
+	public Long assignmentId;
+
+	@Column
+	public String contextId;
+
+	@Column
+	public String resourceLinkId;
+
+	@Column
 	public String toolConsumerInstanceGuId;
- 
+
 	@Column
 	public Long duration;
 
-        @OneToMany(mappedBy="assignment")
-	public List<Problem> problems = new ArrayList<Problem>();	
+	@OneToMany(mappedBy="assignment")
+	public List<Problem> problems = new ArrayList<Problem>();
 
-        public static Finder<Long, Assignment> find = new Finder<Long, Assignment>(
-          Long.class, Assignment.class
-        );
-	
-        public Assignment() {
-		}
+	public static Finder<Long, Assignment> find = new Finder<Long, Assignment>(
+	  Long.class, Assignment.class
+	);
+
+	public Assignment() {
+	}
 
 	public Assignment(List<Problem> problems) {
-		
+
 		this.problems = problems;
 	}
 
@@ -46,12 +46,12 @@ package models;
 
 	public void setAssignmentId(Long assignmentId) {
 		this.assignmentId = assignmentId;
-	}  
-	
+	}
+
 	public List<Problem> getProblems(){
 			return this.problems;
 	}
-	
+
 	public void setDuration(Long duration){
 		this.duration = duration;
 	}
@@ -78,7 +78,7 @@ package models;
 	public void setContextId(String contextId) {
 		this.contextId = contextId;
 	}
-		
+
 	public String getToolConsumerInstanceGuId() {
 		return this.toolConsumerInstanceGuId;
 	}
