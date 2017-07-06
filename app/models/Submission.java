@@ -7,10 +7,13 @@ import play.data.format.*;
 import play.data.validation.*;
 import com.avaje.ebean.Model;
 		
-    @Entity
-    public class Submission extends Model {
-          
-    @Id 
+@Entity
+public class Submission extends Model {
+
+	public Submission(){
+	}
+
+    @Id
     public Long submissionId;
 	
     @Column
@@ -40,12 +43,9 @@ import com.avaje.ebean.Model;
     @ManyToOne
     public Problem problem;
 
-    public static Finder<Long, Submission> find = new Finder<Long, Submission>(
+    public static Finder<Long, Submission> find = new Finder<>(
         Long.class, Submission.class);
-        
-	public Submission(){
-	}
-		
+
 	public Long getSubmissionId() {
 		return this.submissionId;
 	}
@@ -87,7 +87,7 @@ import com.avaje.ebean.Model;
 		this.correct = correct;
 	}
 	
-        public Long getMaxScore(){
+	public Long getMaxScore() {
 		return this.maxscore;
 	}
 	

@@ -91,24 +91,67 @@ setInterval(checkScores,60000);
                
             }
         }
-    </script>
+</script>
 
 <script type="text/javascript">
-function addLoadEvent(func) {
-  var oldonload = window.onload;
-  if (typeof window.onload != 'function') {
-    window.onload = func;
-  } else {
-    window.onload = function() {
-      if (oldonload) {
-        oldonload();
-      }
-      func();
+    /**
+     * Sends submission to the given iframe to populate its ace editor with the student's previously submitted code
+     *
+     * @@param iframe the iframe containing the ace editor to populate
+     * @@param submission the students previously submitted code, this function expects submission to be
+     * the report with html entities encoded, and new lines & double quotes properly dealt with so the submission
+     * can be parsed as JSON
+     */
+    function populateCodeEditors() {
+        @for(problem <- problems) {
+            // Get student's submission, make it parsable JSON, and put it inside of an element to decode HTML entities.
+            @if(problem.getSubmissions().size() > 0){
+                var submission = "@{problem.getSubmissions().get(problem.getSubmissions().size() - 1).getContent()
+                .replaceAll("\\\\\"", "\\\'")
+                .replaceAll("\\\\n", "\\\\\\\\n")
+                .replaceAll("\\\\t", "\\\\\\\\t")}";
+            } else {
+                return;
+            }
+            var submissionEl = document.createElement('html');
+            submissionEl.innerHTML = submission;
+
+            // Parse student's submission as JSON and put it inside of studentCodeEl, then look for student code,
+                // and put it inside of studentCode to be posted to iframe
+            var studentCodeEl = document.createElement('html');
+            studentCodeEl.innerHTML = JSON.parse(submissionEl.innerText).report;
+            var studentCodeBodyEl = studentCodeEl.children[1];
+            for (var i = 0; i < studentCodeBodyEl.children.length; i++) {
+                var section = studentCodeBodyEl.children[i];
+                if (section.className === 'studentFiles') {
+                    var studentCode = section.children[1].children[0].children[0].children[1].children[0].innerText;
+                }
+            }
+
+            // Post message to iframe to populate the editor
+            var iframe = document.getElementById('@problem.getProblemId()');
+            iframe.contentWindow.postMessage({query: 'populateAceEditor', studentCode: studentCode}, '*');
+        }
     }
-  }
-}
-addLoadEvent(onLoadHandler);
-addLoadEvent(f1);
+</script>
+
+<script type="text/javascript">
+    function addLoadEvent(func) {
+      var oldonload = window.onload;
+      if (typeof window.onload != 'function') {
+        window.onload = func;
+      } else {
+        window.onload = function() {
+          if (oldonload) {
+            oldonload();
+          }
+          func();
+        }
+      }
+    }
+    addLoadEvent(onLoadHandler);
+    addLoadEvent(f1);
+    addLoadEvent(populateCodeEditors);
 </script>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
@@ -142,7 +185,8 @@ addLoadEvent(f1);
     @for(problem <- problems) {
 
         <iframe style='width : 100% ; height : 50em ;' class='exercise-iframe'
-        id= @problem.problemId src=@problem.url ></iframe>}
+        id= @problem.problemId src=@problem.url ></iframe>
+    }
         <div id='response'></div>
 
 <input type="button" id = 'btn' value="Save my work" onclick="checkScores(event)"/>
