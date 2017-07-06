@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.nio.Buffer;
 import java.util.*;
 
 import play.*;
@@ -143,56 +144,67 @@ public class HomeController extends Controller {
 	
 	//Get Assignment Method
 	public Result getAssignment(String role, Long assignmentId){
-	Assignment assignment = Assignment.find.byId(assignmentId);
-	
-	if(assignment != null && (role.contains("Faculty")|| role.contains("TeachingAssistant") || role.contains("Instructor"))){
-	List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).findList();
-	return ok(showAssignmentInstructorView.render(problems,assignmentId, "Teacher", getPrefix()));
-	}
-	List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentId).findList();
-	Http.Cookie userIdCookie = request().cookie("user_id");
-	String userId = userIdCookie.value();
-	Logger.info("UserID is: " + userId);
-	List<Submission> submissions = new ArrayList<Submission>();
-	for(Problem problem: problems){
-	List<Submission> submissionsAll = Submission.find.where().eq("problem.problemId",problem.problemId).eq("assignmentId",assignmentId).eq("studentId",userId).findList();
-	
-	int correctForThisProblem = 0;
-	int maxscoreForThisProblem = 0;
-        if(submissionsAll.size()!=0){
-		for(Submission s: submissionsAll){
-		if(s.getMaxScore()>0)
-			maxscoreForThisProblem = (s.getMaxScore()).intValue();
-		if(s.getCorrect()> correctForThisProblem)
-			correctForThisProblem = (s.getCorrect()).intValue();
+        Logger.info("getAssignment() Commencing...");
+        Logger.info("Role is: " + role);
+        Logger.info("Assignment_id is: " + assignmentId);
+
+		Assignment assignment = Assignment.find.byId(assignmentId);
+
+		if(assignment != null && (role.contains("Faculty")|| role.contains("TeachingAssistant") || role.contains("Instructor"))){
+			List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).findList();
+			return ok(showAssignmentInstructorView.render(problems,assignmentId, "Teacher", getPrefix()));
 		}
-	Submission submission = Submission.find.where().eq("problem.problemId", problem.problemId).eq("assignmentId", assignmentId).eq("studentId",userId).eq("correct",correctForThisProblem).findList().get(0);
-	submissions.add(submission);			
-	}}
+
+		List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentId).findList();
+		Http.Cookie userIdCookie = request().cookie("user_id");
+		String userId = userIdCookie.value();
+		Logger.info("UserID is: " + userId);
+		List<Submission> submissions = new ArrayList<>();
+		for(Problem problem: problems){
+			List<Submission> submissionsAll = Submission.find.where().eq("problem.problemId",problem.problemId).eq("assignmentId",assignmentId).eq("studentId",userId).findList();
+
+			int correctForThisProblem = 0;
+			int maxscoreForThisProblem = 0;
+			if(submissionsAll.size()!=0){
+				for(Submission s: submissionsAll){
+					if(s.getMaxScore()>0)
+						maxscoreForThisProblem = (s.getMaxScore()).intValue();
+					if(s.getCorrect()> correctForThisProblem)
+						correctForThisProblem = (s.getCorrect()).intValue();
+				}
+
+				Submission submission = Submission.find.where().eq("problem.problemId", problem.problemId).eq("assignmentId", assignmentId).eq("studentId",userId).eq("correct",correctForThisProblem).findList().get(0);
+				submissions.add(submission);
+			}
+		}
         Logger.info("Submissions list is: " + submissions);
-	Logger.info("Problems list is: " + problems);
-	Long duration = assignment.getDuration();
-        if(submissions.size()==0){
-		if(duration == 0)
-			return ok(finalAssignment.render(problems,assignmentId, userId, getPrefix()));
+        Logger.info("\nSUBMISSION CONTENT: " + (submissions.size() > 0 ? submissions.get(submissions.size() - 1).getContent() : "NONE") + "\n");
+        Logger.info("Problems list is: " + problems);
+		Long duration = assignment.getDuration();
+        if(submissions.size()==0) {
+			if(duration == 0)
+				return ok(finalAssignment.render(problems,assignmentId, userId, getPrefix()));
+			else
+			    return ok(timedAssignmentWelcomeView.render(problems, assignmentId, duration));
+		}
 		else
-		return ok(timedAssignmentWelcomeView.render(problems, assignmentId, duration));
-	}
-	else
-	{ 
-	if(duration != 0)
-		return ok("This was a timed assignment and you have already tried it once. Please look at the grade book to see your grades");
-	else 
-		return ok(finalAssignmentWithSubmission.render(problems,submissions, assignmentId, userId, getPrefix()));
-	}	
-}
+		{
+            if(duration != 0)
+                return ok("This was a timed assignment and you have already tried it once. Please look at the grade book to see your grades");
+            else
+                return ok(finalAssignmentWithSubmission.render(problems,submissions, assignmentId, userId, getPrefix()));
+		}
+    }
 
 	public Result showTimedAssignment(Long assignmentId, Long duration){
 		Assignment assignment = Assignment.find.byId(assignmentId);
-		List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).findList();
-		Http.Cookie userIdCookie = request().cookie("user_id");
-		String userId = userIdCookie.value();
-		return ok(timedFinalAssignment.render(problems, assignmentId, userId, getPrefix(), duration));
+
+        List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentId).findList();
+        Http.Cookie userIdCookie = request().cookie("user_id");
+        String userId = userIdCookie.value();
+        Logger.info("UserID is: " + userId);
+
+        return ok(timedFinalAssignment.render(problems, assignmentId, userId, getPrefix(), duration));
 }
 
 
@@ -210,30 +222,59 @@ public class HomeController extends Controller {
 	}
 	
 	public Result saveEditedAssignment(Long assignment) {
-        
-	      DynamicForm bindedForm = Form.form().bindFromRequest();
-              String problemlist = bindedForm.get("url");
-	      Assignment assignment1 = Assignment.find.byId(assignment);
-              Logger.info(problemlist);
-		if(null != problemlist|| !problemlist.equals("")) {
-			String [] problemArr = problemlist.split("\n"); 
-			for(String problemstr : problemArr) {
-			    if(null != problemstr && !problemstr.equals("")) {
-				Problem problem = new Problem();
-				problem.setProblemUrl(problemstr);
-				problem.setAssignment(assignment1);
-				assignment1.getProblems().add(problem);
-				problem.save();
-			   }	
-			}
-		}
-	     List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment1.assignmentId).findList();
+	    DynamicForm bindedForm = Form.form().bindFromRequest();
+	    String problemlist = bindedForm.get("url");
+	    Assignment assignment1 = Assignment.find.byId(assignment);
+	    Logger.info(problemlist);
+	    if(null != problemlist|| !problemlist.equals("")) {
+	        String [] problemArr = problemlist.split("\n");
+	        for(String problemstr : problemArr) {
+	            if(null != problemstr && !problemstr.equals("")) {
+	                Problem problem = new Problem();
+	                problem.setProblemUrl(problemstr);
+	                problem.setAssignment(assignment1);
+	                assignment1.getProblems().add(problem);
+	                problem.save();
+	            }
+	        }
+	    }
+	    List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment1.assignmentId).findList();
 
 	    Http.Cookie launchReturnUrlCookie = request().cookie("launch_presentation_return_url");
 	    String returnUrl = launchReturnUrlCookie.value();
-	Logger.info("ReturnURL is: " + returnUrl);
+	    Logger.info("ReturnURL is: " + returnUrl);
         return ok(showassignment.render(returnUrl,assignment1,problems, getPrefix()));
 	}
+
+	// TODO: Implement DOM parser
+	private static String getStudentCodeFromSubmissionContent(String submissionContent) {
+
+	    final String STUDENT_CODE_PREFIX = "</pre></td><td><pre>";
+	    final String STUDENT_CODE_SUFFIX = "</pre></td></tr></table>";
+
+	    try (BufferedReader contentReader = new BufferedReader(new StringReader(submissionContent))) {
+            StringBuilder studentCode = new StringBuilder("");
+            boolean lookingAtStudentCode = false;
+            for (String line; (line = contentReader.readLine()) != null;) {
+
+                if (!lookingAtStudentCode && line.startsWith(STUDENT_CODE_PREFIX)) {
+                    line = line.substring(STUDENT_CODE_PREFIX.length());
+                    lookingAtStudentCode = true;
+                } else if (lookingAtStudentCode && line.startsWith(STUDENT_CODE_SUFFIX)) {
+                    return studentCode.toString();
+                }
+
+                if (lookingAtStudentCode)
+                    studentCode.append(line + "\n");
+
+            }
+        } catch (IOException ex) {
+	        ex.printStackTrace();
+        }
+
+        return null;
+
+    }
     
 
 	public Result showEditPage(Long assignment) {

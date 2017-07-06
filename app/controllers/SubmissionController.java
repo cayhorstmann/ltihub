@@ -81,8 +81,8 @@ public class SubmissionController extends Controller {
 	       Problem problem = Problem.find.where().eq("assignment.assignmentId",assignmentID).like("url", "%"+exercise.get("activity").asText()+"%").findList().get(0);
 	       List<Submission> submissions = Submission.find.where().eq("assignmentId",assignmentID).eq("studentId",userId).findList();
 	       Logger.info("Submission is: " + submissions);
-	    
-               Submission submission = new Submission();
+
+		   Submission submission = new Submission();
 	       submission.setAssignmentId(assignmentID);
 	       submission.setProblem(problem);
 	       submission.setStudentId(userId);

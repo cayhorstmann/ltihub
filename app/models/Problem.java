@@ -50,7 +50,7 @@ public class Problem extends Model {
 		this.url = url;
 	}
        
-        public Assignment getAssignment() {
+	public Assignment getAssignment() {
 		return this.assignment;
 	}
 
