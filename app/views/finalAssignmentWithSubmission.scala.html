@@ -11,13 +11,13 @@ function onLoadHandler() {
 
              if(patt.test(str) && str.includes("?")){
 	        iframes[i].src = iframes[i].src + "&scoreCallback="+window.location.protocol+"//"+window.location.host + "@preFix" + "/submissions/"+"@assignmentID" +"/" + "@userID" +"/" +iframes[i].id;
-             }
+         }
 	     else if(patt.test(str)){
 		iframes[i].src = iframes[i].src + "?scoreCallback="+window.location.protocol+"//"+window.location.host + "@preFix" + "/submissions/"+"@assignmentID" +"/" + "@userID" +"/" +iframes[i].id;
 
              }
 	     else
-		iframes[i].src = iframes[i].src;        
+		iframes[i].src = iframes[i].src;
           }
 }
         window.onload = onLoadHandler;

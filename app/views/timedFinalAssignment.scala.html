@@ -149,7 +149,7 @@ setInterval(checkScores,60000);
         }
       }
     }
-    addLoadEvent(onLoadHandler);
+//    addLoadEvent(onLoadHandler);
     addLoadEvent(f1);
     addLoadEvent(populateCodeEditors);
 </script>
@@ -183,9 +183,34 @@ setInterval(checkScores,60000);
     </div>
     
     @for(problem <- problems) {
-
         <iframe style='width : 100% ; height : 50em ;' class='exercise-iframe'
-        id= @problem.problemId src=@problem.url ></iframe>
+        id= @problem.problemId src=@{
+            val problemURL = problem.getProblemUrl().trim();
+
+            var ret = new StringBuilder(problemURL);
+            if(problemURL.contains("play.codecheck.ws")) {
+
+                if (problemURL.contains("?")) {
+                    ret.append('&');
+                } else {
+                    ret.append('?');
+                }
+
+                ret.append("scoreCallback=");
+                // find and add protocal
+                ret.append(ret.substring(0, ret.indexOf("://play.codecheck.ws")) + "://");
+
+                ret.append("play.codecheck.ws/");
+                ret.append(preFix + "/");
+                ret.append("subissions/");
+                ret.append(assignmentID + "/");
+                ret.append(userID + "/");
+                ret.append(problem.getProblemId());
+            }
+
+            ret.toString()
+        }></iframe>
+
     }
         <div id='response'></div>
 
