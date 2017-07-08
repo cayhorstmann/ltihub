@@ -106,10 +106,15 @@ setInterval(checkScores,60000);
         @for(problem <- problems) {
             // Get student's submission, make it parsable JSON, and put it inside of an element to decode HTML entities.
             @if(problem.getSubmissions().size() > 0){
-                var submission = "@{problem.getSubmissions().get(problem.getSubmissions().size() - 1).getContent()
-                .replaceAll("\\\\\"", "\\\'")
-                .replaceAll("\\\\n", "\\\\\\\\n")
-                .replaceAll("\\\\t", "\\\\\\\\t")}";
+                var submission = "@{
+                    val submissions = problem.getSubmissions();
+                    submissions.sortBy(_.getSubmissionId())
+
+                    submissions.last.getContent()
+                        .replaceAll("\\\\\"", "\\\'")
+                        .replaceAll("\\\\n", "\\\\\\\\n")
+                        .replaceAll("\\\\t", "\\\\\\\\t")
+                }";
             } else {
                 return;
             }
