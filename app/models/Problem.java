@@ -6,7 +6,7 @@ import play.db.ebean.*;
 import play.data.format.*;
 import play.data.validation.*;
 import com.avaje.ebean.Model;
-		
+
 @Entity
 public class Problem extends Model {
           
@@ -69,4 +69,4 @@ public class Problem extends Model {
 	public static void delete(Long id) {
  		 find.ref(id).delete();
 	}
-   }
+}
