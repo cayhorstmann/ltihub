@@ -31,6 +31,8 @@ public class SubmissionController extends Controller {
         Problem problem = Problem.find.byId(problemID);
         Logger.info("Problem is: " + problem);
 
+        Logger.info("Received content is: " + json.toString());
+
         List<Submission> submissions = Submission.find.where().eq("assignmentId", assignmentID).eq("studentId", userID).findList();
         System.out.println(submissions);
 
@@ -66,8 +68,6 @@ public class SubmissionController extends Controller {
             JsonNode exercise = nodeIterator.next();
             if (exercise.has("activity")) {
                 Problem problem = Problem.find.where().eq("assignment.assignmentId", assignmentID).like("url", "%" + exercise.get("activity").asText() + "%").findList().get(0);
-                List<Submission> submissions = Submission.find.where().eq("assignmentId", assignmentID).eq("studentId", userId).findList();
-                Logger.info("Submission is: " + submissions);
 
                 Submission submission = new Submission();
                 submission.setAssignmentId(assignmentID);
