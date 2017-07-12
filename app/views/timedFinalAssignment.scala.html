@@ -103,7 +103,7 @@
             @for(problem <- problems) {
             // Get student's most recently submitted work
             @if(!problem.getSubmissions().isEmpty()){
-            var studentWork = '@Html@{
+            var studentWork = "@Html@{
                     val submissions = problem.getSubmissions();
                     submissions.sortBy(_.submissionId);
 
@@ -117,11 +117,10 @@
 
                    studentWork
                         .replaceAll("\\\\\"", "\\\\\\\\\"")
-                        .replaceAll("\\\\\'", "\\\\\\\\\'")
                         .replaceAll("\\\\n", "\\\\\\\\n")
                         .replaceAll("\\\\t", "\\\\\\\\t")
                         .replaceAll("\\\\r", "\\\\\\\\r")
-                }';
+                }";
 
             // Didn't find submission for given studentID/problemID
             if (!studentWork)

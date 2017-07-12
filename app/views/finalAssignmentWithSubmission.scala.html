@@ -44,10 +44,11 @@
                     }
 
                    studentWork
-                        .replaceAll("\\\\\"", "\\\\\\\\\"")
-                        .replaceAll("\\\\n", "\\\\\\\\n")
-                        .replaceAll("\\\\t", "\\\\\\\\t")
-                        .replaceAll("\\\\r", "\\\\\\\\r")
+                       .replaceAll("\\\'", "\\\\\\\'")
+                       .replaceAll("\\\\\"", "\\\\\\\\\"")
+                       .replaceAll("\\\\n", "\\\\\\\\n")
+                       .replaceAll("\\\\t", "\\\\\\\\t")
+                       .replaceAll("\\\\r", "\\\\\\\\r")
                 }';
 
                 // Didn't find submission for given studentID/problemID
