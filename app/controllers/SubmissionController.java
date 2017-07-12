@@ -20,7 +20,7 @@ public class SubmissionController extends Controller {
         JsonNode json = request().body().asJson();
         if (json == null)
             return badRequest("Expecting Json data");
-//        Logger.info("Received file is: " + json.toString());
+        Logger.info("Received file is: " + json.toString());
         String score = json.findPath("score").textValue();
 
         Logger.info("Received score is:" + score);
@@ -32,7 +32,7 @@ public class SubmissionController extends Controller {
         Problem problem = Problem.find.byId(problemID);
         Logger.info("Problem is: " + problem);
 
-        String studentWork = json.get("report").get("studentWork").toString();
+        String studentWork = json.findPath("report").findPath("studentWork").toString();
         Logger.info("Received studentWork is: " + studentWork);
 
         List<Submission> submissions = Submission.find.where().eq("assignmentId", assignmentID).eq("studentId", userID).findList();
