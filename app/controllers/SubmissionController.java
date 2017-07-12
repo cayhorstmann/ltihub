@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import models.Problem;
 import models.Submission;
 import play.Logger;
+import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -31,7 +32,8 @@ public class SubmissionController extends Controller {
         Problem problem = Problem.find.byId(problemID);
         Logger.info("Problem is: " + problem);
 
-        Logger.info("Received content is: " + json.toString());
+        String studentWork = json.get("report").get("studentWork").toString();
+        Logger.info("Received studentWork is: " + studentWork);
 
         List<Submission> submissions = Submission.find.where().eq("assignmentId", assignmentID).eq("studentId", userID).findList();
         System.out.println(submissions);
@@ -39,7 +41,7 @@ public class SubmissionController extends Controller {
         Submission submission = new Submission();
         submission.setAssignmentId(assignmentID);
         submission.setStudentId(userID);
-        submission.setContent(json.toString());
+        submission.setContent(studentWork);
         submission.setCorrect(Long.parseLong(scores[0]));
         if (scores.length > 1)
             submission.setMaxScore(Long.parseLong(scores[1]));

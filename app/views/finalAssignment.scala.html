@@ -1,163 +1,143 @@
 @(problems: List[Problem], assignmentID: Long, userID: String, preFix: String)
-@import helper._
+
 
 <script type='text/javascript'>
-function onLoadHandler() {
-         var iframes = document.getElementsByClassName('exercise-iframe')
-    
-         for (i = 0; i < iframes.length; i++) {
-             var str = iframes[i].src;
-             var patt = new RegExp("play.codecheck.ws");
+        function onLoadHandler() {
+            var iframes = document.getElementsByClassName('exercise-iframe')
 
-             if(patt.test(str) && str.includes("?") ){
-	        iframes[i].src = iframes[i].src + "&scoreCallback="+window.location.protocol+"//"+window.location.host  +"@preFix" + "/submissions/"+"@assignmentID" +"/" + "@userID" +"/" +iframes[i].id;
-             }
-	     else if(patt.test(str)){
-		iframes[i].src = iframes[i].src + "?scoreCallback="+window.location.protocol+"//"+window.location.host + "@preFix" + "/submissions/"+"@assignmentID" +"/" + "@userID" +"/" +iframes[i].id;
-	     }
-             else
-	        iframes[i].src = iframes[i].src;
-        } 
-}
-     
-//window.onload = onLoadHandler;
-</script>
+            for (i = 0; i < iframes.length; i++) {
+                var str = iframes[i].src;
+                var patt = new RegExp("play.codecheck.ws");
 
-<script type="text/javascript">
-    /**
-     * Sends submission to the given iframe to populate its ace editor with the student's previously submitted code
-     *
-     * @@param iframe the iframe containing the ace editor to populate
-     * @@param submission the students previously submitted code, this function expects submission to be
-     * the report with html entities encoded, and new lines & double quotes properly dealt with so the submission
-     * can be parsed as JSON
-     */
-    function populateCodeEditors() {
-        @for(problem <- problems) {
-        // Get student's submission, make it parsable JSON, and put it inside of an element to decode HTML entities.
-        @if(!problem.getSubmissions().isEmpty()){
-        var submission = "@{
-                    val submissions = problem.getSubmissions();
-                    submissions.sortWith(_.submissionId > _.submissionId);
-
-                    for (submission <- submissions) {
-                        if (submission.getStudentId().equals(userID)) {
-                            submission.getContent()
-                                .replaceAll("\\\\\"", "\\\'")
-                                .replaceAll("\\\\n", "\\\\\\\\n")
-                                .replaceAll("\\\\t", "\\\\\\\\t")
-                                .replaceAll("\\\\r", "\\\\\\\\r")
-                        }
-                    }
-                }";
-        } else {
-        return;
-        }
-
-        if (!submission)
-            return;
-
-        var submissionEl = document.createElement('html');
-        submissionEl.innerHTML = submission;
-
-        // Parse student's submission as JSON and put it inside of studentCodeEl, then look for student code,
-        // and put it inside of studentCode to be posted to iframe
-        var studentCodeEl = document.createElement('html');
-        studentCodeEl.innerHTML = JSON.parse(submissionEl.innerText).report;
-        var studentCodeBodyEl = studentCodeEl.children[1];
-        for (var i = 0; i < studentCodeBodyEl.children.length; i++) {
-            var section = studentCodeBodyEl.children[i];
-            if (section.className === 'studentFiles') {
-                var studentCode = section.children[1].children[0].children[0].children[1].children[0].innerText;
-            }
-        }
-
-        // Post message to iframe to populate the editor
-        var iframe = document.getElementById('@problem.getProblemId()');
-        iframe.contentWindow.postMessage({query: 'populateAceEditor', studentCode: studentCode}, '*');
-        }
-    }
-
-    window.onload = populateCodeEditors;
-</script>
-
-<script type="text/javascript">
-var exerciseScores = [];
-
-function checkScores() {
-    exerciseScores = []; // reset the scores array to prevent incorrect data when button is pressed again
-    $('.exercise-iframe').each(function (_, iframe) {
-        iframe.contentWindow.postMessage("scores", "*")
-    });
-    return false
-}
-
-function receiveMessage(event) {
-    var iframes = document.getElementsByClassName('exercise-iframe')
-    exerciseScores.push(event.data)
-    if (exerciseScores.length === iframes.length) {
-       $.ajax({
-           url: '@preFix/send-interactivescore/@assignmentID',
-           method: 'POST',
-           contentType: 'application/json',
-           data: JSON.stringify(exerciseScores),
-           success: function(msg) {
-            var response = document.getElementById('response')
-            response.innerHTML = "Your partially complete assignment is saved!";
-setTimeout(function() { $("#response").hide(); }, 4000);                }
-            });
-  }
-}
-  
-window.addEventListener("message", receiveMessage, false);
-setInterval(checkScores,60000);
-</script>
-   
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
- <style>
-    .warning {
-        background-color: #FFF8C4;
-        padding: 1em;
-    }
-    </style>
-       @if(flash.containsKey("warning")) {
-        <p class="warning">
-            This LTI tool is launched as an assignment in instructor view. </p>
-    }
-
-    @*TODO: Stop using iframes and grab the HTML and plop it inside instead.*@
-    @for(problem <- problems) {
-        <iframe style='width: 100% ;
-            height: 50em ;' class='exercise-iframe'
-        id= @problem.problemId src=@{
-            val problemURL = problem.getProblemUrl().trim();
-
-            var ret = new StringBuilder(problemURL);
-            if(problemURL.contains("play.codecheck.ws")) {
-
-                if(problemURL.contains("?")) {
-                    ret.append('&');
-                } else {
-                    ret.append('?');
+                if (patt.test(str) && str.includes("?")) {
+                    iframes[i].src = iframes[i].src + "&scoreCallback=" + window.location.protocol + "//" + window.location.host + "@preFix" + "/submissions/" + "@assignmentID" + "/" + "@userID" + "/" + iframes[i].id;
                 }
+                else if (patt.test(str)) {
+                    iframes[i].src = iframes[i].src + "?scoreCallback=" + window.location.protocol + "//" + window.location.host + "@preFix" + "/submissions/" + "@assignmentID" + "/" + "@userID" + "/" + iframes[i].id;
+                }
+                else
+                    iframes[i].src = iframes[i].src;
+            }
+        }
 
-                ret.append("scoreCallback=");
+        //window.onload = onLoadHandler;
+</script>
 
-                ret.append("https://");
-                ret.append("play.codecheck.ws");
-                ret.append(preFix + "/");
-                ret.append("submissions/");
-                ret.append(assignmentID + "/");
-                ret.append(userID + "/");
-                ret.append(problem.getProblemId());
+<script type="text/javascript">
+        /**
+         * Sends submission to the given iframe to populate its ace editor with the student's previously submitted code
+         */
+        function populateCodeEditors() {
+            @for(problem <- problems) {
+            // Get student's most recently submitted work
+            @if(!problem.getSubmissions().isEmpty()){
+            var studentWork = "@{
+                val submissions = problem.getSubmissions();
+                submissions.sortWith(_.submissionId > _.submissionId);
+
+                for (submission <- submissions) {
+                    if (submission.getStudentId().equals(userID)) {
+                        submission.getContent()
+                    }
+                }
+            }";
+
+            // Didn't find submission for given studentID/problemID
+            if (!studentWork)
+                return;
+            } else {
+            return;
             }
 
-            ret.toString()
-        }></iframe>
-    }
-    <div id='response'></div>
+            // Post message to iframe to populate the editor
+            var iframe = document.getElementById('@problem.getProblemId()');
+            iframe.contentWindow.postMessage({query: 'restoreState', studentWork: studentWork}, '*');
+            }
+        }
 
-<input type="button"  value="Save my work" onclick="checkScores(event)"/>
+        window.onload = populateCodeEditors;
+</script>
+
+<script type="text/javascript">
+        var exerciseScores = [];
+
+        function checkScores() {
+            exerciseScores = []; // reset the scores array to prevent incorrect data when button is pressed again
+            $('.exercise-iframe').each(function (_, iframe) {
+                iframe.contentWindow.postMessage("scores", "*")
+            });
+            return false
+        }
+
+        function receiveMessage(event) {
+            var iframes = document.getElementsByClassName('exercise-iframe')
+            exerciseScores.push(event.data)
+            if (exerciseScores.length === iframes.length) {
+                $.ajax({
+                    url: '@preFix/send-interactivescore/@assignmentID',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(exerciseScores),
+                    success: function (msg) {
+                        var response = document.getElementById('response')
+                        response.innerHTML = "Your partially complete assignment is saved!";
+                        setTimeout(function () {
+                            $("#response").hide();
+                        }, 4000);
+                    }
+                });
+            }
+        }
+
+        window.addEventListener("message", receiveMessage, false);
+        setInterval(checkScores, 60000);
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+<style>
+        .warning {
+            background-color: #FFF8C4;
+            padding: 1em;
+        }
+</style>
+@if(flash.containsKey("warning")) {
+    <p class="warning">
+        This LTI tool is launched as an assignment in instructor view. </p>
+}
+
+@*TODO: Stop using iframes and grab the HTML and plop it inside instead.*@
+@for(problem <- problems) {
+    <iframe style='width: 100% ;
+        height: 50em ;' class='exercise-iframe'
+    id= @problem.problemId src=@{
+        val problemURL = problem.getProblemUrl().trim();
+
+        var ret = new StringBuilder(problemURL);
+        if(problemURL.contains("play.codecheck.ws")) {
+
+            if(problemURL.contains("?")) {
+                ret.append('&');
+            } else {
+                ret.append('?');
+            }
+
+            ret.append("scoreCallback=");
+
+            ret.append("https://");
+            ret.append("play.codecheck.ws");
+            ret.append(preFix + "/");
+            ret.append("submissions/");
+            ret.append(assignmentID + "/");
+            ret.append(userID + "/");
+            ret.append(problem.getProblemId());
+        }
+
+        ret.toString()
+    }></iframe>
+}
+<div id='response'></div>
+
+<input type="button" value="Save my work" onclick="checkScores(event)"/>
 <a href="@routes.GradeSubmitterController.submitGradeToCanvas(assignmentID, userID)"><button>Record my score</button></a>
 
 <p>If you want to take a break and continue later, click on "Save my work". If you are done with all questions, click on "Record my score"</p>
