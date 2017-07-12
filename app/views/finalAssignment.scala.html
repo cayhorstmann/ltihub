@@ -29,29 +29,29 @@
          */
         function populateCodeEditors() {
             @for(problem <- problems) {
-            // Get student's most recently submitted work
-            @if(!problem.getSubmissions().isEmpty()){
-            var studentWork = "@{
-                val submissions = problem.getSubmissions();
-                submissions.sortWith(_.submissionId > _.submissionId);
+                // Get student's most recently submitted work
+                @if(!problem.getSubmissions().isEmpty()){
+                var studentWork = "@{
+                    val submissions = problem.getSubmissions();
+                    submissions.sortWith(_.submissionId > _.submissionId);
 
-                for (submission <- submissions) {
-                    if (submission.getStudentId().equals(userID)) {
-                        submission.getContent()
+                    for (submission <- submissions) {
+                        if (submission.getStudentId().equals(userID)) {
+                            submission.getContent()
+                        }
                     }
-                }
-            }";
+                }";
 
-            // Didn't find submission for given studentID/problemID
-            if (!studentWork)
+                // Didn't find submission for given studentID/problemID
+                if (!studentWork)
+                    return;
+                } else {
                 return;
-            } else {
-            return;
-            }
+                }
 
-            // Post message to iframe to populate the editor
-            var iframe = document.getElementById('@problem.getProblemId()');
-            iframe.contentWindow.postMessage({query: 'restoreState', studentWork: studentWork}, '*');
+                // Post message to iframe to populate the editor
+                var iframe = document.getElementById('@problem.getProblemId()');
+                iframe.contentWindow.postMessage({query: 'restoreState', studentWork: studentWork}, '*');
             }
         }
 

@@ -121,8 +121,8 @@
                     return;
                     }
 
-                    // Post message to iframe to populate the editor
-                    var iframe = document.getElementById('@problem.getProblemId()');
+                // Post message to iframe to populate the editor
+                var iframe = document.getElementById('@problem.getProblemId()');
                 iframe.contentWindow.postMessage({query: 'restoreState', studentWork: studentWork}, '*');
             }
         }
