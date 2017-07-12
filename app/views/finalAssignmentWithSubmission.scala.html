@@ -31,16 +31,24 @@
             @for(problem <- problems) {
                 // Get student's most recently submitted work
                 @if(!problem.getSubmissions().isEmpty()){
-                var studentWork = "@{
+                var studentWork = '@Html@{
                     val submissions = problem.getSubmissions();
-                    submissions.sortWith(_.submissionId > _.submissionId);
+                    submissions.sortBy(_.submissionId);
+
+                    var studentWork = "";
 
                     for (submission <- submissions) {
                         if (submission.getStudentId().equals(userID)) {
-                            submission.getContent()
+                            studentWork = submission.getContent();
                         }
                     }
-                }";
+
+                   studentWork
+                        .replaceAll("\\\\\"", "\\\\\\\\\"")
+                        .replaceAll("\\\\n", "\\\\\\\\n")
+                        .replaceAll("\\\\t", "\\\\\\\\t")
+                        .replaceAll("\\\\r", "\\\\\\\\r")
+                }';
 
                 // Didn't find submission for given studentID/problemID
                 if (!studentWork)
