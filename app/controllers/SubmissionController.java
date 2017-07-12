@@ -32,7 +32,7 @@ public class SubmissionController extends Controller {
         Problem problem = Problem.find.byId(problemID);
         Logger.info("Problem is: " + problem);
 
-        String studentWork = json.findPath("report").findPath("studentWork").toString();
+        String studentWork = json.findPath("studentWork").toString();
         Logger.info("Received studentWork is: " + studentWork);
 
         List<Submission> submissions = Submission.find.where().eq("assignmentId", assignmentID).eq("studentId", userID).findList();
