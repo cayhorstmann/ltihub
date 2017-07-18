@@ -101,37 +101,32 @@
          */
         function populateCodeEditors() {
             @for(problem <- problems) {
-            // Get student's most recently submitted work
-            @if(!problem.getSubmissions().isEmpty()){
-            var studentWork = "@Html@{
+                // Get student's most recently submitted work
+                var studentWork = @Html@{
+                    var studentWork = "{}";
+
                     val submissions = problem.getSubmissions();
-                    submissions.sortBy(_.submissionId);
+                    if (!submissions.isEmpty()) {
+                        submissions.sortBy(_.submissionId);
 
-                    var studentWork = "";
-
-                    for (submission <- submissions) {
-                        if (submission.getStudentId().equals(userID)) {
-                            studentWork = submission.getContent();
+                        for (submission <- submissions) {
+                            if (submission.getStudentId().equals(userID)) {
+                                studentWork = submission.getContent();
+                            }
                         }
                     }
 
                    studentWork
-                        .replaceAll("\\\\\"", "\\\\\\\\\"")
-                        .replaceAll("\\\\n", "\\\\\\\\n")
-                        .replaceAll("\\\\t", "\\\\\\\\t")
-                        .replaceAll("\\\\r", "\\\\\\\\r")
-                }";
+                };
 
-            // Didn't find submission for given studentID/problemID
-            if (!studentWork)
-                return;
-            } else {
-            return;
-            }
+                // Didn't find submission for given studentID/problemID
+                if (jQuery.isEmptyObject(studentWork)) {
+                    return;
+                }
 
-            // Post message to iframe to populate the editor
-            var iframe = document.getElementById('@problem.getProblemId()');
-            iframe.contentWindow.postMessage({query: 'restoreState', studentWork: studentWork}, '*');
+                // Post message to iframe to populate the editor
+                var iframe = document.getElementById('@problem.getProblemId()');
+                iframe.contentWindow.postMessage({query: 'restoreState', studentWork: studentWork}, '*');
             }
         }
 </script>
