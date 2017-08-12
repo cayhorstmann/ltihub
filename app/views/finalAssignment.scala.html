@@ -1,99 +1,83 @@
 @(problems: List[Problem], assignmentID: Long, userID: String, preFix: String)
 
-
-<script type='text/javascript'>
-        function onLoadHandler() {
-            var iframes = document.getElementsByClassName('exercise-iframe')
-
-            for (i = 0; i < iframes.length; i++) {
-                var str = iframes[i].src;
-                var patt = new RegExp("play.codecheck.ws");
-
-                if (patt.test(str) && str.includes("?")) {
-                    iframes[i].src = iframes[i].src + "&scoreCallback=" + window.location.protocol + "//" + window.location.host + "@preFix" + "/submissions/" + "@assignmentID" + "/" + "@userID" + "/" + iframes[i].id;
-                }
-                else if (patt.test(str)) {
-                    iframes[i].src = iframes[i].src + "?scoreCallback=" + window.location.protocol + "//" + window.location.host + "@preFix" + "/submissions/" + "@assignmentID" + "/" + "@userID" + "/" + iframes[i].id;
-                }
-                else
-                    iframes[i].src = iframes[i].src;
-            }
-        }
-
-        //window.onload = onLoadHandler;
-</script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+<script src="@routes.Assets.at("javascripts/shortest-edit-script.js")"></script>
 
 <script type="text/javascript">
-        /**
-         * Sends submission to the given iframe to populate its ace editor with the student's previously submitted code
+        /*
+         The states that the server currently has stored.
+         This is used to compute what has changed since the last time data was sent to the server, so that the server
+         only needs to store the changes every update instead of storing the whole state every update.
          */
-        function populateCodeEditors() {
-            @for(problem <- problems) {
-            // Get student's most recently submitted work
-            var studentWork = @Html@{
-                    var studentWork = "{}";
+        var problemIdToContent = {previous: {}, current: {}};
 
-                    val submissions = problem.getSubmissions();
-                    if (!submissions.isEmpty()) {
-                        submissions.sortBy(_.submissionId);
+        /*
+         Tell the iframes to report their state back.
+         When all of the iframes have reported back, we will send any changes to the server.
+         */
+        function updateStatesFromProblems() {
+            // Map is reset because the states in the array must be updated after this function is called
+            problemIdToContent.current = {};
 
-                        for (submission <- submissions) {
-                            if (submission.getStudentId().equals(userID)) {
-                                studentWork = submission.getContent();
-                            }
-                        }
-                    }
-
-                   studentWork
-                };
-
-            // Didn't find submission for given studentID/problemID
-            if (jQuery.isEmptyObject(studentWork)) {
-                return;
-            }
-
-            // Post message to iframe to populate the editor
-            var iframe = document.getElementById('@problem.getProblemId()');
-            iframe.contentWindow.postMessage({query: 'restoreState', studentWork: studentWork}, '*');
-            }
-        }
-        window.onload = populateCodeEditors;
-</script>
-
-<script type="text/javascript">
-        var exerciseScores = [];
-
-        function checkScores() {
-            exerciseScores = []; // reset the scores array to prevent incorrect data when button is pressed again
-            $('.exercise-iframe').each(function (_, iframe) {
-                iframe.contentWindow.postMessage("scores", "*")
+            $('.exercise-iframe').each(function(_, iframe) {
+                iframe.contentWindow.postMessage({query: 'getContent', problemId: iframe.id}, '*');
             });
-            return false
+        }
+
+
+        function sendStateEditScriptsToServer() {
+            // The problemId, scores, and an edit script to turn the previous submission's state into the current state
+            var problemsContents = [];
+
+            for (var problemId in problemIdToContent.current) {
+                if (problemIdToContent.current.hasOwnProperty(problemId)) {
+
+                    const previousState = problemIdToContent.previous.hasOwnProperty(problemId) ?
+                            JSON.stringify(problemIdToContent.previous[problemId].state) : "";
+                    const currentState = JSON.stringify(problemIdToContent.current[problemId].state);
+
+                    if (previousState !== currentState) {
+                        problemsContents.push({
+                            problemId: problemId,
+                            score: problemIdToContent.current[problemId].score,
+                            stateEditScript: shortestEditScript(previousState, currentState)
+                        });
+                    }
+                }
+            }
+
+            $.ajax({
+                url: '@preFix/submissions/@assignmentID',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(problemsContents),
+                success: function (msg) {
+                    problemIdToContent.previous = problemIdToContent.current;
+                    problemIdToContent.current = {};
+
+                    var response = document.getElementById('response');
+                    response.innerHTML = "Your partially complete assignment is saved!";
+                    setTimeout(function () {
+                        $("#response").hide();
+                    }, 5000);
+                }
+            });
         }
 
         function receiveMessage(event) {
-            var iframes = document.getElementsByClassName('exercise-iframe')
-            exerciseScores.push(event.data)
-            if (exerciseScores.length === iframes.length) {
-                $.ajax({
-                    url: '@preFix/send-interactivescore/@assignmentID',
-                    method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify(exerciseScores),
-                    success: function (msg) {
-                        var response = document.getElementById('response')
-                        response.innerHTML = "Your partially complete assignment is saved!";
-                        setTimeout(function () {
-                            $("#response").hide();
-                        }, 4000);
-                    }
-                });
+            const iframes = document.getElementsByClassName('exercise-iframe');
+
+            if (event.data.query === 'updateProblemContent') {
+                problemIdToContent.current[event.data.problemId] = event.data.content;
+                if (Object.keys(problemIdToContent.current).length === iframes.length)
+                    sendStateEditScriptsToServer();
             }
         }
 
         window.addEventListener("message", receiveMessage, false);
-        setInterval(checkScores, 60000);
+        setInterval(updateStatesFromProblems, 10000);
 </script>
+
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
 <style>
@@ -139,7 +123,7 @@
 }
 <div id='response'></div>
 
-<input type="button" value="Save my work" onclick="checkScores(event)"/>
+<input type="button" value="Save my work" onclick="updateStatesFromProblems(event)"/>
 <a href="@routes.GradeSubmitterController.submitGradeToCanvas(assignmentID, userID)"><button>Record my score</button></a>
 
 <p>If you want to take a break and continue later, click on "Save my work". If you are done with all questions, click on "Record my score"</p>
