@@ -15,73 +15,93 @@ import java.util.List;
 public class SubmissionController extends Controller {
 
     // Method to save the codecheck submission that is sent back from codecheck server
-    public Result addSubmission(Long problemID, Long assignmentID, String userID) {
+    public Result addSubmissions(Long assignmentID) {
         Logger.info("Result is received");
+
         JsonNode json = request().body().asJson();
         if (json == null)
             return badRequest("Expecting Json data");
-        Logger.info("Received file is: " + json.toString());
-        String score = json.findPath("score").textValue();
 
-        Logger.info("Received score is:" + score);
-        String[] scores = score.split("/");
+        Logger.info("Received file: " + Json.stringify(json));
 
-        Logger.info("AssignmentID is: " + assignmentID);
-        Logger.info("UserID is: " + userID);
+        Logger.info("AssignmentID: " + assignmentID);
 
-        Problem problem = Problem.find.byId(problemID);
-        Logger.info("Problem is: " + problem);
+        Http.Cookie userIdCookie = request().cookie("user_id");
+        String userID = userIdCookie.value();
+        Logger.info("UserID: " + userID);
 
-        String studentWork = Json.stringify(json.findPath("studentWork"));
-        Logger.info("Received studentWork is: " + studentWork);
+        Iterator<JsonNode> problemsContentsIter = json.elements();
+        while (problemsContentsIter.hasNext()) {
+            JsonNode problemContent = problemsContentsIter.next();
+            Logger.info("Problem Content: " + Json.stringify(problemContent));
 
-        List<Submission> submissions = Submission.find.where().eq("assignmentId", assignmentID).eq("studentId", userID).findList();
-        System.out.println(submissions);
+            /*
+             The script that will change the previously submitted state to the current state.
 
-        Submission submission = new Submission();
-        submission.setAssignmentId(assignmentID);
-        submission.setStudentId(userID);
-        submission.setContent(studentWork);
-        submission.setCorrect(Long.parseLong(scores[0]));
-        if (scores.length > 1)
-            submission.setMaxScore(Long.parseLong(scores[1]));
-        else
-            submission.setMaxScore(0L);
-        submission.setProblem(problem);
-        problem.getSubmissions().add(submission);
-        submission.save();
+             The format for the script is a series of delete instructions followed by a space and a
+             series of insertion instructions.
 
-        System.out.println("New score is added and the value is: " + score);
-        return ok("Score is saved");
+             A deletion instruction follows this fomat: (indexInResult,numberOfDeletionsAfterIndex|)
+             An insertion instruction follows this format: (indexInResult,lengthOfInsertion,insertion)
+
+             For example: to change "Hello world!" to "Hi world, I am a computer.":
+                "11,1|1,4| 1,1,i8,18,, I am a computer."
+              */
+            String stateEditScript = Json.stringify(problemContent.get("stateEditScript"));
+            Logger.info("Received state edit script is: " + stateEditScript);
+            if (stateEditScript.equals("\"\""))
+                continue;
+
+            Problem problem = Problem.find.byId(problemContent.get("problemId").asLong(-1L));
+            Logger.info("Problem: " + problem);
+
+            JsonNode score = problemContent.get("score");
+            Logger.info("Score: " + Json.stringify(score));
+
+            Submission submission = new Submission();
+
+            submission.setAssignmentId(assignmentID);
+            submission.setStudentId(userID);
+            submission.setContent(stateEditScript);
+            submission.setCorrect(score.get("correct").asLong(0L));
+            submission.setMaxScore(score.get("maxscore").asLong(0L));
+            submission.setProblem(problem);
+
+            submission.save();
+
+            problem.getSubmissions().add(submission);
+        }
+
+        return ok("Submission is saved");
     }
 
     //Method to save interactive Exercise score
-    public Result addSubmissions(Long assignmentID) {
-        JsonNode jsonPayload = request().body().asJson();
-        Logger.info("json from client = {}", jsonPayload);
-
-        Logger.info("AssignmentID is: " + assignmentID);
-        Http.Cookie userIdCookie = request().cookie("user_id");
-        String userId = userIdCookie.value();
-        Logger.info("UserID is: " + userId);
-        Iterator<JsonNode> nodeIterator = jsonPayload.elements();
-
-        while (nodeIterator.hasNext()) {
-            JsonNode exercise = nodeIterator.next();
-            if (exercise.has("activity")) {
-                Problem problem = Problem.find.where().eq("assignment.assignmentId", assignmentID).like("url", "%" + exercise.get("activity").asText() + "%").findList().get(0);
-
-                Submission submission = new Submission();
-                submission.setAssignmentId(assignmentID);
-                submission.setProblem(problem);
-                submission.setStudentId(userId);
-                submission.setActivity(exercise.get("activity").asText());
-                submission.setCorrect(exercise.get("correct").asLong());
-                submission.setMaxScore(exercise.get("maxscore").asLong());
-                submission.save();
-            }
-        }
-        return ok();
-    }
+//    public Result addSubmissions(Long assignmentID) {
+//        JsonNode jsonPayload = request().body().asJson();
+//        Logger.info("json from client = {}", jsonPayload);
+//
+//        Logger.info("AssignmentID is: " + assignmentID);
+//        Http.Cookie userIdCookie = request().cookie("user_id");
+//        String userId = userIdCookie.value();
+//        Logger.info("UserID is: " + userId);
+//        Iterator<JsonNode> nodeIterator = jsonPayload.elements();
+//
+//        while (nodeIterator.hasNext()) {
+//            JsonNode exercise = nodeIterator.next();
+//            if (exercise.has("activity")) {
+//                Problem problem = Problem.find.where().eq("assignment.assignmentId", assignmentID).like("url", "%" + exercise.get("activity").asText() + "%").findList().get(0);
+//
+//                Submission submission = new Submission();
+//                submission.setAssignmentId(assignmentID);
+//                submission.setProblem(problem);
+//                submission.setStudentId(userId);
+//                submission.setActivity(exercise.get("activity").asText());
+//                submission.setCorrect(exercise.get("correct").asLong());
+//                submission.setMaxScore(exercise.get("maxscore").asLong());
+//                submission.save();
+//            }
+//        }
+//        return ok();
+//    }
 }
 

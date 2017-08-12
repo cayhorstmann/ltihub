@@ -178,9 +178,9 @@ public class HomeController extends Controller {
 			}
 		}
         Logger.info("Submissions list is: " + submissions);
-        Logger.info("\nSUBMISSION CONTENT: " + (submissions.size() > 0 ? submissions.get(submissions.size() - 1).getContent() : "NONE") + "\n");
         Logger.info("Problems list is: " + problems);
 		Long duration = assignment.getDuration();
+		Logger.info("Duration is: " + duration);
         if(submissions.size()==0) {
 			if(duration == 0)
 				return ok(finalAssignment.render(problems,assignmentId, userId, getPrefix()));
@@ -191,12 +191,14 @@ public class HomeController extends Controller {
 		{
             if(duration != 0)
                 return ok("This was a timed assignment and you have already tried it once. Please look at the grade book to see your grades");
-            else
-                return ok(finalAssignmentWithSubmission.render(problems,submissions, assignmentId, userId, getPrefix()));
+            else {
+				System.out.println("");
+				return ok(finalAssignmentWithSubmission.render(problems, submissions, assignmentId, userId, getPrefix()));
+			}
 		}
     }
 
-	public Result showTimedAssignment(Long assignmentId, Long duration){
+	public Result showTimedAssignment(Long assignmentId, Long duration) {
 		Assignment assignment = Assignment.find.byId(assignmentId);
 
         List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentId).findList();
@@ -245,37 +247,6 @@ public class HomeController extends Controller {
 	    Logger.info("ReturnURL is: " + returnUrl);
         return ok(showassignment.render(returnUrl,assignment1,problems, getPrefix()));
 	}
-
-	// TODO: Implement DOM parser
-	private static String getStudentCodeFromSubmissionContent(String submissionContent) {
-
-	    final String STUDENT_CODE_PREFIX = "</pre></td><td><pre>";
-	    final String STUDENT_CODE_SUFFIX = "</pre></td></tr></table>";
-
-	    try (BufferedReader contentReader = new BufferedReader(new StringReader(submissionContent))) {
-            StringBuilder studentCode = new StringBuilder("");
-            boolean lookingAtStudentCode = false;
-            for (String line; (line = contentReader.readLine()) != null;) {
-
-                if (!lookingAtStudentCode && line.startsWith(STUDENT_CODE_PREFIX)) {
-                    line = line.substring(STUDENT_CODE_PREFIX.length());
-                    lookingAtStudentCode = true;
-                } else if (lookingAtStudentCode && line.startsWith(STUDENT_CODE_SUFFIX)) {
-                    return studentCode.toString();
-                }
-
-                if (lookingAtStudentCode)
-                    studentCode.append(line + "\n");
-
-            }
-        } catch (IOException ex) {
-	        ex.printStackTrace();
-        }
-
-        return null;
-
-    }
-    
 
 	public Result showEditPage(Long assignment) {
 		Assignment assignment1 = Assignment.find.byId(assignment);

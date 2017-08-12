@@ -13,7 +13,7 @@ GET	/assignment/editAssignment	controllers.HomeController.showEditPage(id: Long)
 GET	/timedAssignment	controllers.HomeController.showTimedAssignment(assignmentId: Long, duration: Long)
 POST	/assignment/saveAssignment	controllers.HomeController.saveEditedAssignment(id: Long)
 
-POST	/submissions/:assignmentID/:userID/:problemId		controllers.SubmissionController.addSubmission(problemId: Long, assignmentID: Long, userID: String)
+POST	/submissions/:assignmentID		controllers.SubmissionController.addSubmissions(assignmentID: Long)
 GET    /send-score/:assignmentID/:userID   controllers.GradeSubmitterController.submitGradeToCanvas(assignmentID: Long, userID: String)
 
 POST	/send-interactivescore/:assignmentID   controllers.SubmissionController.addSubmissions(assignmentID: Long)
@@ -24,7 +24,7 @@ GET     /lti/count                      controllers.CountController.count
 GET     /message                    controllers.AsyncController.message
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
+GET     /assets/*file               controllers.Assets.at(path="/public", file)
 # For backwards compatibility
 POST    /createAssignment             controllers.HomeController.index
 GET	/createAssignment	      controllers.HomeController.createAssignment
