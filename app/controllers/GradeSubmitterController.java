@@ -152,6 +152,7 @@ public class GradeSubmitterController extends Controller {
 		String bodyHash = Base64.getEncoder().encodeToString(md.digest(xmlBytes));
 		HttpParameters params = new HttpParameters();
         params.put("oauth_body_hash", URLEncoder.encode(bodyHash, "UTF-8"));
+        params.put("realm", gradePassbackURL); // http://zewaren.net/site/?q=node/123
         consumer.setAdditionalParameters(params);
         
 		Logger.info("Request before signing: {}", request.getRequestProperties().toString());
