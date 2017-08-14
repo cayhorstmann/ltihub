@@ -155,7 +155,7 @@ public class GradeSubmitterController extends Controller {
 				// OAuthExpectationFailedException,
 				// OAuthCommunicationException
 		Logger.info("XML is: {}", xml);
-		Logger.info("Request is: {}", request);
+		Logger.info("Request is: {}", request.getRequestProperties());
 
 
 		// POST the xml to the grade passback url
