@@ -122,7 +122,7 @@ public class GradeSubmitterController extends Controller {
 		// Create an oauth consumer in order to sign the grade that will be sent.
 		DefaultOAuthConsumer consumer = new DefaultOAuthConsumer(oauthKey, oauthSecret);
 
-		consumer.setTokenWithSecret("", "");
+		consumer.setTokenWithSecret(null, null);
 
 		// This is the URL that we will send the grade to so it can go back to
 		// Canvas
