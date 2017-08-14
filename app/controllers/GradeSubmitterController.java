@@ -153,33 +153,31 @@ public class GradeSubmitterController extends Controller {
 		HttpParameters params = new HttpParameters();
         params.put("oauth_body_hash", URLEncoder.encode(bodyHash, "UTF-8"));
         consumer.setAdditionalParameters(params);
-		Logger.info("Request before signing: {}", request.getRequestProperties());
+		Logger.info("Request before signing: {}", request.getRequestProperties().toString());
 
 		// Sign the request per the oauth 1.0 spec
 		consumer.sign(request); // Throws OAuthMessageSignerException,
 				// OAuthExpectationFailedException,
 				// OAuthCommunicationException
-		Logger.info("Request after signing: {}", request.getRequestProperties());
-		Logger.info("XML: {}", xml);
+		Logger.info("Request after signing: {}", request.getRequestProperties().toString());
+		Logger.info("XML: {}", xml.replace('\n', ' '));
 
 
 		// POST the xml to the grade passback url
 		request.setDoOutput(true);
 		request.getOutputStream().write(xmlBytes);
 
-		// send the request
-		request.connect();
+		// send the request and read the reply
+		// request.connect();
 		Logger.info(request.getResponseCode() + " " + request.getResponseMessage());
 		try {
 			InputStream in = request.getInputStream();
 			String body = org.apache.commons.io.IOUtils.toString(in);
-			Logger.info("Success. Response body received back from LMS: " + body);
+			Logger.info("Response body received from LMS: " + body);
 		} catch (Exception e) {
 			InputStream in = request.getErrorStream();
-			// String encoding = request.getContentEncoding();
-			// encoding = encoding == null ? "UTF-8" : encoding;
 			String body = org.apache.commons.io.IOUtils.toString(in);
-			Logger.info("Error. Response error received back from LMS: " + body);
+			Logger.info("Response error received from LMS: " + body);
 		}
 	}
 
