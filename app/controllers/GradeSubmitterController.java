@@ -156,19 +156,17 @@ public class GradeSubmitterController extends Controller {
 
 		// send the request
 		request.connect();
-
+		Logger.info(request.getResponseCode() + " " + request.getResponseMessage());
 		try {
-			request.getInputStream();
+			InputStream in = request.getInputStream();
+			String body = org.apache.commons.io.IOUtils.toString(in);
+			Logger.info("Success. Response body received back from LMS: " + body);
 		} catch (Exception e) {
-
-			int responseCode = request.getResponseCode();
-			Logger.info("Response Code is: " + responseCode);
-
 			InputStream in = request.getErrorStream();
 			// String encoding = request.getContentEncoding();
 			// encoding = encoding == null ? "UTF-8" : encoding;
 			String body = org.apache.commons.io.IOUtils.toString(in);
-			Logger.info("Response body received back from LMS in case of error" + body);
+			Logger.info("Error. Response error received back from LMS: " + body);
 		}
 	}
 
