@@ -153,6 +153,7 @@ public class GradeSubmitterController extends Controller {
 		HttpParameters params = new HttpParameters();
         params.put("oauth_body_hash", URLEncoder.encode(bodyHash, "UTF-8"));
         consumer.setAdditionalParameters(params);
+        
 		Logger.info("Request before signing: {}", request.getRequestProperties().toString());
 
 		// Sign the request per the oauth 1.0 spec
@@ -165,9 +166,10 @@ public class GradeSubmitterController extends Controller {
 
 		// POST the xml to the grade passback url
 		request.setDoOutput(true);
-		request.getOutputStream().write(xmlBytes);
+		OutputStream out = request.getOutputStream();
+		out.write(xmlBytes);
+		out.close();
 
-		// send the request and read the reply
 		// request.connect();
 		Logger.info(request.getResponseCode() + " " + request.getResponseMessage());
 		try {
