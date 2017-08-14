@@ -1,6 +1,7 @@
 package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
 import oauth.signpost.basic.DefaultOAuthConsumer;
 import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
@@ -12,15 +13,23 @@ import play.mvc.Http;
 import play.mvc.Result;
 
 import javax.inject.Inject;
+
 import java.io.IOException;
+
 import javax.net.ssl.HttpsURLConnection;
+
+
+
 //import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.util.Iterator;
+import java.net.URLEncoder;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.io.*;
+
 import models.*;
 
 public class GradeSubmitterController extends Controller {
@@ -86,16 +95,8 @@ public class GradeSubmitterController extends Controller {
         try {
             passbackGradeToCanvas(outcomeServiceUrl, views.xml.scorepassback.render(sourcedId, score).toString(),
                     "fred", "fred");
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (OAuthMessageSignerException e) {
-            e.printStackTrace();
-        } catch (OAuthExpectationFailedException e) {
-            e.printStackTrace();
-        } catch (OAuthCommunicationException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            Logger.info(e.getMessage());
         }
         return ok("Grade saved in gradebook. Please check your grades.");
     }
@@ -113,12 +114,13 @@ public class GradeSubmitterController extends Controller {
 	 *            the oauth consumer key
 	 * @param oauthSecret
 	 *            the oauth secret key
+	 * @throws NoSuchAlgorithmException 
 	 */
 	public static void passbackGradeToCanvas(String gradePassbackURL,
 			String xml, String oauthKey, String oauthSecret)
 			throws URISyntaxException, IOException,
 			OAuthMessageSignerException, OAuthExpectationFailedException,
-			OAuthCommunicationException {
+			OAuthCommunicationException, NoSuchAlgorithmException {
 		// Create an oauth consumer in order to sign the grade that will be sent.
 		DefaultOAuthConsumer consumer = new DefaultOAuthConsumer(oauthKey, oauthSecret);
 
@@ -133,26 +135,32 @@ public class GradeSubmitterController extends Controller {
 
 		// Set http request to POST
 		request.setRequestMethod("POST");
-		request.setDoOutput(true);
 
 		// Set the content type to accept xml
 		request.setRequestProperty("Content-Type", "application/xml");
 		
-		//Added for mmodle
-		request.setRequestProperty("Authorization","OAuth");
 		// Set the content-length to be the length of the xml
 		xml = xml.replace("&quot;","\"");
+		byte[] xmlBytes = xml.getBytes("UTF-8"); 
 		request.setRequestProperty("Content-Length",
-				Integer.toString(xml.length()));
+				Integer.toString(xmlBytes.length));
+		// https://stackoverflow.com/questions/28204736/how-can-i-send-oauth-body-hash-using-signpost
+		MessageDigest md = MessageDigest.getInstance("SHA1");
+		md.update(xmlBytes);
+		String hash = Base64.getEncoder().encodeToString(md.digest());
+		request.setRequestProperty("Authorization", "OAuth oauth_body_hash=\"" + URLEncoder.encode(hash, "UTF-8") + "\"");
 
 		// Sign the request per the oauth 1.0 spec
 		consumer.sign(request); // Throws OAuthMessageSignerException,
 				// OAuthExpectationFailedException,
 				// OAuthCommunicationException
 		Logger.info("XML is: {}", xml);
+		Logger.info("Request is: {}", request);
+
 
 		// POST the xml to the grade passback url
-		request.getOutputStream().write(xml.getBytes("UTF-8"));
+		request.setDoOutput(true);
+		request.getOutputStream().write(xmlBytes);
 
 		// send the request
 		request.connect();
