@@ -6,6 +6,7 @@ import oauth.signpost.basic.DefaultOAuthConsumer;
 import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
+import oauth.signpost.http.HttpParameters;
 import play.Logger;
 import play.libs.ws.WSClient;
 import play.mvc.Controller;
@@ -17,6 +18,7 @@ import javax.inject.Inject;
 import java.io.IOException;
 
 import javax.net.ssl.HttpsURLConnection;
+
 
 
 
@@ -138,6 +140,7 @@ public class GradeSubmitterController extends Controller {
 
 		// Set the content type to accept xml
 		request.setRequestProperty("Content-Type", "application/xml");
+		request.setRequestProperty("Authorization", "OAuth"); // Needed for Moodle???
 		
 		// Set the content-length to be the length of the xml
 		xml = xml.replace("&quot;","\"");
@@ -146,16 +149,18 @@ public class GradeSubmitterController extends Controller {
 				Integer.toString(xmlBytes.length));
 		// https://stackoverflow.com/questions/28204736/how-can-i-send-oauth-body-hash-using-signpost
 		MessageDigest md = MessageDigest.getInstance("SHA1");
-		md.update(xmlBytes);
-		String hash = Base64.getEncoder().encodeToString(md.digest());
-		request.setRequestProperty("Authorization", "OAuth oauth_body_hash=\"" + URLEncoder.encode(hash, "UTF-8") + "\"");
+		String bodyHash = Base64.getEncoder().encodeToString(md.digest(xmlBytes));
+		HttpParameters params = new HttpParameters();
+        params.put("oauth_body_hash", URLEncoder.encode(bodyHash, "UTF-8"));
+        consumer.setAdditionalParameters(params);
+		Logger.info("Request before signing: {}", request.getRequestProperties());
 
 		// Sign the request per the oauth 1.0 spec
 		consumer.sign(request); // Throws OAuthMessageSignerException,
 				// OAuthExpectationFailedException,
 				// OAuthCommunicationException
-		Logger.info("XML is: {}", xml);
-		Logger.info("Request is: {}", request.getRequestProperties());
+		Logger.info("Request after signing: {}", request.getRequestProperties());
+		Logger.info("XML: {}", xml);
 
 
 		// POST the xml to the grade passback url
