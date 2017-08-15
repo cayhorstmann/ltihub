@@ -140,10 +140,11 @@ public class GradeSubmitterController extends Controller {
 
 		// Set the content type to accept xml
 		request.setRequestProperty("Content-Type", "application/xml");
-		request.setRequestProperty("Authorization", "OAuth"); // Needed for Moodle???
+		//request.setRequestProperty("Authorization", "OAuth"); // Needed for Moodle???
 		
 		// Set the content-length to be the length of the xml
 		xml = xml.replace("&quot;","\"");
+		xml = xml.replace('\n', ' ');
 		byte[] xmlBytes = xml.getBytes("UTF-8"); 
 		request.setRequestProperty("Content-Length",
 				Integer.toString(xmlBytes.length));
@@ -152,17 +153,17 @@ public class GradeSubmitterController extends Controller {
 		String bodyHash = Base64.getEncoder().encodeToString(md.digest(xmlBytes));
 		HttpParameters params = new HttpParameters();
         params.put("oauth_body_hash", URLEncoder.encode(bodyHash, "UTF-8"));
-        params.put("realm", gradePassbackURL); // http://zewaren.net/site/?q=node/123
+        //params.put("realm", gradePassbackURL); // http://zewaren.net/site/?q=node/123
         consumer.setAdditionalParameters(params);
         
-		Logger.info("Request before signing: {}", request.getRequestProperties().toString());
+		// Logger.info("Request before signing: {}", request.getRequestProperties().toString());
 
 		// Sign the request per the oauth 1.0 spec
 		consumer.sign(request); // Throws OAuthMessageSignerException,
 				// OAuthExpectationFailedException,
-				// OAuthCommunicationException
-		Logger.info("Request after signing: {}", request.getRequestProperties().toString());
-		Logger.info("XML: {}", xml.replace('\n', ' '));
+				// OAuthCommunicationException		
+		Logger.info("Request after signing: {}", consumer.getRequestParameters());
+		Logger.info("XML: {}", xml);
 
 
 		// POST the xml to the grade passback url
