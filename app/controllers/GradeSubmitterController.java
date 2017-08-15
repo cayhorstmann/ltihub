@@ -99,7 +99,8 @@ public class GradeSubmitterController extends Controller {
         		String xmlString3 = "</textString> </resultScore> </result> </resultRecord> </replaceResultRequest> </imsx_POXBody> </imsx_POXEnvelopeRequest>";        	
         		String xmlString = // views.xml.scorepassback.render(sourcedId, score).toString()
         				xmlString1 + sourcedId + xmlString2 + score + xmlString3;        	
-        	
+        		// xmlString = xml.replace("&quot;","\"");
+        			
             passbackGradeToCanvas(outcomeServiceUrl, xmlString,
                     "fred", "fred");
         } catch (Exception e) {
@@ -148,8 +149,6 @@ public class GradeSubmitterController extends Controller {
 		//request.setRequestProperty("Authorization", "OAuth"); // Needed for Moodle???
 		
 		// Set the content-length to be the length of the xml
-		xml = xml.replace("&quot;","\"");
-		xml = xml.replace('\n', ' ');
 		byte[] xmlBytes = xml.getBytes("UTF-8"); 
 		request.setRequestProperty("Content-Length",
 				Integer.toString(xmlBytes.length));
