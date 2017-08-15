@@ -91,11 +91,16 @@ public class GradeSubmitterController extends Controller {
     }
     if (problems.size() > 0)
        score = score / problems.size();
-	Logger.info("Score is: " + score);
-        Logger.info(views.xml.scorepassback.render(sourcedId, score).toString());
+	Logger.info("Score is: " + score);        
 
         try {
-            passbackGradeToCanvas(outcomeServiceUrl, views.xml.scorepassback.render(sourcedId, score).toString(),
+        		String xmlString1 = "<?xml version = \"1.0\" encoding = \"UTF-8\"?> <imsx_POXEnvelopeRequest xmlns = \"http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0\"> <imsx_POXHeader> <imsx_POXRequestHeaderInfo> <imsx_version>V1.0</imsx_version> <imsx_messageIdentifier>12341234</imsx_messageIdentifier> </imsx_POXRequestHeaderInfo> </imsx_POXHeader> <imsx_POXBody> <replaceResultRequest> <resultRecord> <sourcedGUID> <sourcedId>";
+        		String xmlString2 = "</sourcedGUID> <result> <resultScore> <language>en</language> <textString>";
+        		String xmlString3 = "</textString> </resultScore> </result> </resultRecord> </replaceResultRequest> </imsx_POXBody> </imsx_POXEnvelopeRequest>";        	
+        		String xmlString = // views.xml.scorepassback.render(sourcedId, score).toString()
+        				xmlString1 + sourcedId + xmlString2 + score + xmlString3;        	
+        	
+            passbackGradeToCanvas(outcomeServiceUrl, xmlString,
                     "fred", "fred");
         } catch (Exception e) {
             Logger.info(e.getMessage());
