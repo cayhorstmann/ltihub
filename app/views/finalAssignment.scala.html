@@ -24,7 +24,6 @@
             });
         }
 
-
         function sendStateEditScriptsToServer() {
             // The problemId, scores, and an edit script to turn the previous submission's state into the current state
             var problemsContents = [];
@@ -36,32 +35,39 @@
                             JSON.stringify(problemIdToContent.previous[problemId].state) : "";
                     const currentState = JSON.stringify(problemIdToContent.current[problemId].state);
 
-                    if (previousState !== currentState) {
+                    const previousScore = problemIdToContent.previous.hasOwnProperty(problemId) ?
+                            problemIdToContent.previous[problemId].score : "";
+                    const currentScore = problemIdToContent.current[problemId].score;
+
+                    if (previousState !== currentState ||
+                            JSON.stringify(previousScore) !== JSON.stringify(currentScore)) {
                         problemsContents.push({
                             problemId: problemId,
-                            score: problemIdToContent.current[problemId].score,
+                            score: currentScore,
                             stateEditScript: shortestEditScript(previousState, currentState)
                         });
                     }
                 }
             }
 
-            $.ajax({
-                url: '@preFix/submissions/@assignmentID',
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(problemsContents),
-                success: function (msg) {
-                    problemIdToContent.previous = problemIdToContent.current;
-                    problemIdToContent.current = {};
+            if (problemsContents.length > 0) {
+                $.ajax({
+                    url: '@preFix/submissions/@assignmentID',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(problemsContents),
+                    success: function (msg) {
+                        problemIdToContent.previous = problemIdToContent.current;
+                        problemIdToContent.current = {};
 
-                    var response = document.getElementById('response');
-                    response.innerHTML = "Your partially complete assignment is saved!";
-                    setTimeout(function () {
-                        $("#response").hide();
-                    }, 5000);
-                }
-            });
+                        var response = document.getElementById('response');
+                        response.innerHTML = "Your partially complete assignment is saved!";
+                        setTimeout(function () {
+                            $("#response").hide();
+                        }, 5000);
+                    }
+                });
+            }
         }
 
         function receiveMessage(event) {
