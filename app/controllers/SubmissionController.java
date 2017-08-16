@@ -49,14 +49,13 @@ public class SubmissionController extends Controller {
               */
             String stateEditScript = Json.stringify(problemContent.get("stateEditScript"));
             Logger.info("Received state edit script is: " + stateEditScript);
-            if (stateEditScript.equals("\"\""))
-                continue;
 
             Problem problem = Problem.find.byId(problemContent.get("problemId").asLong(-1L));
             Logger.info("Problem: " + problem);
 
             JsonNode score = problemContent.get("score");
             Logger.info("Score: " + Json.stringify(score));
+
 
             Submission submission = new Submission();
 
