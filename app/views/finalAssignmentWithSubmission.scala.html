@@ -161,31 +161,7 @@
 
     <iframe style='width: 100% ;
         height: 50em ;' class='exercise-iframe'
-    id=@problem.problemId src=@{
-        val problemURL = problem.getProblemUrl().trim();
-
-        var ret = new StringBuilder(problemURL);
-        if(problemURL.contains("play.codecheck.ws")) {
-
-            if(problemURL.contains("?")) {
-                ret.append('&');
-            } else {
-                ret.append('?');
-            }
-
-            ret.append("scoreCallback=");
-
-            ret.append("https://");
-            ret.append("play.codecheck.ws");
-            ret.append(preFix + "/");
-            ret.append("submissions/");
-            ret.append(assignmentID + "/");
-            ret.append(userID + "/");
-            ret.append(problem.getProblemId());
-        }
-
-        ret.toString()
-    }></iframe>
+    id=@problem.problemId src=@problem.getProblemUrl().trim() ></iframe>
 }
 <div id='response'></div>
 
