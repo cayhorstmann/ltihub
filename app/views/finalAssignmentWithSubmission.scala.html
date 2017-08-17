@@ -78,14 +78,13 @@
             var problemsContents = [];
 
             for (var problemId in problemIdToContent.current) {
-                if (problemIdToContent.current.hasOwnProperty(problemId)) {
+                if (problemIdToContent.previous.hasOwnProperty(problemId) &&
+                        problemIdToContent.current.hasOwnProperty(problemId)) {
 
-                    const previousState = problemIdToContent.previous.hasOwnProperty(problemId) ?
-                        JSON.stringify(problemIdToContent.previous[problemId].state) : "";
-                    const currentState = JSON.stringify(problemIdToContent.current[problemId].state);
+                    const previousState = problemIdToContent.previous[problemId].state;
+                    const currentState = problemIdToContent.current[problemId].state;
 
-                    const previousScore = problemIdToContent.previous.hasOwnProperty(problemId) ?
-                            problemIdToContent.previous[problemId].score : "";
+                    const previousScore = problemIdToContent.previous[problemId].score;
                     const currentScore = problemIdToContent.current[problemId].score;
 
                     if (previousState !== currentState ||
@@ -93,7 +92,8 @@
                         problemsContents.push({
                             problemId: problemId,
                             score: currentScore,
-                            stateEditScript: shortestEditScript(previousState, currentState)
+                            stateEditScript: shortestEditScript(JSON.stringify(previousState),
+                                                                JSON.stringify(currentState))
                         });
                     }
                 }
