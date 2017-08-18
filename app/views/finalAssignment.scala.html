@@ -15,7 +15,7 @@
         // TODO: Get rid of this function when merging view files together
         function populateProblemIdToContent() {
             @for(problem <- problems) {
-                problemIdToContent.previous[@problem.getProblemId()] = {score: {}, state: ""};
+                problemIdToContent.previous[@problem.getProblemId()] = {};
             }
         }
         window.onload = populateProblemIdToContent;
@@ -34,6 +34,8 @@
         }
 
         function sendStateEditScriptsToServer() {
+            messagesSinceLastStatesSentToServer = 0;
+
             // The problemId, scores, and an edit script to turn the previous submission's state into the current state
             var problemsContents = [];
 
@@ -47,13 +49,17 @@
                     const previousScore = problemIdToContent.previous[problemId].score;
                     const currentScore = problemIdToContent.current[problemId].score;
 
-                    if (previousState !== currentState ||
-                            JSON.stringify(previousScore) !== JSON.stringify(currentScore)) {
+                    const previousStateString = previousState !== undefined ? JSON.stringify(previousState) : "";
+                    const currentStateString = currentState !== undefined ? JSON.stringify(previousState) : "";
+
+                    const previousScoreString = previousScore !== undefined ? JSON.stringify(previousScore) : "";
+                    const currentScoreString = currentScore !== undefined ? JSON.stringify(currentScore) : "";
+
+                    if (previousState !== currentState || previousScoreString !== currentScoreString) {
                         problemsContents.push({
                             problemId: problemId,
                             score: currentScore,
-                            stateEditScript: shortestEditScript(JSON.stringify(previousState),
-                                    JSON.stringify(currentState))
+                            stateEditScript: shortestEditScript(previousStateString, currentStateString)
                         });
                     }
                 }
@@ -79,14 +85,22 @@
             }
         }
 
+        var messagesSinceLastStatesSentToServer = 0;
         function receiveMessage(event) {
-            const iframes = document.getElementsByClassName('exercise-iframe');
+            messagesSinceLastStatesSentToServer++;
 
-            if (event.data.query === 'updateProblemContent') {
-                problemIdToContent.current[event.data.problemId] = event.data.content;
-                if (Object.keys(problemIdToContent.current).length === iframes.length)
-                    sendStateEditScriptsToServer();
-            }
+            var problemContent;
+            if (event.data.content !== undefined)
+                problemContent = event.data.content;
+            else
+                problemContent = {};
+
+            if (event.data.problemId !== undefined)
+                problemIdToContent.current[event.data.problemId] = problemContent;
+
+            const iframes = document.getElementsByClassName('exercise-iframe');
+            if (messagesSinceLastStatesSentToServer === iframes.length)
+                sendStateEditScriptsToServer();
         }
 
         window.addEventListener("message", receiveMessage, false);
