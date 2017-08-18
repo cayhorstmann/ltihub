@@ -62,11 +62,20 @@ public class SubmissionController extends Controller {
             submission.setAssignmentId(assignmentID);
             submission.setStudentId(userID);
             submission.setContent(stateEditScript);
-            submission.setCorrect(score.get("correct").asLong(0L));
-            submission.setMaxScore(score.get("maxscore").asLong(0L));
+
+            if (score.get("correct") != null && score.get("maxscore") != null) {
+                submission.setCorrect(score.get("correct").asLong(0L));
+                submission.setMaxScore(score.get("maxscore").asLong(0L));
+            } else {
+                submission.setCorrect(0L);
+                submission.setMaxScore(0L);
+            }
+            
             submission.setProblem(problem);
 
             submission.save();
+
+            Logger.info("Submission saved.");
 
             problem.getSubmissions().add(submission);
         }
