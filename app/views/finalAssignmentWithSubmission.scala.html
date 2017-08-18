@@ -12,11 +12,11 @@
          */
         var problemIdToContent = {previous: {}, current: {}};
 
-        // Sends submission to the given iframe to populate its ace editor with the student's previously submitted code
-        function populateCodeEditors() {
+        // Sends the states of the problems that were previously submitted to the problems to be restored
+        function restoreStatesOfProblems() {
             @for(problem <- problems) {
-            // Get student's most recently submitted work as a series of changes
-            var stateEditScripts = @Html@{
+                // Get student's most recently submitted work as a series of changes
+                var stateEditScripts = @Html@{
                     val stateEditScriptsList = ListBuffer.empty[String];
 
                     val submissions = problem.getSubmissions();
@@ -34,27 +34,26 @@
                    stateEditScriptsList.mkString("[", ", ", "]");
                 };
 
-            // Didn't find submission for given studentID/problemID
-            if (!stateEditScripts || stateEditScripts.length === 0) {
-                return;
-            }
+                // Didn't find submission for given studentID/problemID
+                if (!stateEditScripts || stateEditScripts.length === 0) {
+                    problemIdToContent.previous[@problem.getProblemId()] = {score: {}, state: ""};
+                } else {
+                    // Rebuild state using edit scripts
+                    var state = "";
+                    for (var i = 0; i < stateEditScripts.length; i++) {
+                        var editScript = stateEditScripts[i];
 
+                        state = applyEditScript(state, editScript);
+                    }
+                    state = JSON.parse(state);
 
-            // Rebuild state using edit scripts
-            var state = "";
-            for (var i = 0; i < stateEditScripts.length; i++) {
-                var editScript = stateEditScripts[i];
+                    // Updates the previous version of the problem content so that we will know what changed
+                    problemIdToContent.previous[@problem.getProblemId()] = {score: {}, state: state};
 
-                state = applyEditScript(state, editScript);
-            }
-            state = JSON.parse(state);
-
-            // Updates the previous version of the problem content so that we will know what changed
-            problemIdToContent.previous[@problem.getProblemId()] = {score: {}, state: state};
-
-            // Post message to iframe to populate the problem
-            var iframe = document.getElementById('@problem.getProblemId()');
-            iframe.contentWindow.postMessage({query: 'restoreState', state: state}, '*');
+                    // Post message to iframe to populate the problem
+                    var iframe = document.getElementById('@problem.getProblemId()');
+                    iframe.contentWindow.postMessage({query: 'restoreState', state: state}, '*');
+                }
 
             }
         }
@@ -132,7 +131,7 @@
         window.addEventListener("message", receiveMessage, false);
         setInterval(updateStatesFromProblems, 10000);
 
-        window.onload = populateCodeEditors;
+        window.onload = restoreStatesOfProblems;
 </script>
 
 <style>

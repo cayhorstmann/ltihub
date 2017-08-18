@@ -11,6 +11,15 @@
          */
         var problemIdToContent = {previous: {}, current: {}};
 
+        // THIS IS TEMPORARY
+        // TODO: Get rid of this function when merging view files together
+        function populateProblemIdToContent() {
+            @for(problem <- problems) {
+                problemIdToContent.previous[@problem.getProblemId()] = {score: {}, state: ""};
+            }
+        }
+        window.onload = populateProblemIdToContent;
+
         /*
          Tell the iframes to report their state back.
          When all of the iframes have reported back, we will send any changes to the server.
