@@ -70,7 +70,7 @@ public class SubmissionController extends Controller {
                 submission.setCorrect(0L);
                 submission.setMaxScore(0L);
             }
-            
+
             submission.setProblem(problem);
 
             submission.save();
