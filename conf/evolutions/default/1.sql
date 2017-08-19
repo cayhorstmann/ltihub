@@ -5,29 +5,29 @@
 
 create table assignment (
   assignment_id             bigserial not null,
-  context_id                varchar(255),
-  resource_link_id          varchar(255),
-  tool_consumer_instance_gu_id varchar(255),
+  context_id                text,
+  resource_link_id          text,
+  tool_consumer_instance_gu_id text,
   duration                  bigint,
   constraint pk_assignment primary key (assignment_id))
 ;
 
 create table problem (
   problem_id                bigserial not null,
-  url                       varchar(255),
+  url                       text,
   assignment_assignment_id  bigint,
   constraint pk_problem primary key (problem_id))
 ;
 
 create table submission (
   submission_id             bigserial not null,
-  student_id                varchar(255),
+  student_id                text,
   assignment_id             bigint,
   correct                   bigint,
   maxscore                  bigint,
-  activity                  varchar(255),
+  activity                  text,
   submitted_at              timestamp,
-  content                   varchar(255),
+  content                   text,
   problem_problem_id        bigint,
   constraint pk_submission primary key (submission_id))
 ;
