@@ -101,7 +101,7 @@ public class HomeController extends Controller {
 			  }	
 		     }
 	     }
-	     List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).orderBy("problem.problemId").findList();
+	     List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).orderBy("problemId").findList();
 	
 	     Http.Cookie launchReturnUrlCookie = request().cookie("launch_presentation_return_url");
 	     String returnUrl = launchReturnUrlCookie.value();
