@@ -36,7 +36,7 @@
 
                 // Didn't find submission for given studentID/problemID
                 if (!stateEditScripts || stateEditScripts.length === 0) {
-                    problemIdToContent.previous[@problem.getProblemId()] = {};
+                    problemIdToContent.previous["@problem.getProblemId()"] = {};
                 } else {
                     // Rebuild state using edit scripts
                     var state = "";
@@ -48,7 +48,7 @@
                     state = JSON.parse(state);
 
                     // Updates the previous version of the problem content so that we will know what changed
-                    problemIdToContent.previous[@problem.getProblemId()] = {score: {}, state: state};
+                    problemIdToContent.previous["@problem.getProblemId()"] = {score: {}, state: state};
 
                     // Post message to iframe to populate the problem
                     var iframe = document.getElementById('@problem.getProblemId()');
