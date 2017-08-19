@@ -7,6 +7,9 @@ import play.data.format.*;
 import play.data.validation.*;
 import com.avaje.ebean.Model;
 
+// TODO: Add position for ordering
+// TODO: Add weight
+
 @Entity
 public class Problem extends Model {
           
