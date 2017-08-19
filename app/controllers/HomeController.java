@@ -101,7 +101,7 @@ public class HomeController extends Controller {
 			  }	
 		     }
 	     }
-	     List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).findList();
+	     List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).orderBy("problemId").findList();
 	
 	     Http.Cookie launchReturnUrlCookie = request().cookie("launch_presentation_return_url");
 	     String returnUrl = launchReturnUrlCookie.value();
@@ -135,7 +135,7 @@ public class HomeController extends Controller {
 			  }	
 		    }
 	      }
-	List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).findList();
+	List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).orderBy("problemId").findList();
 	return ok(showassignmentOutsideLMS.render(assignment,problems, getPrefix()));
 	}
 	else
@@ -151,11 +151,11 @@ public class HomeController extends Controller {
 		Assignment assignment = Assignment.find.byId(assignmentId);
 
 		if(assignment != null && (role.contains("Faculty")|| role.contains("TeachingAssistant") || role.contains("Instructor"))){
-			List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).findList();
+			List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).orderBy("problemId").findList();
 			return ok(showAssignmentInstructorView.render(problems,assignmentId, "Teacher", getPrefix()));
 		}
 
-		List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentId).findList();
+		List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentId).orderBy("problemId").findList();
 		Http.Cookie userIdCookie = request().cookie("user_id");
 		String userId = userIdCookie.value();
 		Logger.info("UserID is: " + userId);
@@ -201,7 +201,7 @@ public class HomeController extends Controller {
 	public Result showTimedAssignment(Long assignmentId, Long duration) {
 		Assignment assignment = Assignment.find.byId(assignmentId);
 
-        List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentId).findList();
+        List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentId).orderBy("problemId").findList();
         Http.Cookie userIdCookie = request().cookie("user_id");
         String userId = userIdCookie.value();
         Logger.info("UserID is: " + userId);
@@ -219,7 +219,7 @@ public class HomeController extends Controller {
 	public Result deleteProblem(Long assignmentId, Long problemID) {
   		Problem.delete(problemID);
 		Assignment assignment = Assignment.find.byId(assignmentId);
-		List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).findList();
+		List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).orderBy("problemId").findList();
   		return ok(editAssignment.render(assignment, problems));
 	}
 	
@@ -240,7 +240,7 @@ public class HomeController extends Controller {
 	            }
 	        }
 	    }
-	    List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment1.assignmentId).findList();
+	    List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment1.assignmentId).orderBy("problemId").findList();
 
 	    Http.Cookie launchReturnUrlCookie = request().cookie("launch_presentation_return_url");
 	    String returnUrl = launchReturnUrlCookie.value();
@@ -251,7 +251,7 @@ public class HomeController extends Controller {
 	public Result showEditPage(Long assignment) {
 		Assignment assignment1 = Assignment.find.byId(assignment);
 		
-        	List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment1.assignmentId).findList();
+        	List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment1.assignmentId).orderBy("problemId").findList();
         	
         	return ok(editAssignment.render(assignment1, problems));    
     }
