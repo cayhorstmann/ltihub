@@ -15,7 +15,7 @@
         // TODO: Get rid of this function when merging view files together
         function populateProblemIdToContent() {
             @for(problem <- problems) {
-                problemIdToContent.previous[@problem.getProblemId()] = {};
+                problemIdToContent.previous["@problem.getProblemId()"] = {score: {}};
             }
         }
         window.onload = populateProblemIdToContent;
@@ -55,7 +55,7 @@
                     const previousScoreString = previousScore !== undefined ? JSON.stringify(previousScore) : "";
                     const currentScoreString = currentScore !== undefined ? JSON.stringify(currentScore) : "";
 
-                    if (previousState !== currentState || previousScoreString !== currentScoreString) {
+                    if (previousStateString !== currentStateString || previousScoreString !== currentScoreString) {
                         problemsContents.push({
                             problemId: problemId,
                             score: currentScore,
