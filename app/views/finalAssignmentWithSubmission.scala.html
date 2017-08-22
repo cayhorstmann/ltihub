@@ -36,7 +36,7 @@
 
                 // Didn't find submission for given studentID/problemID
                 if (!stateEditScripts || stateEditScripts.length === 0) {
-                    problemIdToContent.previous["@problem.getProblemId()"] = {};
+                    problemIdToContent.previous["@problem.getProblemId()"] = {score: {}};
                 } else {
                     // Rebuild state using edit scripts
                     var state = "";
