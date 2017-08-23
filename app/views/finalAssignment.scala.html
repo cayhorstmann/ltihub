@@ -15,7 +15,7 @@
         // TODO: Get rid of this function when merging view files together
         function populateProblemIdToContent() {
             @for(problem <- problems) {
-                problemIdToContent.previous["@problem.getProblemId()"] = {score: {}};
+                problemIdToContent.previous["@problem.getProblemId()"] = {};
             }
         }
         window.onload = populateProblemIdToContent;
@@ -89,14 +89,9 @@
         function receiveMessage(event) {
             messagesSinceLastStatesSentToServer++;
 
-            var problemContent;
-            if (event.data.content !== undefined)
-                problemContent = event.data.content;
-            else
-                problemContent = {};
-
-            if (event.data.problemId !== undefined)
-                problemIdToContent.current[event.data.problemId] = problemContent;
+            if (event.data.request !== undefined)
+                problemIdToContent.current[event.data.request.problemId] =
+                        {score: event.data.score, state: event.data.state};
 
             const iframes = document.getElementsByClassName('exercise-iframe');
             if (messagesSinceLastStatesSentToServer === iframes.length)
@@ -128,7 +123,7 @@
 }
 <div id='response'></div>
 
-<input type="button" value="Save my work" onclick="updateStatesFromProblems(event)"/>
+<input id="saveMyWorkButton" type="button" value="Save my work" onclick="updateStatesFromProblems(event)"/>
 <a href="@routes.GradeSubmitterController.submitGradeToCanvas(assignmentID, userID)"><button>Record my score</button></a>
 
 <p>If you want to take a break and continue later, click on "Save my work". If you are done with all questions, click on "Record my score"</p>
