@@ -36,7 +36,7 @@
 
                 // Didn't find submission for given studentID/problemID
                 if (!stateEditScripts || stateEditScripts.length === 0) {
-                    problemIdToContent.previous["@problem.getProblemId()"] = {score: {}};
+                    problemIdToContent.previous["@problem.getProblemId()"] = {};
                 } else {
                     // Rebuild state using edit scripts
                     var state = "";
@@ -56,6 +56,9 @@
                 }
 
             }
+
+
+            setInterval(updateStatesFromProblems, 10000);
         }
 
         /*
@@ -82,19 +85,19 @@
                 if (problemIdToContent.previous.hasOwnProperty(problemId) &&
                         problemIdToContent.current.hasOwnProperty(problemId)) {
 
-                    const previousState = problemIdToContent.previous[problemId].state;
-                    const currentState = problemIdToContent.current[problemId].state;
-
                     const previousScore = problemIdToContent.previous[problemId].score;
                     const currentScore = problemIdToContent.current[problemId].score;
 
-                    const previousStateString = previousState !== undefined ? JSON.stringify(previousState) : "";
-                    const currentStateString = currentState !== undefined ? JSON.stringify(currentState) : "";
+                    const previousState = problemIdToContent.previous[problemId].state;
+                    const currentState = problemIdToContent.current[problemId].state;
 
                     const previousScoreString = previousScore !== undefined ? JSON.stringify(previousScore) : "";
                     const currentScoreString = currentScore !== undefined ? JSON.stringify(currentScore) : "";
 
-                    if (previousState !== currentState || previousScoreString !== currentScoreString) {
+                    const previousStateString = previousState !== undefined ? JSON.stringify(previousState) : "";
+                    const currentStateString = currentState !== undefined ? JSON.stringify(currentState) : "";
+
+                    if (previousStateString !== currentStateString || previousScoreString !== currentScoreString) {
                         problemsContents.push({
                             problemId: problemId,
                             score: currentScore,
@@ -128,14 +131,9 @@
         function receiveMessage(event) {
             messagesSinceLastStatesSentToServer++;
 
-            var problemContent;
-            if (event.data.content !== undefined)
-                problemContent = event.data.content;
-            else
-                problemContent = {};
-
-            if (event.data.problemId !== undefined)
-                problemIdToContent.current[event.data.problemId] = problemContent;
+            if (event.data.request !== undefined)
+                problemIdToContent.current[event.data.request.problemId] =
+                        {score: event.data.score, state: event.data.state};
 
             const iframes = document.getElementsByClassName('exercise-iframe');
             if (messagesSinceLastStatesSentToServer === iframes.length)
@@ -143,7 +141,6 @@
         }
 
         window.addEventListener("message", receiveMessage, false);
-        setInterval(updateStatesFromProblems, 10000);
 
         window.onload = restoreStatesOfProblems;
 </script>
@@ -178,7 +175,7 @@
 }
 <div id='response'></div>
 
-<input type="button" id='btn' value="Save my work" onclick="updateStatesFromProblems(event)"/>
+<input id="saveMyWorkButton" type="button" value="Save my work" disabled="true" onclick="updateStatesFromProblems(event)"/>
 <a href="@routes.GradeSubmitterController.submitGradeToCanvas(assignmentID, userID)"><button>Record my score</button></a>
 
 <p>If you want to take a break and continue later, click on "Save my work". If you are done with all questions, click on "Record my score"</p>
