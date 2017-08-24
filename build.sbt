@@ -12,7 +12,7 @@ libraryDependencies ++= Seq(
   cache,
   javaWs,
   javaJpa,
-  // "mysql" % "mysql-connector-java" % "5.1.28",
+  "mysql" % "mysql-connector-java" % "5.1.28",
   "org.postgresql" % "postgresql" % "42.1.4",
   "commons-io" % "commons-io" % "2.3",
   "org.jsoup" % "jsoup" % "1.7.2"
