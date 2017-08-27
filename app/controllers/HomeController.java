@@ -182,9 +182,10 @@ public class HomeController extends Controller {
     	   
     	   String assignmentURL = (request().secure() ? "https://" : "http://" ) 
     			   + request().host() + getPrefix() + "/assignment?id=" + assignment.getAssignmentId();
+    	   postParams.put("return_type", "lti_launch_url");
     	   postParams.put("url", assignmentURL);
     	   String outcome = httpPost(launchPresentationReturnURL, postParams);
-    	   Logger.info("POST " + assignmentURL + " " + postParams + " " + outcome);
+    	   Logger.info("POST " + launchPresentationReturnURL + " " + postParams + " " + outcome);
     	   return ok(assignmentURL);
        } else {
     	   return ok("No launch presentation return URL");
