@@ -1,15 +1,4 @@
-@(launchUrl: String, assignment: Assignment, problems: List[models.Problem], preFix: String)
-<script type="text/javascript">
-                function modifyURL()
-                {
-                    var ltiToolUrl = window.location.protocol + "//" + window.location.host + "@preFix" + "/assignment?id=";
-                    document.myform.url.value = ltiToolUrl +encodeURIComponent(document.myform.url.value);
-                    console.log("Return URL is: " + document.myform.url.value);
-return true;
-                }
-        </script>
-<h2>@problems.size() problems(s) added to assignment</h2>
-    
+@(launchUrl: String, problems: List[models.Problem], assignmentURL: String)
     <ul>
         @for(problem <- problems) {
             <li>
@@ -18,14 +7,12 @@ return true;
         }
     </ul>
 
-    <p>If you are done adding problems, please click on Done! button  otherwise click on Edit! button</p>
-    
-	<form method="get" name="myform" action="@launchUrl" onsubmit="modifyURL();">
+	<form method="GET" action="@launchUrl">
         <input type="hidden" name="return_type" value="lti_launch_url" />
-	<input type="hidden" name="url" value="@assignment.assignmentId" ></textarea>
-        <input type="submit" name="submit" value="Done!!" />
-        </form>
-		<a href="@routes.HomeController.showEditPage(assignment.getAssignmentId())"><button>Edit!!</button></a>
+	    <input type="hidden" name="url" value="@assignmentURL" ></textarea>
+        <input type="submit" name="submit" value="Continue" />
+     </form>
+		
   
 
 
