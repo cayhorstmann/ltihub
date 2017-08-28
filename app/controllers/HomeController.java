@@ -164,32 +164,14 @@ public class HomeController extends Controller {
 			   }	
 		   }
        }
-       /*
-        Old approach: make form that posts to the launch_presentation_return_url
-         
-       List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).orderBy("problemId").findList();
-	
-	     Http.Cookie launchReturnUrlCookie = request().cookie("launch_presentation_return_url");
-	     String returnUrl = launchReturnUrlCookie.value();
-	
-	     return ok(showassignment.render(returnUrl,assignment,problems, getPrefix()));
-		*/
-       
-       // POST to the launch_presentation_return_url
+
        String launchPresentationReturnURL = bindedForm.get("launch_presentation_return_url");
-       if (!isEmpty(launchPresentationReturnURL)) {
-    	   Map<String, String> postParams = new LinkedHashMap<>();
-    	   
-    	   String assignmentURL = (request().secure() ? "https://" : "http://" ) 
-    			   + request().host() + getPrefix() + "/assignment?id=" + assignment.getAssignmentId();
-    	   postParams.put("return_type", "lti_launch_url");
-    	   postParams.put("url", assignmentURL);
-    	   String outcome = httpPost(launchPresentationReturnURL, postParams);
-    	   Logger.info("POST " + launchPresentationReturnURL + " " + postParams + " " + outcome);
-    	   return ok(assignmentURL);
-       } else {
-    	   return ok("No launch presentation return URL");
-       }       
+       List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).orderBy("problemId").findList();
+	   String assignmentURL = (request().secure() ? "https://" : "http://" ) 
+			   + request().host() + getPrefix() + "/assignment?id=" + assignment.getAssignmentId();
+	
+	
+       return ok(showassignment.render(launchPresentationReturnURL, assignment, problems, assignmentURL));
     }
 	
 	public Result addAssignmentOutsideLMS() {        
