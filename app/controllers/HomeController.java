@@ -313,7 +313,10 @@ public class HomeController extends Controller {
 	    Http.Cookie launchReturnUrlCookie = request().cookie("launch_presentation_return_url");
 	    String returnUrl = launchReturnUrlCookie.value();
 	    Logger.info("ReturnURL is: " + returnUrl);
-        return ok(showassignment.render(returnUrl,assignment1,problems, getPrefix()));
+	    //TODO: Check
+	    String assignmentURL = (request().secure() ? "https://" : "http://" ) 
+				   + request().host() + getPrefix() + "/assignment?id=" + assignment;
+        return ok(showassignment.render(returnUrl,problems, assignmentURL);
 	}
 
 	public Result showEditPage(Long assignment) {
