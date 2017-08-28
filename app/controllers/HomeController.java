@@ -171,7 +171,7 @@ public class HomeController extends Controller {
 			   + request().host() + getPrefix() + "/assignment?id=" + assignment.getAssignmentId();
 	
 	
-       return ok(showassignment.render(launchPresentationReturnURL, assignment, problems, assignmentURL));
+       return ok(showassignment.render(launchPresentationReturnURL, problems, assignmentURL));
     }
 	
 	public Result addAssignmentOutsideLMS() {        
