@@ -316,7 +316,7 @@ public class HomeController extends Controller {
 	    //TODO: Check
 	    String assignmentURL = (request().secure() ? "https://" : "http://" ) 
 				   + request().host() + getPrefix() + "/assignment?id=" + assignment;
-        return ok(showassignment.render(returnUrl,problems, assignmentURL);
+        return ok(showassignment.render(returnUrl,problems, assignmentURL));
 	}
 
 	public Result showEditPage(Long assignment) {
