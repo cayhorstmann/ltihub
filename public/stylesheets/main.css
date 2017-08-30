@@ -1,0 +1,15 @@
+.warning {
+    background-color: #FFF8C4;
+    padding: 1em;
+}
+
+.rightSidebar {
+    position: fixed;
+    right: 0;
+    top: 50%;
+    width: 10em;
+    background-color: #FFF8C4;
+    margin-top: -2.5em;
+    border-style: solid;
+    color: red;
+}
