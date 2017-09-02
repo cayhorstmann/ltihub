@@ -20,6 +20,7 @@ import static play.data.Form.*;
 
 import java.net.*;
 import java.io.*;
+import java.util.stream.Collectors;
 
 import play.Logger;
 import play.mvc.*;
@@ -151,20 +152,10 @@ public class HomeController extends Controller {
        assignment.save();
        Logger.info(problemlist);
    
-       if (!isEmpty(problemlist)) {
-		   for (String problemstr : problemlist.split("\\s+")) {
-			   if (!isEmpty(problemstr)) {
-				   Problem problem = new Problem();
-				   problem.setProblemUrl(problemstr);
-				   problem.setAssignment(assignment);
-				   assignment.getProblems().add(problem);
-				   problem.save();
-			   }	
-		   }
-       }
+        addNewProblemsFromFormSubmission(problemlist, assignment);
 
        String launchPresentationReturnURL = bindedForm.get("launch_presentation_return_url");
-       List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).orderBy("problemId").findList();
+        List<Problem> problems = assignment.getProblems();
 	   String assignmentURL = (request().secure() ? "https://" : "http://" ) 
 			   + request().host() + getPrefix() + "/assignment?id=" + assignment.getAssignmentId();
 	
@@ -183,20 +174,8 @@ public class HomeController extends Controller {
 		    assignment.setDuration(Long.parseLong(duration));
 		    assignment.save();
 	
-	 	    Logger.info(problemlist);
-		    if(null != problemlist|| !problemlist.equals("")) {
-			    String [] problemArr = problemlist.split("\n"); 
-			    for(String problemstr : problemArr) {
-					if(null != problemstr && !problemstr.equals("")) {
-						Problem problem = new Problem();
-						problem.setProblemUrl(problemstr);
-						problem.setAssignment(assignment);
-						assignment.getProblems().add(problem);
-						problem.save();
-					}	
-				}
-		    }
-			List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).orderBy("problemId").findList();
+            addNewProblemsFromFormSubmission(problemlist, assignment);
+            List<Problem> problems = assignment.getProblems();
 			return ok(showassignmentOutsideLMS.render(assignment,problems, getPrefix()));
 		}
 		else
@@ -213,44 +192,24 @@ public class HomeController extends Controller {
 			return ok(showAssignmentInstructorView.render(problems,assignmentId, "Teacher", getPrefix()));
 		}
 
-		List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentId).orderBy("problemId").findList();
-		List<Submission> submissions = new ArrayList<>();
+        // Maps each problemId to the submission with the most correct for that problem for the given user ID
+        Map<String, Submission> problemIdToSubmissionWithMostCorrect = new HashMap<>();
 		for(Problem problem: problems){
-			List<Submission> submissionsAll = Submission.find.where().eq("problem.problemId",problem.problemId).eq("assignmentId",assignmentId).eq("studentId",userId).findList();
+            Optional<Submission> submissionStream = problem.getSubmissions().stream()
+                    .filter((submission) -> (submission.getStudentId().equals(userId)))
+                    .max((submission1, submission2) ->
+                            (submission1.getCorrect().compareTo(submission2.getCorrect())));
 
-			int correctForThisProblem = 0;
-			int maxscoreForThisProblem = 0;
-			if(submissionsAll.size()!=0){
-				for(Submission s: submissionsAll){
-					if(s.getMaxScore()>0)
-						maxscoreForThisProblem = (s.getMaxScore()).intValue();
-					if(s.getCorrect()> correctForThisProblem)
-						correctForThisProblem = (s.getCorrect()).intValue();
+            if (submissionStream.isPresent())
+                problemIdToSubmissionWithMostCorrect.put(
+                        problem.getProblemId().toString(), submissionStream.get());
 				}
 
-				Submission submission = Submission.find.where().eq("problem.problemId", problem.problemId).eq("assignmentId", assignmentId).eq("studentId",userId).eq("correct",correctForThisProblem).findList().get(0);
-				submissions.add(submission);
-			}
-		}
-        Logger.info("Submissions list: " + submissions);
-        Logger.info("Problems list: " + problems);
-		Long duration = assignment.getDuration();
-		Logger.info("Duration: " + duration);
-        if(submissions.size()==0) {
-			if(duration == 0)
-				return ok(finalAssignment.render(problems,assignmentId, userId, getPrefix()));
+        if (duration > 0 && !problemIdToSubmissionWithMostCorrect.isEmpty())
+            return ok(timedAssignmentWelcomeView.render(problems, assignmentId, duration));
 			else
-			    return ok(timedAssignmentWelcomeView.render(problems, assignmentId, userId, duration));
-		}
-		else
-		{
-            if(duration != 0)
-                return ok("This was a timed assignment and you have already tried it once. Please look at the grade book to see your grades");
-            else {
-				System.out.println("");
-				return ok(finalAssignmentWithSubmission.render(problems, submissions, assignmentId, userId, getPrefix()));
-			}
-		}
+            return ok(combinedAssignment.render(getPrefix(), assignmentId, userId, duration, isInstructor(role),
+                    problems, problemIdToSubmissionWithMostCorrect));
     }
 
 	public Result showTimedAssignment(Long assignmentId, String userId, Long duration) {
@@ -282,33 +241,20 @@ public class HomeController extends Controller {
   		return ok(editAssignment.render(assignment, problems));
 	}
 	
-	public Result saveEditedAssignment(Long assignment) {
+    public Result saveEditedAssignment(Long assignmentId) {
 	    DynamicForm bindedForm = Form.form().bindFromRequest();
-	    String problemlist = bindedForm.get("url");
-	    Assignment assignment1 = Assignment.find.byId(assignment);
-	    Logger.info(problemlist);
-	    if(null != problemlist|| !problemlist.equals("")) {
-	        String [] problemArr = problemlist.split("\n");
-	        for(String problemstr : problemArr) {
-	            if(null != problemstr && !problemstr.equals("")) {
-	                Problem problem = new Problem();
-	                problem.setProblemUrl(problemstr);
-	                problem.setAssignment(assignment1);
-	                assignment1.getProblems().add(problem);
-	                problem.save();
-	            }
-	        }
-	    }
-	    List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment1.assignmentId).orderBy("problemId").findList();
+        String problemUrls = bindedForm.get("url");
+        Assignment assignment = Assignment.find.byId(assignmentId);
+        Logger.info("New Problem Submission URLs: " + problemUrls);
+        addNewProblemsFromFormSubmission(problemUrls, assignment);
+        List<Problem> problems = assignment.getProblems();
 
 	    Http.Cookie launchReturnUrlCookie = request().cookie("launch_presentation_return_url");
 	    String returnUrl = launchReturnUrlCookie.value();
 	    Logger.info("ReturnURL is: " + returnUrl);
-	    //TODO: I don't think this is true. showassignment prepares for
-	    // the callback to the returnURL that is only useful for the first time that the assignment
-	    // is prepared.
+        //TODO: Check
 	    String assignmentURL = (request().secure() ? "https://" : "http://" ) 
-				   + request().host() + getPrefix() + "/assignment?id=" + assignment;
+                + request().host() + getPrefix() + "/assignment?id=" + assignmentId;
         return ok(showassignment.render(returnUrl,problems, assignmentURL));
 	}
 
@@ -320,5 +266,30 @@ public class HomeController extends Controller {
         	return ok(editAssignment.render(assignment1, problems));    
     }
 
+
+    private void addNewProblemsFromFormSubmission(String newProblemFormSubmission, Assignment assignment) {
+        if(newProblemFormSubmission != null && !newProblemFormSubmission.trim().isEmpty()) {
+            String[] newProblemUrls = newProblemFormSubmission.split("\\s+");
+            for(String newProblemUrl: newProblemUrls) {
+                if(!newProblemUrl.trim().isEmpty()) {
+                    addNewProblem(newProblemUrl.trim(), assignment);
+                }
+            }
+        }
 }
 
+    /**
+     * Adds a new problem to the database with the given problemUrl on the given assignment.
+     * @param problemUrl the URL that links to the problem
+     * @param assignment the assignment where this problem belongs
+     */
+    private void addNewProblem(String problemUrl, Assignment assignment) {
+        Problem problem = new Problem();
+        problem.setProblemUrl(problemUrl);
+        problem.setAssignment(assignment);
+        assignment.getProblems().add(problem);
+        problem.save();
+    }
+
+
+}
