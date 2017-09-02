@@ -194,6 +194,9 @@ public class HomeController extends Controller {
 
         // Maps each problemId to the submission with the most correct for that problem for the given user ID
         Map<String, Submission> problemIdToSubmissionWithMostCorrect = new HashMap<>();
+        Long duration = assignment.getDuration();
+        List<Problem> problems = assignment.getProblems();
+
 		for(Problem problem: problems){
             Optional<Submission> submissionStream = problem.getSubmissions().stream()
                     .filter((submission) -> (submission.getStudentId().equals(userId)))
@@ -206,7 +209,7 @@ public class HomeController extends Controller {
 				}
 
         if (duration > 0 && !problemIdToSubmissionWithMostCorrect.isEmpty())
-            return ok(timedAssignmentWelcomeView.render(problems, assignmentId, duration));
+            return ok(timedAssignmentWelcomeView.render(problems, assignmentId, userId, duration));
 			else
             return ok(combinedAssignment.render(getPrefix(), assignmentId, userId, duration, isInstructor(role),
                     problems, problemIdToSubmissionWithMostCorrect));
