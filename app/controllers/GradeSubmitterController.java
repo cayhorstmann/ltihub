@@ -107,7 +107,7 @@ public class GradeSubmitterController extends Controller {
         } catch (Exception e) {
             Logger.info(e.getMessage());
         }
-        return ok("Grade saved in gradebook. You achieved " + score + "% of the total score.");
+        return ok("Grade saved in gradebook. You achieved " + (int) Math.round(100 * score) + "% of the total score.");
     }
 
 	/**
