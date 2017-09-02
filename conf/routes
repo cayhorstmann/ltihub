@@ -26,7 +26,7 @@ GET	/assignment/editAssignment	controllers.HomeController.showEditPage(id: Long)
 POST    /assignment/saveAssignment  controllers.HomeController.saveEditedAssignment(id: Long)
 
 # From app/views/timedAssignmentWelcomeView.scala.html
-GET	/timedAssignment	controllers.HomeController.showTimedAssignment(assignmentId: Long, duration: Long)
+GET	/timedAssignment	controllers.HomeController.showTimedAssignment(assignmentId: Long, userId: String, duration: Long)
 
 # Score callback from CodeCheck
 POST	/submissions/:assignmentID		controllers.SubmissionController.addSubmissions(assignmentID: Long)
