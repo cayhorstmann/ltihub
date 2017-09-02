@@ -28,14 +28,12 @@ POST    /assignment/saveAssignment  controllers.HomeController.saveEditedAssignm
 # From app/views/timedAssignmentWelcomeView.scala.html
 GET	/timedAssignment	controllers.HomeController.showTimedAssignment(assignmentId: Long, userId: String, duration: Long)
 
-# Score callback from CodeCheck
-POST	/submissions/:assignmentID		controllers.SubmissionController.addSubmissions(assignmentID: Long)
+# Score callback from CodeCheck (?) and Tyler
+POST	/submissions/:assignmentID/:userID		controllers.SubmissionController.addSubmissions(assignmentID: Long, userID: String)
 
-# Tyler?
+# When the record grade button is pushed. 
+# TODO: Add lis_outcome_service_url, lis_result_sourcedid to the request and make it a POST
 GET    /send-score/:assignmentID/:userID   controllers.GradeSubmitterController.submitGradeToCanvas(assignmentID: Long, userID: String)
-
-# Score update from Tyler
-POST	/send-interactivescore/:assignmentID   controllers.SubmissionController.addSubmissions(assignmentID: Long)
 
 # An example controller showing how to use dependency injection--used by health check
 GET     /count                      controllers.CountController.count

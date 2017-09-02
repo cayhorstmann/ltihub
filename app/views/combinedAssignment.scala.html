@@ -113,7 +113,7 @@
 
             if (problemsContents.length > 0) {
                 $.ajax({
-                    url: '@preFix/submissions/@assignmentID',
+                    url: '@preFix/submissions/@assignmentID/@userID',
                     method: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(problemsContents),
@@ -201,7 +201,7 @@
             height: 3em ;
             border: 1px solid black;'
         id="@problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getSubmissionId()">
-            <p>Highest Score:
+            <p>Highest recorded score:
                 <b>@{
                     (problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getCorrect().toDouble /
                             problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getMaxScore().toDouble) *
@@ -216,11 +216,12 @@
 }
 
 <div id='response'></div>
-
+<!-- 
 <input disabled id="saveMyWorkButton" type="button" value="Save my work" onclick="updateStatesFromProblems(event)"/>
+ -->
 <button onclick="submitGrades()">Record my score</button>
 
-<p>If you want to take a break and continue later, click on "Save my work".
+<p><!-- If you want to take a break and continue later, click on "Save my work".  -->
     If you are done with all questions, click on "Record my score"</p>
 
 @* Instructor specific code *@
