@@ -23,7 +23,7 @@
                 var stateEditScripts = @Html@{
                     val stateEditScriptsList = ListBuffer.empty[String];
 
-                    val submissions = problem.getSubmissions();
+                    val submissions = problem.getSubmissions().sortWith(_.getSubmissionId < _.getSubmissionId);
                     if (!submissions.isEmpty()) {
                         for (submission <- submissions) {
                             if (submission.getStudentId().equals(userID)
@@ -47,7 +47,7 @@
                         var editScript = stateEditScripts[i];
 
                         state = applyEditScript(state, editScript);
-                        console.log("i=" + i + ",state=" + state);
+                        console.log("i=" + i + ",editScript=" + editScript + ",state=" + state);
                     }
                     try {
                         state = JSON.parse(state);
