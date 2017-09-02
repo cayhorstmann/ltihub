@@ -193,7 +193,7 @@ public class HomeController extends Controller {
 		}
 
         // Maps each problemId to the submission with the most correct for that problem for the given user ID
-        Map<String, Submission> problemIdToSubmissionWithMostCorrect = new HashMap<>();
+        Map<Long, Submission> problemIdToSubmissionWithMostCorrect = new HashMap<>();
         Long duration = assignment.getDuration();
         List<Problem> problems = assignment.getProblems();
 
@@ -205,7 +205,7 @@ public class HomeController extends Controller {
 
             if (submissionStream.isPresent())
                 problemIdToSubmissionWithMostCorrect.put(
-                        problem.getProblemId().toString(), submissionStream.get());
+                        problem.getProblemId(), submissionStream.get());
 				}
 
         if (duration > 0 && problemIdToSubmissionWithMostCorrect.isEmpty())

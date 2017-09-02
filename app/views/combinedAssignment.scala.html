@@ -1,6 +1,6 @@
 @import scala.collection.mutable.ListBuffer
 @(preFix: String, assignmentID: Long, userID: String, duration: Long, isInstructor: Boolean,
-        problems: List[Problem], problemIdToSubmissionWithMostCorrect: Map[String, Submission])
+        problems: List[Problem], problemIdToSubmissionWithMostCorrect: Map[Long, Submission])
 
 <link rel="stylesheet" href="@routes.Assets.at("stylesheets/main.css")">
 
@@ -144,6 +144,12 @@
                 sendStateEditScriptsToServer();
         }
 
+        // Save work and report score
+        function submitGrades() {
+            updateStatesFromProblems();
+            setTimeout(location.href = "@preFix/send-score/@assignmentID/@userID", 1000);
+        }
+
         window.addEventListener("message", receiveMessage, false);
 
         window.onload = restoreStatesOfProblems;
@@ -164,8 +170,7 @@
 
             // Time is up, submit assignment
             if (timeLeftObj.getTime() <= 0) {
-                updateStatesFromProblems();
-                setTimeout(location.href = "@preFix/send-score/@assignmentID/@userID", 1000);
+                submitGrades();
             }
 
             /*
@@ -191,14 +196,17 @@
 @* Code to generate the iframes for problems *@
 @{System.out.println("Start generation iframes");}
 @for(problem <- problems) {
-    @if(problemIdToSubmissionWithMostCorrect.contains(problem.getProblemId().toString())) {
+    @if(problemIdToSubmissionWithMostCorrect.contains(problem.getProblemId())) {
         <div style='width: 100% ;
             height: 3em ;
             border: 1px solid black;'
-        id="@problemIdToSubmissionWithMostCorrect.get(problem.getProblemId().toString()).getSubmissionId()">
-            <p>You have solved the below problem earlier and highest score from your earlier attempts is :
-                <b>@problemIdToSubmissionWithMostCorrect.get(problem.getProblemId().toString()).getCorrect()/
-                    @problemIdToSubmissionWithMostCorrect.get(problem.getProblemId().toString()).getMaxScore()</b> </p>
+        id="@problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getSubmissionId()">
+            <p>Highest Score:
+                <b>@{
+                    (problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getCorrect().toDouble /
+                            problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getMaxScore().toDouble) *
+                            100
+                }</b> </p>
         </div>
     }
 
@@ -210,7 +218,7 @@
 <div id='response'></div>
 
 <input disabled id="saveMyWorkButton" type="button" value="Save my work" onclick="updateStatesFromProblems(event)"/>
-<a href="@routes.GradeSubmitterController.submitGradeToCanvas(assignmentID, userID)"><button>Record my score</button></a>
+<button onclick="submitGrades()">Record my score</button>
 
 <p>If you want to take a break and continue later, click on "Save my work".
     If you are done with all questions, click on "Record my score"</p>
@@ -218,5 +226,5 @@
 @* Instructor specific code *@
 @if(isInstructor) {
     @{System.out.println("Start instructor");}
-    <a href ="@routes.HomeController.showEditPage(assignmentID)"><button>Edit Assignment</button></a>
+    <a href="@routes.HomeController.showEditPage(assignmentID)"><button>Edit Assignment</button></a>
 }

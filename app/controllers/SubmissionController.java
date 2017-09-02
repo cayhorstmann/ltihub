@@ -8,6 +8,7 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
+import views.html.errorPage;
 
 import java.util.Iterator;
 import java.util.List;
@@ -20,20 +21,21 @@ public class SubmissionController extends Controller {
 
         JsonNode json = request().body().asJson();
         if (json == null)
-            return badRequest("Expecting Json data");
+            return badRequest("Expected Json data. Received: " + request());
 
         Logger.info("Received file: " + Json.stringify(json));
 
-        Logger.info("AssignmentID: " + assignmentID);
+        try {
+            Logger.info("AssignmentID: " + assignmentID);
 
-        Http.Cookie userIdCookie = request().cookie("user_id");
-        String userID = userIdCookie.value();
-        Logger.info("UserID: " + userID);
+            Http.Cookie userIdCookie = request().cookie("user_id");
+            String userID = userIdCookie.value();
+            Logger.info("UserID: " + userID);
 
-        Iterator<JsonNode> problemsContentsIter = json.elements();
-        while (problemsContentsIter.hasNext()) {
-            JsonNode problemContent = problemsContentsIter.next();
-            Logger.info("Problem Content: " + Json.stringify(problemContent));
+            Iterator<JsonNode> problemsContentsIter = json.elements();
+            while (problemsContentsIter.hasNext()) {
+                JsonNode problemContent = problemsContentsIter.next();
+                Logger.info("Problem Content: " + Json.stringify(problemContent));
 
             /*
              The script that will change the previously submitted state to the current state.
@@ -47,40 +49,45 @@ public class SubmissionController extends Controller {
              For example: to change "Hello world!" to "Hi world, I am a computer.":
                 "11,1|1,4| 1,1,i8,18,, I am a computer."
               */
-            String stateEditScript = Json.stringify(problemContent.get("stateEditScript"));
-            Logger.info("Received state edit script is: " + stateEditScript);
+                String stateEditScript = Json.stringify(problemContent.get("stateEditScript"));
+                Logger.info("Received state edit script is: " + stateEditScript);
 
-            Problem problem = Problem.find.byId(problemContent.get("problemId").asLong(-1L));
-            Logger.info("Problem: " + problem);
+                Problem problem = Problem.find.byId(problemContent.get("problemId").asLong(-1L));
+                Logger.info("Problem: " + problem);
 
-            JsonNode score = problemContent.get("score");
-            Logger.info("Score: " + Json.stringify(score));
+                JsonNode score = problemContent.get("score");
+                Logger.info("Score: " + Json.stringify(score));
 
 
-            Submission submission = new Submission();
+                Submission submission = new Submission();
 
-            submission.setAssignmentId(assignmentID);
-            submission.setStudentId(userID);
-            submission.setContent(stateEditScript);
+                submission.setAssignmentId(assignmentID);
+                submission.setStudentId(userID);
+                submission.setContent(stateEditScript);
 
-            if (score.get("correct") != null && score.get("maxscore") != null) {
-                submission.setCorrect(score.get("correct").asLong(0L));
-                submission.setMaxScore(score.get("maxscore").asLong(0L));
-            } else {
-                submission.setCorrect(0L);
-                submission.setMaxScore(0L);
+                if (score.get("correct") != null && score.get("maxscore") != null) {
+                    submission.setCorrect(score.get("correct").asLong(0L));
+                    submission.setMaxScore(score.get("maxscore").asLong(0L));
+                } else {
+                    submission.setCorrect(0L);
+                    submission.setMaxScore(0L);
+                }
+
+                submission.setProblem(problem);
+
+                submission.save();
+
+                Logger.info("Submission saved.");
+
+                problem.getSubmissions().add(submission);
             }
 
-            submission.setProblem(problem);
-
-            submission.save();
-
-            Logger.info("Submission saved.");
-
-            problem.getSubmissions().add(submission);
+            return ok("Submission is saved");
+        } catch (Exception ex) {
+            Logger.error("Submission failed: " + ex.getMessage());
+            return badRequest(errorPage.render("Received request: " + request() +
+                    "<br>Exception: " + ex.getMessage()));
         }
-
-        return ok("Submission is saved");
     }
 
     //Method to save interactive Exercise score
