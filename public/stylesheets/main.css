@@ -13,3 +13,8 @@
     border-style: solid;
     color: red;
 }
+
+.exercise-iframe {
+    width: 100%;
+    height: 50em;
+}
