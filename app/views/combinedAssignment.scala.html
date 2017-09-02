@@ -191,16 +191,16 @@
 @{System.out.println("Start generation iframes");}
 @for(problem <- problems) {
     @if(problemIdToSubmissionWithMostCorrect.contains(problem.getProblemId().toString())) {
-        @{System.out.println("Submission ID: " + problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getSubmissionId());}
-        @{System.out.println("Submission Correct: " + problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getCorrect());}
-        @{System.out.println("Submission Max Score: " + problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getMaxScore());}
+        @{System.out.println("Submission ID: " + problemIdToSubmissionWithMostCorrect.get(problem.getProblemId().toString()).getSubmissionId());}
+        @{System.out.println("Submission Correct: " + problemIdToSubmissionWithMostCorrect.get(problem.getProblemId().toString()).getCorrect());}
+        @{System.out.println("Submission Max Score: " + problemIdToSubmissionWithMostCorrect.get(problem.getProblemId().toString()).getMaxScore());}
         <div style='width: 100% ;
             height: 3em ;
             border: 1px solid black;'
-        id="@problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getSubmissionId()">
+        id="@problemIdToSubmissionWithMostCorrect.get(problem.getProblemId().toString()).getSubmissionId()">
             <p>You have solved the below problem earlier and highest score from your earlier attempts is :
-                <b>@problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getCorrect()/
-                    @problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getMaxScore()</b> </p>
+                <b>@problemIdToSubmissionWithMostCorrect.get(problem.getProblemId().toString()).getCorrect()/
+                    @problemIdToSubmissionWithMostCorrect.get(problem.getProblemId().toString()).getMaxScore()</b> </p>
         </div>
     }
 
