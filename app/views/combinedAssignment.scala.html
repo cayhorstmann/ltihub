@@ -47,10 +47,9 @@
                         var editScript = stateEditScripts[i];
 
                         state = applyEditScript(state, editScript);
+                        console.log("i=" + i + ",state=" + state);
                     }
-                    console.log("state=" + state);
-                    // Huh? 
-                    // state = JSON.parse(state);
+                    state = JSON.parse(state);
 
                     // Updates the previous version of the problem content so that we will know what changed
                     problemIdToContent.previous["@problem.getProblemId()"] = {score: {}, state: state};
@@ -64,7 +63,7 @@
 
 
             setInterval(updateStatesFromProblems, 10000);
-            document.getElementById("saveMyWorkButton").disabled = false;
+            // document.getElementById("saveMyWorkButton").disabled = false;
         }
 
         /*
