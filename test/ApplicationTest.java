@@ -1,11 +1,9 @@
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.*;
 
+import play.libs.Json;
 import play.mvc.*;
 import play.test.*;
 import play.data.DynamicForm;
@@ -32,6 +30,12 @@ public class ApplicationTest {
     public void simpleCheck() {
         int a = 1 + 1;
         assertEquals(2, a);
+
+        Set<String> test = new TreeSet<>();
+        test.add("Tyler");
+        test.add("Amila");
+
+        System.out.println(Json.toJson(test));
     }
 
     @Test
