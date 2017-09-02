@@ -113,8 +113,8 @@ public class HomeController extends Controller {
 		}
 		String userID = getParam(postParams, "custom_canvas_user_id"); 
 		if (userID == null) userID = getParam(postParams, "user_id");
+		if (isEmpty(userID)) return badRequest("No user id");
 		Logger.info("User ID: " + userID);
-		response().setCookie(new Http.Cookie("user_id", userID, null, null, null, false, false));  // TODO: No cookies
 
 		String contextID = getParam(postParams, "context_id");
 		String resourceLinkID = getParam(postParams, "resource_link_id");
@@ -125,8 +125,8 @@ public class HomeController extends Controller {
 		
 		if (assignmentId == null && isInstructor(role))
 			return ok(create_exercise.render(contextID, resourceLinkID, toolConsumerInstanceGuID, launchPresentationReturnURL));
-		else
-			return redirect(controllers.routes.HomeController.getAssignment(role, Long.parseLong(assignmentId)));		     	
+		else // TODO: Why redirect???
+			return redirect(controllers.routes.HomeController.getAssignment(role, Long.parseLong(assignmentId), userID));		     	
  	}
 
 	public Result createAssignment() {		
@@ -168,47 +168,43 @@ public class HomeController extends Controller {
 	   String assignmentURL = (request().secure() ? "https://" : "http://" ) 
 			   + request().host() + getPrefix() + "/assignment?id=" + assignment.getAssignmentId();
 	
-	
        return ok(showassignment.render(launchPresentationReturnURL, problems, assignmentURL));
     }
 	
 	public Result addAssignmentOutsideLMS() {        
-	      DynamicForm bindedForm = Form.form().bindFromRequest();
-   	      String problemlist = bindedForm.get("url");
-	      String key = bindedForm.get("key");
-	      String secret = bindedForm.get("secret");
-	      String duration = bindedForm.get("duration");
+		DynamicForm bindedForm = Form.form().bindFromRequest();
+		String problemlist = bindedForm.get("url");
+		String key = bindedForm.get("key");
+		String secret = bindedForm.get("secret");
+		String duration = bindedForm.get("duration");
 
-	      if(key.equals("fred") && secret.equals("fred")){
-	      Assignment assignment = new Assignment();
-	      assignment.setDuration(Long.parseLong(duration));
-	      assignment.save();
-
- 	      Logger.info(problemlist);
-	      if(null != problemlist|| !problemlist.equals("")) {
-		     String [] problemArr = problemlist.split("\n"); 
-		     for(String problemstr : problemArr) {
-			  if(null != problemstr && !problemstr.equals("")) {
-				Problem problem = new Problem();
-				problem.setProblemUrl(problemstr);
-				problem.setAssignment(assignment);
-				assignment.getProblems().add(problem);
-				problem.save();
-			  }	
-		    }
-	      }
-	List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).orderBy("problemId").findList();
-	return ok(showassignmentOutsideLMS.render(assignment,problems, getPrefix()));
-	}
-	else
-		return ok("Secret or key doesn't match.");
-}
+		if(key.equals("fred") && secret.equals("fred")){ // TODO
+		    Assignment assignment = new Assignment();
+		    assignment.setDuration(Long.parseLong(duration));
+		    assignment.save();
 	
-	//Get Assignment Method
-	public Result getAssignment(String role, Long assignmentId){
-        Logger.info("getAssignment() Commencing...");
-        Logger.info("Role: " + role);
-        Logger.info("Assignment_id: " + assignmentId);
+	 	    Logger.info(problemlist);
+		    if(null != problemlist|| !problemlist.equals("")) {
+			    String [] problemArr = problemlist.split("\n"); 
+			    for(String problemstr : problemArr) {
+					if(null != problemstr && !problemstr.equals("")) {
+						Problem problem = new Problem();
+						problem.setProblemUrl(problemstr);
+						problem.setAssignment(assignment);
+						assignment.getProblems().add(problem);
+						problem.save();
+					}	
+				}
+		    }
+			List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).orderBy("problemId").findList();
+			return ok(showassignmentOutsideLMS.render(assignment,problems, getPrefix()));
+		}
+		else
+			return ok("Secret or key doesn't match.");
+	}
+	
+	public Result getAssignment(String role, Long assignmentId, String userId){
+        Logger.info("getAssignment. Role: " + role + " Assignment_id: " + assignmentId + " UserID: " + userId);
 
 		Assignment assignment = Assignment.find.byId(assignmentId);
 
@@ -218,9 +214,6 @@ public class HomeController extends Controller {
 		}
 
 		List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentId).orderBy("problemId").findList();
-		Http.Cookie userIdCookie = request().cookie("user_id");
-		String userId = userIdCookie.value(); // TODO: This has caused NPE 2017-08-29
-		Logger.info("UserID: " + userId);
 		List<Submission> submissions = new ArrayList<>();
 		for(Problem problem: problems){
 			List<Submission> submissionsAll = Submission.find.where().eq("problem.problemId",problem.problemId).eq("assignmentId",assignmentId).eq("studentId",userId).findList();
@@ -247,7 +240,7 @@ public class HomeController extends Controller {
 			if(duration == 0)
 				return ok(finalAssignment.render(problems,assignmentId, userId, getPrefix()));
 			else
-			    return ok(timedAssignmentWelcomeView.render(problems, assignmentId, duration));
+			    return ok(timedAssignmentWelcomeView.render(problems, assignmentId, userId, duration));
 		}
 		else
 		{
@@ -260,18 +253,18 @@ public class HomeController extends Controller {
 		}
     }
 
-	public Result showTimedAssignment(Long assignmentId, Long duration) {
+	public Result showTimedAssignment(Long assignmentId, String userId, Long duration) {
 		Assignment assignment = Assignment.find.byId(assignmentId);
-
         List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentId).orderBy("problemId").findList();
-        Http.Cookie userIdCookie = request().cookie("user_id");
-        String userId = userIdCookie.value();
-        Logger.info("UserID is: " + userId);
-
+        Logger.info("showTimedAssignment. UserID is: " + userId);
         return ok(timedFinalAssignment.render(problems, assignmentId, userId, getPrefix(), duration));
-}
+	}
 
-
+	/**
+	 * Gets the prefix for this version of LTIHub. These are used because all instances share the same
+	 * load balancer so that we only need one SSL certificate.
+	 * @return the prefix (such as /lti or /ltitest)
+	 */	
 	public String getPrefix() { 
 		String prefix = System.getProperty("play.http.context");
 		if (prefix == null) return "/"; 
