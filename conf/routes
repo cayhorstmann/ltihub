@@ -4,30 +4,55 @@
 
 # CAUTION: Do NOT add a route / since it will confuse the Google
 # Cloud load balancer.
+
+# Shows LMS config XML
 GET	/config			controllers.HomeController.config
+
+# Initial call from LMS
+POST    /assignment     controllers.HomeController.index
+
+# Called when submitting the page for creating an assignment 
+# that is produced by create_exercise.scala.html
+# in controllers.HomeController.index
 POST	/addAssignment		controllers.HomeController.addAssignment
-POST	/assignment		controllers.HomeController.index
-GET	/assignment	        controllers.HomeController.getAssignment(role: String, assignmentId: Long)
+
+# Redirect from controllers.HomeController.index, but why???
+GET	/assignment	        controllers.HomeController.getAssignment(role: String, assignmentId: Long, userId: String)
+
+# When clicking on the Edit Assignment button in instructor view
 GET	/assignment/editAssignment	controllers.HomeController.showEditPage(id: Long)	
 
-GET	/timedAssignment	controllers.HomeController.showTimedAssignment(assignmentId: Long, duration: Long)
-POST	/assignment/saveAssignment	controllers.HomeController.saveEditedAssignment(id: Long)
+# When saving an edited assignment in instructor view
+POST    /assignment/saveAssignment  controllers.HomeController.saveEditedAssignment(id: Long)
 
+# From app/views/timedAssignmentWelcomeView.scala.html
+GET	/timedAssignment	controllers.HomeController.showTimedAssignment(assignmentId: Long, duration: Long)
+
+# Score callback from CodeCheck
 POST	/submissions/:assignmentID		controllers.SubmissionController.addSubmissions(assignmentID: Long)
+
+# Tyler?
 GET    /send-score/:assignmentID/:userID   controllers.GradeSubmitterController.submitGradeToCanvas(assignmentID: Long, userID: String)
 
+# Score update from Tyler
 POST	/send-interactivescore/:assignmentID   controllers.SubmissionController.addSubmissions(assignmentID: Long)
-# An example controller showing how to use dependency injection
+
+# An example controller showing how to use dependency injection--used by health check
 GET     /count                      controllers.CountController.count
-GET     /lti/count                      controllers.CountController.count
-# An example controller showing how to write asynchronous code
-GET     /message                    controllers.AsyncController.message
+# GET     /lti/count                      controllers.CountController.count
+
+# For backwards compatibility
+# Canvas starts with call to createAssignment (presumably because of the XML config)
+POST    /createAssignment             controllers.HomeController.index
+
+# ???
+GET	/createAssignment	      controllers.HomeController.createAssignment
+
+# ???
+POST	/addassignment		  controllers.HomeController.addAssignmentOutsideLMS
+
+# When clicking on a delete button when editing assignment
+POST	/assignment/deleteProblem     controllers.HomeController.deleteProblem(assignmentID: Long, problemID: Long)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
-
-# For backwards compatibility
-POST    /createAssignment             controllers.HomeController.index
-GET	/createAssignment	      controllers.HomeController.createAssignment
-POST	/addassignment		  controllers.HomeController.addAssignmentOutsideLMS
-POST	/assignment/deleteProblem     controllers.HomeController.deleteProblem(assignmentID: Long, problemID: Long)
