@@ -35,7 +35,7 @@ public class HomeController extends Controller {
 	}
 	
 	private static boolean isInstructor(String role) {
-		return role.contains("Faculty")|| role.contains("TeachingAssistant") || role.contains("Instructor");
+		return role != null && (role.contains("Faculty") || role.contains("TeachingAssistant") || role.contains("Instructor"));
 	}
 	
 	private static boolean isEmpty(String str) {
@@ -116,8 +116,6 @@ public class HomeController extends Controller {
 		Logger.info("User ID: " + userID);
 		response().setCookie(new Http.Cookie("user_id", userID, null, null, null, false, false));  // TODO: No cookies
 
-		// response().setCookie(new Http.Cookie("launch_presentation_return_url", postParams.get("launch_presentation_return_url")[0],
-	    //                null, null, null, false, false));
 		String contextID = getParam(postParams, "context_id");
 		String resourceLinkID = getParam(postParams, "resource_link_id");
 		String toolConsumerInstanceGuID = getParam(postParams, "tool_consumer_instance_guid");
@@ -209,20 +207,20 @@ public class HomeController extends Controller {
 	//Get Assignment Method
 	public Result getAssignment(String role, Long assignmentId){
         Logger.info("getAssignment() Commencing...");
-        Logger.info("Role is: " + role);
-        Logger.info("Assignment_id is: " + assignmentId);
+        Logger.info("Role: " + role);
+        Logger.info("Assignment_id: " + assignmentId);
 
 		Assignment assignment = Assignment.find.byId(assignmentId);
 
-		if(assignment != null && (role.contains("Faculty")|| role.contains("TeachingAssistant") || role.contains("Instructor"))){
+		if(assignment != null && isInstructor(role)){
 			List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).orderBy("problemId").findList();
 			return ok(showAssignmentInstructorView.render(problems,assignmentId, "Teacher", getPrefix()));
 		}
 
 		List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentId).orderBy("problemId").findList();
 		Http.Cookie userIdCookie = request().cookie("user_id");
-		String userId = userIdCookie.value();
-		Logger.info("UserID is: " + userId);
+		String userId = userIdCookie.value(); // TODO: This has caused NPE 2017-08-29
+		Logger.info("UserID: " + userId);
 		List<Submission> submissions = new ArrayList<>();
 		for(Problem problem: problems){
 			List<Submission> submissionsAll = Submission.find.where().eq("problem.problemId",problem.problemId).eq("assignmentId",assignmentId).eq("studentId",userId).findList();
@@ -241,10 +239,10 @@ public class HomeController extends Controller {
 				submissions.add(submission);
 			}
 		}
-        Logger.info("Submissions list is: " + submissions);
-        Logger.info("Problems list is: " + problems);
+        Logger.info("Submissions list: " + submissions);
+        Logger.info("Problems list: " + problems);
 		Long duration = assignment.getDuration();
-		Logger.info("Duration is: " + duration);
+		Logger.info("Duration: " + duration);
         if(submissions.size()==0) {
 			if(duration == 0)
 				return ok(finalAssignment.render(problems,assignmentId, userId, getPrefix()));
@@ -313,7 +311,9 @@ public class HomeController extends Controller {
 	    Http.Cookie launchReturnUrlCookie = request().cookie("launch_presentation_return_url");
 	    String returnUrl = launchReturnUrlCookie.value();
 	    Logger.info("ReturnURL is: " + returnUrl);
-	    //TODO: Check
+	    //TODO: I don't think this is true. showassignment prepares for
+	    // the callback to the returnURL that is only useful for the first time that the assignment
+	    // is prepared.
 	    String assignmentURL = (request().secure() ? "https://" : "http://" ) 
 				   + request().host() + getPrefix() + "/assignment?id=" + assignment;
         return ok(showassignment.render(returnUrl,problems, assignmentURL));
