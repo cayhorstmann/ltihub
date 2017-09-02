@@ -26,7 +26,6 @@
                     val submissions = problem.getSubmissions();
                     if (!submissions.isEmpty()) {
                         for (submission <- submissions) {
-                            System.out.println(submission.getStudentId());
                             if (submission.getStudentId().equals(userID)
                             && submission.getContent() != null
                             && !submission.getContent().isEmpty()) {
@@ -152,6 +151,7 @@
 
 @* Timed assignment specific code *@
 @if(duration != null && duration >= 0L) {
+    @{System.out.println("Start duration");}
     <script type="text/javascript">
         const durationInMilliseconds = @duration * 60 * 1000;
         const startTimeInMilliseconds = Date.now(); // TODO: Get this number from database
@@ -188,8 +188,12 @@
 }
 
 @* Code to generate the iframes for problems *@
+@{System.out.println("Start generation iframes");}
 @for(problem <- problems) {
     @if(problemIdToSubmissionWithMostCorrect.contains(problem.getProblemId().toString())) {
+        @{System.out.println("Submission ID: " + problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getSubmissionId());}
+        @{System.out.println("Submission Correct: " + problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getCorrect());}
+        @{System.out.println("Submission Max Score: " + problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getMaxScore());}
         <div style='width: 100% ;
             height: 3em ;
             border: 1px solid black;'
@@ -215,5 +219,6 @@
 
 @* Instructor specific code *@
 @if(isInstructor) {
+    @{System.out.println("Start instructor");}
     <a href ="@routes.HomeController.showEditPage(assignmentID)"><button>Edit Assignment</button></a>
 }
