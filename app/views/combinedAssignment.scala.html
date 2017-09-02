@@ -1,0 +1,217 @@
+@import scala.collection.mutable.ListBuffer
+@(preFix: String, assignmentID: Long, userID: String, duration: Long, isInstructor: Boolean,
+        problems: List[Problem], submissions: List[Submission])
+
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+    <script src="@routes.Assets.at("javascripts/shortest-edit-script.js")"></script>
+
+    @* Score and state handlers *@
+    <script type="text/javascript">
+            /*
+             The states that the server currently has stored.
+             This is used to compute what has changed since the last time data was sent to the server, so that the server
+             only needs to store the changes every update instead of storing the whole state every update.
+             */
+            var problemIdToContent = {previous: {}, current: {}};
+
+            // Sends the states of the problems that were previously submitted to the problems to be restored
+            function restoreStatesOfProblems() {
+                @for(problem <- problems) {
+                    // Get student's most recently submitted work as a series of changes
+                    var stateEditScripts = @Html@{
+                        val stateEditScriptsList = ListBuffer.empty[String];
+
+                        val submissions = problem.getSubmissions();
+                        if (!submissions.isEmpty()) {
+                            for (submission <- submissions) {
+
+                                if (submission.getStudentId().equals(userID)
+                                && submission.getContent() != null
+                                && !submission.getContent().isEmpty()) {
+                                    stateEditScriptsList += submission.getContent();
+                                }
+                            }
+                        }
+
+                       stateEditScriptsList.mkString("[", ", ", "]");
+                    };
+
+                    // Didn't find submission for given studentID/problemID
+                    if (!stateEditScripts || stateEditScripts.length === 0) {
+                        problemIdToContent.previous["@problem.getProblemId()"] = {};
+                    } else {
+                        // Rebuild state using edit scripts
+                        var state = "";
+                        for (var i = 0; i < stateEditScripts.length; i++) {
+                            var editScript = stateEditScripts[i];
+
+                            state = applyEditScript(state, editScript);
+                        }
+                        state = JSON.parse(state);
+
+                        // Updates the previous version of the problem content so that we will know what changed
+                        problemIdToContent.previous["@problem.getProblemId()"] = {score: {}, state: state};
+
+                        // Post message to iframe to populate the problem
+                        var iframe = document.getElementById('@problem.getProblemId()');
+                        iframe.contentWindow.postMessage({query: 'restoreState', state: state}, '*');
+                    }
+
+                }
+
+
+                setInterval(updateStatesFromProblems, 10000);
+                document.getElementById("saveMyWorkButton").disabled = false;
+            }
+
+            /*
+             Tell the iframes to report their state back.
+             When all of the iframes have reported back, we will send any changes to the server.
+             */
+            function updateStatesFromProblems() {
+                // Map is reset because the states in the array must be updated after this function is called
+                problemIdToContent.current = {};
+
+                $('.exercise-iframe').each(function(_, iframe) {
+                    iframe.contentWindow.postMessage({query: 'getContent', problemId: iframe.id}, '*');
+                });
+            }
+
+
+            function sendStateEditScriptsToServer() {
+                messagesSinceLastStatesSentToServer = 0;
+
+                // The problemId, scores, and an edit script to turn the previous submission's state into the current state
+                var problemsContents = [];
+
+                for (var problemId in problemIdToContent.current) {
+                    if (problemIdToContent.previous.hasOwnProperty(problemId) &&
+                            problemIdToContent.current.hasOwnProperty(problemId)) {
+
+                        const previousScore = problemIdToContent.previous[problemId].score;
+                        const currentScore = problemIdToContent.current[problemId].score;
+
+                        const previousState = problemIdToContent.previous[problemId].state;
+                        const currentState = problemIdToContent.current[problemId].state;
+
+                        const previousScoreString = previousScore !== undefined ? JSON.stringify(previousScore) : "";
+                        const currentScoreString = currentScore !== undefined ? JSON.stringify(currentScore) : "";
+
+                        const previousStateString = previousState !== undefined ? JSON.stringify(previousState) : "";
+                        const currentStateString = currentState !== undefined ? JSON.stringify(currentState) : "";
+
+                        if (previousStateString !== currentStateString || previousScoreString !== currentScoreString) {
+                            problemsContents.push({
+                                problemId: problemId,
+                                score: currentScore,
+                                stateEditScript: shortestEditScript(previousStateString, currentStateString)
+                            });
+                        }
+                    }
+                }
+
+                if (problemsContents.length > 0) {
+                    $.ajax({
+                        url: '@preFix/submissions/@assignmentID',
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(problemsContents),
+                        success: function (msg) {
+                            problemIdToContent.previous = problemIdToContent.current;
+                            problemIdToContent.current = {};
+
+                            var response = document.getElementById('response');
+                            response.innerHTML = "Your partially complete assignment is saved!";
+                            setTimeout(function () {
+                                $("#response").hide();
+                            }, 5000);
+                        }
+                    });
+                }
+            }
+
+            var messagesSinceLastStatesSentToServer = 0;
+            function receiveMessage(event) {
+                messagesSinceLastStatesSentToServer++;
+
+                if (event.data.request !== undefined)
+                    problemIdToContent.current[event.data.request.problemId] =
+                            {score: event.data.score, state: event.data.state};
+
+                const iframes = document.getElementsByClassName('exercise-iframe');
+                if (messagesSinceLastStatesSentToServer === iframes.length)
+                    sendStateEditScriptsToServer();
+            }
+
+            window.addEventListener("message", receiveMessage, false);
+
+            window.onload = restoreStatesOfProblems;
+    </script>
+
+    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/main.css")">
+</head>
+
+@* Timed assignment specific code *@
+@if(duration != null && duration >= 0L) {
+    <script type="text/javascript">
+        const durationInMilliseconds = @duration * 60 * 1000;
+        const startTimeInMilliseconds = Date.now(); // TODO: Get this number from database
+
+        const endTimeInMilliseconds = startTimeInMilliseconds + durationInMilliseconds;
+
+        function updateTimeLeftDisplay() {
+            var timeLeftObj = new Date();
+            timeLeftObj.setTime(endTimeInMilliseconds - timeLeftObj.getTime());
+
+            /*
+            All hours and days will be put into minutes
+            i.e. two hours and 30 minutes will turn into 150 minutes
+             */
+            const timeLeftMin = Math.floor((timeLeftObj.getTime() / 1000) / 60);
+            const timeLeftSec = timeLeftObj.getSeconds();
+
+            var timeLeftEl = document.getElementById('timeLeft');
+
+            timeLeftEl.innerHTML = "Time Left: " + timeLeftMin + ":" + timeLeftSec;
+        }
+
+        updateTimeLeftDisplay();
+        setInterval(updateTimeLeftDisplay, 1000);
+    </script>
+
+    <div id="timeLeft" class="rightSidebar">
+    </div>
+}
+
+@* Code to generate the iframes for problems *@
+@for(problem <- problems) {
+    @for(submission <- submissions) {
+        @if(problem.problemId == submission.problem.problemId) {
+            <div style='width: 100% ;
+                height: 3em ;
+                border: 1px solid black;'
+            id= @submission.submissionId >
+                <p>You have solved the below problem earlier and highest score from your earlier attempts is :
+                    <b>  @submission.correct/ @submission.maxscore</b> </p>
+            </div>
+        }
+    }
+
+    <iframe style='width: 100% ;
+        height: 50em ;' class='exercise-iframe'
+    id=@problem.problemId src=@problem.getProblemUrl().trim() ></iframe>
+}
+
+<div id='response'></div>
+
+<input disabled id="saveMyWorkButton" type="button" value="Save my work" onclick="updateStatesFromProblems(event)"/>
+<a href="@routes.GradeSubmitterController.submitGradeToCanvas(assignmentID, userID)"><button>Record my score</button></a>
+
+<p>If you want to take a break and continue later, click on "Save my work".
+    If you are done with all questions, click on "Record my score"</p>
+
+@* Instructor specific code *@
+@if(isInstructor) {
+    <a href ="@routes.HomeController.showEditPage(assignmentID)"><button>Edit Assignment</button></a>
+}
