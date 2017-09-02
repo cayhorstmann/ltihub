@@ -2,7 +2,14 @@
 @(preFix: String, assignmentID: Long, userID: String, duration: Long, isInstructor: Boolean,
         problems: List[Problem], problemIdToSubmissionWithMostCorrect: Map[String, Submission])
 
-
+@{
+    System.out.println("Prefix: " + preFix);
+    System.out.println("Assignment id: " + assignmentID);
+    System.out.println("Duration: " + duration);
+    System.out.println("Is Instructor: " + isInstructor);
+    System.out.println("Problems: " + problems);
+    System.out.println("ProblemID to Submission with most correct map: " + problemIdToSubmissionWithMostCorrect);
+}
 <link rel="stylesheet" href="@routes.Assets.at("stylesheets/main.css")">
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
@@ -193,7 +200,7 @@
         <div style='width: 100% ;
             height: 3em ;
             border: 1px solid black;'
-        id=@problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getSubmissionId()>
+        id="@problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getSubmissionId()">
             <p>You have solved the below problem earlier and highest score from your earlier attempts is :
                 <b>@problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getCorrect()/
                     @problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getMaxScore()</b> </p>

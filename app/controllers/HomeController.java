@@ -208,9 +208,9 @@ public class HomeController extends Controller {
                         problem.getProblemId().toString(), submissionStream.get());
 				}
 
-        if (duration > 0 && !problemIdToSubmissionWithMostCorrect.isEmpty())
+        if (duration > 0 && problemIdToSubmissionWithMostCorrect.isEmpty())
             return ok(timedAssignmentWelcomeView.render(problems, assignmentId, userId, duration));
-			else
+		else
             return ok(combinedAssignment.render(getPrefix(), assignmentId, userId, duration, isInstructor(role),
                     problems, problemIdToSubmissionWithMostCorrect));
     }
