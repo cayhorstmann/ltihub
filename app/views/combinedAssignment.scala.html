@@ -61,6 +61,8 @@
                     }
                     catch (e) {
                     	console.log("Parse failed: " + e);
+                        problemIdToContent.previous["@problem.getProblemId()"] = {score: {}, state: state};
+                        // as unparsed string
                     }
                 }
 
@@ -104,7 +106,7 @@
                     const previousScoreString = previousScore !== undefined ? JSON.stringify(previousScore) : "";
                     const currentScoreString = currentScore !== undefined ? JSON.stringify(currentScore) : "";
 
-                    const previousStateString = previousState !== undefined ? JSON.stringify(previousState) : "";
+                    const previousStateString = typeof(previousState) === "string" ? previousState : previousState !== undefined ? JSON.stringify(previousState) : "";
                     const currentStateString = currentState !== undefined ? JSON.stringify(currentState) : "";
 
                     if (previousStateString !== currentStateString || previousScoreString !== currentScoreString) {
@@ -140,7 +142,7 @@
         var messagesSinceLastStatesSentToServer = 0;
         function receiveMessage(event) {
             messagesSinceLastStatesSentToServer++;
-
+            console.log("receiveMessage. event=" + JSON.stringify(event))
             if (event.data.request !== undefined)
                 problemIdToContent.current[event.data.request.problemId] =
                         {score: event.data.score, state: event.data.state};
