@@ -2,14 +2,6 @@
 @(preFix: String, assignmentID: Long, userID: String, duration: Long, isInstructor: Boolean,
         problems: List[Problem], problemIdToSubmissionWithMostCorrect: Map[String, Submission])
 
-@{
-    System.out.println("Prefix: " + preFix);
-    System.out.println("Assignment id: " + assignmentID);
-    System.out.println("Duration: " + duration);
-    System.out.println("Is Instructor: " + isInstructor);
-    System.out.println("Problems: " + problems);
-    System.out.println("ProblemID to Submission with most correct map: " + problemIdToSubmissionWithMostCorrect);
-}
 <link rel="stylesheet" href="@routes.Assets.at("stylesheets/main.css")">
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
@@ -34,6 +26,7 @@
                     val submissions = problem.getSubmissions();
                     if (!submissions.isEmpty()) {
                         for (submission <- submissions) {
+                            System.out.println(submission.getStudentId());
                             if (submission.getStudentId().equals(userID)
                             && submission.getContent() != null
                             && !submission.getContent().isEmpty()) {
