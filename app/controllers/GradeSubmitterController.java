@@ -44,6 +44,7 @@ public class GradeSubmitterController extends Controller {
 	}
 
 	public Result submitGradeToCanvas(Long assignmentID, String userID) throws UnsupportedEncodingException {
+		// TODO: Eliminate cookies
         Http.Cookie outcomeServiceUrlCookie = request().cookie("lis_outcome_service_url");
         Http.Cookie sourcedIdCookie = request().cookie("lis_result_sourcedid");
       	if (outcomeServiceUrlCookie == null) {
@@ -106,7 +107,7 @@ public class GradeSubmitterController extends Controller {
         } catch (Exception e) {
             Logger.info(e.getMessage());
         }
-        return ok("Grade saved in gradebook. Please check your grades.");
+        return ok("Grade saved in gradebook. You achieved " + score + "% of the total score.");
     }
 
 	/**

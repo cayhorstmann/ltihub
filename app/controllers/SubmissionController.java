@@ -16,7 +16,7 @@ import java.util.List;
 public class SubmissionController extends Controller {
 
     // Method to save the codecheck submission that is sent back from codecheck server
-    public Result addSubmissions(Long assignmentID) {
+    public Result addSubmissions(Long assignmentID, String userID) {
         Logger.info("Result is received");
 
         JsonNode json = request().body().asJson();
@@ -26,16 +26,11 @@ public class SubmissionController extends Controller {
         Logger.info("Received file: " + Json.stringify(json));
 
         try {
-            Logger.info("AssignmentID: " + assignmentID);
-
-            Http.Cookie userIdCookie = request().cookie("user_id");
-            String userID = userIdCookie.value();
-            Logger.info("UserID: " + userID);
+            Logger.info("addSubmissions. AssignmentID: " + assignmentID + " UserID: " + userID);
 
             Iterator<JsonNode> problemsContentsIter = json.elements();
             while (problemsContentsIter.hasNext()) {
                 JsonNode problemContent = problemsContentsIter.next();
-                Logger.info("Problem Content: " + Json.stringify(problemContent));
 
             /*
              The script that will change the previously submitted state to the current state.
@@ -50,10 +45,9 @@ public class SubmissionController extends Controller {
                 "11,1|1,4| 1,1,i8,18,, I am a computer."
               */
                 String stateEditScript = Json.stringify(problemContent.get("stateEditScript"));
-                Logger.info("Received state edit script is: " + stateEditScript);
 
                 Problem problem = Problem.find.byId(problemContent.get("problemId").asLong(-1L));
-                Logger.info("Problem: " + problem);
+                Logger.info("Problem: " + problem.getProblemId());
 
                 JsonNode score = problemContent.get("score");
                 Logger.info("Score: " + Json.stringify(score));
@@ -77,7 +71,7 @@ public class SubmissionController extends Controller {
 
                 submission.save();
 
-                Logger.info("Submission saved.");
+                Logger.info("Submission " + submission.getSubmissionId() + " saved.");
 
                 problem.getSubmissions().add(submission);
             }

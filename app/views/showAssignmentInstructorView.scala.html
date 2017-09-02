@@ -8,7 +8,7 @@ function onLoadHandler() {
          for (i = 0; i < iframes.length; i++) {
              var str = iframes[i].src;
              var patt = new RegExp("play.codecheck.ws");
-
+             //TODO: scoreCallback is now obsolete
              if(patt.test(str) && str.includes("?") ){
                 iframes[i].src = iframes[i].src + "&scoreCallback="+window.location.protocol+"//"+window.location.host  +"@preFix" + "/submissions/"+"@assignmentID" +"/" + "@userID" +"/" +iframes[i].id;
              }
@@ -39,7 +39,7 @@ function receiveMessage(event) {
     exerciseScores.push(event.data)
     if (exerciseScores.length === iframes.length) {
        $.ajax({
-           url: '@preFix/send-interactivescore/@assignmentID',
+           url: '@preFix/submissions/@assignmentID/@userID',
            method: 'POST',
            contentType: 'application/json',
            data: JSON.stringify(exerciseScores),
