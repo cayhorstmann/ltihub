@@ -28,10 +28,6 @@ public class SubmissionController extends Controller {
         try {
             Logger.info("addSubmissions. AssignmentID: " + assignmentID + " UserID: " + userID);
 
-            Iterator<JsonNode> problemsContentsIter = json.elements();
-            while (problemsContentsIter.hasNext()) {
-                JsonNode problemContent = problemsContentsIter.next();
-
             /*
              The script that will change the previously submitted state to the current state.
 
@@ -44,37 +40,36 @@ public class SubmissionController extends Controller {
              For example: to change "Hello world!" to "Hi world, I am a computer.":
                 "11,1|1,4| 1,1,i8,18,, I am a computer."
               */
-                String stateEditScript = Json.stringify(problemContent.get("stateEditScript"));
+            String stateEditScript = Json.stringify(json.get("stateEditScript"));
 
-                Problem problem = Problem.find.byId(problemContent.get("problemId").asLong(-1L));
-                Logger.info("Problem: " + problem.getProblemId());
+            Problem problem = Problem.find.byId(json.get("problemId").asLong(-1L));
+            Logger.info("Problem: " + problem.getProblemId());
 
-                JsonNode score = problemContent.get("score");
-                Logger.info("Score: " + Json.stringify(score));
+            JsonNode score = json.get("score");
+            Logger.info("Score: " + Json.stringify(score));
 
 
-                Submission submission = new Submission();
+            Submission submission = new Submission();
 
-                submission.setAssignmentId(assignmentID);
-                submission.setStudentId(userID);
-                submission.setContent(stateEditScript);
+            submission.setAssignmentId(assignmentID);
+            submission.setStudentId(userID);
+            submission.setContent(stateEditScript);
 
-                if (score.get("correct") != null && score.get("maxscore") != null) {
-                    submission.setCorrect(score.get("correct").asLong(0L));
-                    submission.setMaxScore(score.get("maxscore").asLong(0L));
-                } else {
-                    submission.setCorrect(0L);
-                    submission.setMaxScore(0L);
-                }
-
-                submission.setProblem(problem);
-
-                submission.save();
-
-                Logger.info("Submission " + submission.getSubmissionId() + " saved.");
-
-                problem.getSubmissions().add(submission);
+            if (score.get("correct") != null && score.get("maxscore") != null) {
+                submission.setCorrect(score.get("correct").asLong(0L));
+                submission.setMaxScore(score.get("maxscore").asLong(0L));
+            } else {
+                submission.setCorrect(0L);
+                submission.setMaxScore(0L);
             }
+
+            submission.setProblem(problem);
+
+            submission.save();
+
+            Logger.info("Submission " + submission.getSubmissionId() + " saved.");
+
+            problem.getSubmissions().add(submission);
 
             return ok("Submission is saved");
         } catch (Exception ex) {
