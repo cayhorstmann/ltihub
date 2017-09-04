@@ -9,6 +9,7 @@
         <script>
             function populateUserIdSelection() {
                 const userIdSelectionEl = document.getElementById('userIdSelection');
+                console.log(userIdSelectionEl);
 
                 var userIds;
                 $.ajax({
@@ -25,6 +26,7 @@
                         alert("Error getting user IDs: " + JSON.stringify(XMLHttpRequest));
                     }
                 });
+                console.log(userIds);
                 if (userIds === undefined)
                     return;
 
