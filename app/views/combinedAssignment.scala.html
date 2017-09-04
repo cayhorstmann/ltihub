@@ -107,6 +107,10 @@
                     const currentScoreString = currentScore !== undefined ? JSON.stringify(currentScore) : "";
 
                     const previousStateString = typeof(previousState) === "string" ? previousState : previousState !== undefined ? JSON.stringify(previousState) : "";
+                    // This is to deal with the failure mode where the database didn't have correct edit instructions, yielding
+                    // an unparseable JSON object. In that case, we put the unparseable string, and not the converted
+                    // JSON object. 
+                    // TODO: Just always put the string. There is no sense in turning it into and out of JSON.
                     const currentStateString = currentState !== undefined ? JSON.stringify(currentState) : "";
 
                     if (previousStateString !== currentStateString || previousScoreString !== currentScoreString) {
@@ -142,7 +146,7 @@
         var messagesSinceLastStatesSentToServer = 0;
         function receiveMessage(event) {
             messagesSinceLastStatesSentToServer++;
-            console.log("receiveMessage. event=" + JSON.stringify(event))
+            console.log("receiveMessage. event.data=" + JSON.stringify(event.data))
             if (event.data.request !== undefined)
                 problemIdToContent.current[event.data.request.problemId] =
                         {score: event.data.score, state: event.data.state};
@@ -232,8 +236,6 @@
 <p><!-- If you want to take a break and continue later, click on "Save my work".  -->
     If you are done with all questions, click on "Record my score" to save your score in the gradebook.</p>
 
-@* Instructor specific code *@
 @if(isInstructor) {
-    @{System.out.println("Start instructor");}
     <a href="@routes.HomeController.showEditPage(assignmentID)"><button>Edit Assignment</button></a>
 }
