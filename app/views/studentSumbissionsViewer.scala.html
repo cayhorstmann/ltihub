@@ -14,7 +14,7 @@
 
                 var userIds;
                 $.ajax({
-                    url: @services.routes.DataProvider.getUserIdsForAssignment(assignmentId),
+                    url: '@services.routes.DataProvider.getUserIdsForAssignment(assignmentId)',
                     method: 'GET',
                     success: function (msg) {
                         try {
