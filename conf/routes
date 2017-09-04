@@ -29,11 +29,11 @@ POST    /assignment/saveAssignment  controllers.HomeController.saveEditedAssignm
 GET	/timedAssignment	controllers.HomeController.showTimedAssignment(assignmentId: Long, userId: String, duration: Long)
 
 # Score callback from CodeCheck (?) and Tyler
-POST	/submissions/:assignmentID/:userID		controllers.SubmissionController.addSubmission(assignmentID: Long, userID: String)
+POST	/submissions/:assignmentId/:userId		controllers.SubmissionController.addSubmission(assignmentId: Long, userId: String)
 
 # When the record grade button is pushed. 
 # TODO: Add lis_outcome_service_url, lis_result_sourcedid to the request and make it a POST
-GET    /send-score/:assignmentID/:userID   controllers.GradeSubmitterController.submitGradeToCanvas(assignmentID: Long, userID: String)
+GET    /send-score/:assignmentId/:userId   controllers.GradeSubmitterController.submitGradeToCanvas(assignmentId: Long, userId: String)
 
 # An example controller showing how to use dependency injection--used by health check
 GET     /count                      controllers.CountController.count
@@ -54,3 +54,7 @@ POST	/assignment/deleteProblem     controllers.HomeController.deleteProblem(assi
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
+
+# Get data for student submission viewer
+GET     /userIds/:assignmentId  services.DataProvider.getUserIdsForAssignment(assignmentId: Long)
+GET     /contents/:problemId/:userId  services.DataProvider.getSubmissionContent(problemId: Long, userId: String)
