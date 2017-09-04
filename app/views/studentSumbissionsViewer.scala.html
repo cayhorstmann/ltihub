@@ -57,31 +57,33 @@
                         success: function (msg) {
                             try {
                                 problemEditScripts = JSON.parse(msg);
+
+                                // Build the state from the edit scripts and store each version in the map
+                                var state = "";
+                                problemIdToSubmissions['@problem.getProblemId()'] = [];
+                                for (var i = 0; i < problemEditScripts.length; i++) {
+                                    state = applyEditScript(state, problemEditScripts);
+                                    problemIdToSubmissions['@problem.getProblemId()'].push(state);
+                                }
+
+                                // Change the slider's max value to the number of submissions minus one
+                                stateSelectionEl.max =
+                                        problemIdToSubmissions['@problem.getProblemId()'].length - 1;
+                                stateSelectionEl.value = stateSelectionEl.max;
+
+                                stateSelectionEl.disabled = false;
                             } catch (e) {
-                                alert("Error getting user IDs: " + JSON.stringify(e));
+                                alert("Error getting problem contents: " + JSON.stringify(e));
                             }
                         },
                         error: function(XMLHttpRequest, textStatus, errorThrown) {
-                            alert("Error getting user IDs: " + JSON.stringify(XMLHttpRequest));
+                            alert("Error getting problem contents: " + JSON.stringify(XMLHttpRequest));
                         }
                     });
 
-                    // Build the state from the edit scripts and store each version in the map
-                    var state = "";
-                    problemIdToSubmissions['@problem.getProblemId()'] = [];
-                    for (var i = 0; i < problemEditScripts.length; i++) {
-                        state = applyEditScript(state, problemEditScripts);
-                        problemIdToSubmissions['@problem.getProblemId()'].push(state);
-                    }
-
-                    // Change the slider's max value to the number of submissions minus one
-                    stateSelectionEl.max =
-                            problemIdToSubmissions['@problem.getProblemId()'].length - 1;
-                    stateSelectionEl.value = stateSelectionEl.max;
-
-                    stateSelectionEl.disabled = false;
                 }
 
+                // TODO: Make this execute AFTER the last ajax call is done
                 userIdSelectionEl.disabled = false;
             }
 
