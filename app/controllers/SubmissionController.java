@@ -74,8 +74,8 @@ public class SubmissionController extends Controller {
             return ok("Submission is saved");
         } catch (Exception ex) {
             Logger.error("Submission failed: " + ex.getMessage());
-            return badRequest(errorPage.render("Received request: " + request() +
-                    "<br>Exception: " + ex.getMessage()));
+            return badRequest("Received request: " + request() + "\n" +
+                    "Exception: " + ex.getMessage());
         }
     }
 
