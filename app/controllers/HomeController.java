@@ -187,16 +187,11 @@ public class HomeController extends Controller {
 
 		Assignment assignment = Assignment.find.byId(assignmentId);
 
-		if(assignment != null && isInstructor(role)){
-			List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).orderBy("problemId").findList();
-			return ok(showAssignmentInstructorView.render(problems,assignmentId, "Teacher", getPrefix()));
-		}
-
-        // Maps each problemId to the submission with the most correct for that problem for the given user ID
-        Map<Long, Submission> problemIdToSubmissionWithMostCorrect = new HashMap<>();
         Long duration = assignment.getDuration();
         List<Problem> problems = assignment.getProblems();
 
+		// Maps each problemId to the submission with the most correct for that problem for the given user ID
+		Map<Long, Submission> problemIdToSubmissionWithMostCorrect = new HashMap<>();
 		for(Problem problem: problems){
             Optional<Submission> submissionStream = problem.getSubmissions().stream()
                     .filter((submission) -> (submission.getStudentId().equals(userId)))
@@ -206,7 +201,7 @@ public class HomeController extends Controller {
             if (submissionStream.isPresent())
                 problemIdToSubmissionWithMostCorrect.put(
                         problem.getProblemId(), submissionStream.get());
-				}
+		}
 
         if (duration > 0 && problemIdToSubmissionWithMostCorrect.isEmpty())
             return ok(timedAssignmentWelcomeView.render(problems, assignmentId, userId, duration));
@@ -220,6 +215,17 @@ public class HomeController extends Controller {
         List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentId).orderBy("problemId").findList();
         Logger.info("showTimedAssignment. UserID is: " + userId);
         return ok(timedFinalAssignment.render(problems, assignmentId, userId, getPrefix(), duration));
+	}
+
+	public Result getSubmissionViewer(Long assignmentId, String role) {
+
+		Assignment assignment = Assignment.find.byId(assignmentId);
+		List<Problem> problems = assignment.getProblems();
+
+		if (!isInstructor(role))
+			return badRequest("Error, user is not authorized to view submissions.");
+
+		return ok(studentSumbissionsViewer.render(assignmentId, problems));
 	}
 
 	/**
