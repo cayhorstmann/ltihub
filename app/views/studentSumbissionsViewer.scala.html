@@ -9,7 +9,7 @@
         <script>
             function populateUserIdSelection() {
                 const userIdSelectionEl = document.getElementById('userIdSelection');
-                
+
                 var userIds;
                 $.ajax({
                     url: '@services.routes.DataProvider.getUserIdsForAssignment(assignmentId)',
@@ -30,7 +30,7 @@
 
                 for (var i = 0; i < userIds.length; i++) {
                     var userIdEl = document.createElement("option");
-                    userIdEl.text = "4316074";
+                    userIdEl.text = userIds[i];
                     userIdSelectionEl.add(userIdEl);
                 }
 
