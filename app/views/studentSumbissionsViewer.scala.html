@@ -1,0 +1,120 @@
+@(assignmentId: Long, problems: List[Problem])
+<html>
+    <head>
+        <link rel="stylesheet" href="@routes.Assets.at("stylesheets/main.css")">
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="@routes.Assets.at("javascripts/shortest-edit-script.js")"></script>
+
+        <script>
+            function populateUserIdSelection() {
+                const userIdSelectionEl = document.getElementById('userIdSelection');
+
+                const stateSelectionEl = document.getElementById();
+
+                var userIds;
+                $.ajax({
+                    url: @services.routes.DataProvider.getUserIdsForAssignment(assignmentId),
+                    method: 'GET',
+                    success: function (msg) {
+                        try {
+                            userIds = JSON.parse(msg);
+                        } catch (e) {
+                            alert("Error getting user IDs: " + JSON.stringify(e));
+                        }
+                    },
+                    error: function(XMLHttpRequest, textStatus, errorThrown) {
+                        alert("Error getting user IDs: " + JSON.stringify(XMLHttpRequest));
+                    }
+                });
+                if (userIds === undefined)
+                    return;
+
+                for (var i = 0; i < userIds.length; i++) {
+                    var userIdEl = document.createElement("option");
+                    userIdEl.text = "4316074";
+                    userIdSelectionEl.add(userIdEl);
+                }
+
+                loadSubmissionsForSelectedUser();
+            }
+
+            // Maps each problem's ID to an array of the student's submissions
+            var problemIdToSubmissions = {};
+
+            function loadSubmissionsForSelectedUser() {
+                // Lock userIdSelectionEl to prevent this function from being called twice
+                const userIdSelectionEl = document.getElementById('userIdSelection');
+                userIdSelectionEl.disabled = true;
+
+                const userId = userIdSelectionEl.value;
+                @for(problem <- problems) {
+                    // Lock the slider while the submissions corresponding to it are changed
+                    const stateSelectionEl = document.getElementById('stateSelection-@problem.getProblemId()');
+                    stateSelectionEl.disabled = true;
+
+                    // TODO: Make an ajax call for the edit scripts of each problem
+                    var problemEditScripts = [];
+                    $.ajax({
+                        url: '@services.routes.DataProvider.getSubmissionContent(problem.getProblemId(), "")' + userId,
+                        method: 'GET',
+                        success: function (msg) {
+                            try {
+                                problemEditScripts = JSON.parse(msg);
+                            } catch (e) {
+                                alert("Error getting user IDs: " + JSON.stringify(e));
+                            }
+                        },
+                        error: function(XMLHttpRequest, textStatus, errorThrown) {
+                            alert("Error getting user IDs: " + JSON.stringify(XMLHttpRequest));
+                        }
+                    });
+
+                    // Build the state from the edit scripts and store each version in the map
+                    var state = "";
+                    problemIdToSubmissions['@problem.getProblemId()'] = [];
+                    for (var i = 0; i < problemEditScripts.length; i++) {
+                        state = applyEditScript(state, problemEditScripts);
+                        problemIdToSubmissions['@problem.getProblemId()'].push(state);
+                    }
+
+                    // Change the slider's max value to the number of submissions minus one
+                    stateSelectionEl.max =
+                            problemIdToSubmissions['@problem.getProblemId()'].length - 1;
+                    stateSelectionEl.value = stateSelectionEl.max;
+
+                    stateSelectionEl.disabled = false;
+                }
+
+                userIdSelectionEl.disabled = false;
+            }
+
+            function updateProblemState(problemid) {
+                const problemIframe = document.getElementById('problemIframe-' + problemid);
+                const stateSelectionEl = document.getElementById('stateSelection-' + problemid);
+
+                const stateToRestore = problemIdToSubmissions[problemid][stateSelectionEl.value];
+
+                problemIframe.contentWindow.postMessage({query: 'restoreState', state: stateToRestore}, '*');
+            }
+
+            window.onload = populateUserIdSelection;
+        </script>
+
+    </head>
+
+    <body>
+        <select id="userIdSelection" onchange="loadSubmissionsForSelectedUser()">
+
+        </select>
+
+        @* Code to generate the iframes for problems *@
+        @for(problem <- problems) {
+            <iframe class='exercise-iframe'
+            id="problemIframe-@problem.getProblemId()" src=@problem.getProblemUrl().trim() ></iframe>
+
+            <input type="range" class="stateSelection" id="stateSelection-@problem.getProblemId()"
+            onchange="updateProblemState('@problem.getProblemId()')" min="0" max="0">
+        }
+    </body>
+</html>
