@@ -45,7 +45,7 @@
                 const userId = userIdSelectionEl.value;
                 @for(problem <- problems) {
                     // Lock the slider while the submissions corresponding to it are changed
-                    const stateSelectionEl = document.getElementById('stateSelection-@problem.getProblemId()');
+                    var stateSelectionEl = document.getElementById('stateSelection-@problem.getProblemId()');
                     stateSelectionEl.disabled = true;
 
                     // TODO: Make an ajax call for the edit scripts of each problem
