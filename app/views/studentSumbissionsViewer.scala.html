@@ -25,7 +25,7 @@
 
                             loadSubmissionsForSelectedUser();
                         } catch (e) {
-                            alert("Error getting user IDs: " + JSON.stringify(e));
+                            alert("Error getting user IDs: " + e);
                         }
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
@@ -61,7 +61,7 @@
                                 var state = "";
                                 problemIdToSubmissions['@problem.getProblemId()'] = [];
                                 for (var i = 0; i < problemEditScripts.length; i++) {
-                                    state = applyEditScript(state, problemEditScripts);
+                                    state = applyEditScript(state, problemEditScripts[i]);
                                     problemIdToSubmissions['@problem.getProblemId()'].push(state);
                                 }
 
