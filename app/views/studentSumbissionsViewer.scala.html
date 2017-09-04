@@ -18,6 +18,13 @@
                     success: function (msg) {
                         try {
                             userIds = JSON.parse(msg);
+                            for (var i = 0; i < userIds.length; i++) {
+                                var userIdEl = document.createElement("option");
+                                userIdEl.text = userIds[i];
+                                userIdSelectionEl.add(userIdEl);
+                            }
+
+                            loadSubmissionsForSelectedUser();
                         } catch (e) {
                             alert("Error getting user IDs: " + JSON.stringify(e));
                         }
@@ -26,17 +33,6 @@
                         alert("Error getting user IDs: " + JSON.stringify(XMLHttpRequest));
                     }
                 });
-                console.log(userIds);
-                if (userIds === undefined)
-                    return;
-
-                for (var i = 0; i < userIds.length; i++) {
-                    var userIdEl = document.createElement("option");
-                    userIdEl.text = userIds[i];
-                    userIdSelectionEl.add(userIdEl);
-                }
-
-                loadSubmissionsForSelectedUser();
             }
 
             // Maps each problem's ID to an array of the student's submissions
