@@ -130,9 +130,10 @@ public class HomeController extends Controller {
 	    if (assignmentID == null) { 
 	    	List<Assignment> assignments = Ebean.find(Assignment.class)
 	    			.where()
-	    			.eq("context_id", getParam(postParams, "context_id"))
-	    			.eq("resource_link_id", getParam(postParams, "resource_link_id"))
+	    			.eq("context_id", contextID)
+	    			.eq("resource_link_id", resourceLinkID)
 	    			.findList();
+	    	Logger.info("id empty, looking for assignment with context_id " + contextID + ", resource_link_id " + resourceLinkID + ", found " + assignments.size());
 	    	if (assignments.size() == 1) assignmentID = "" + assignments.get(0).getAssignmentId();
 	    }
 		
