@@ -14,11 +14,11 @@ public class SubmissionController extends Controller {
     public Result addSubmission(Long assignmentID, String userID) {
         Logger.info("Result is received");
 
-        JsonNode json = request().body().asJson();
-        if (json == null)
+        JsonNode problemContent = request().body().asJson();
+        if (problemContent == null)
             return badRequest("Expected Json data. Received: " + request());
 
-        Logger.info("Received file: " + Json.stringify(json));
+        Logger.info("Received file: " + Json.stringify(problemContent));
 
         try {
             Logger.info("addSubmission. AssignmentID: " + assignmentID + " UserID: " + userID);
@@ -35,12 +35,12 @@ public class SubmissionController extends Controller {
              For example: to change "Hello world!" to "Hi world, I am a computer.":
                 "11,1|1,4| 1,1,i8,18,, I am a computer."
               */
-            String stateEditScript = Json.stringify(json.get("stateEditScript"));
+            String stateEditScript = Json.stringify(problemContent.get("stateEditScript"));
 
-            Problem problem = Problem.find.byId(json.get("problemId").asLong(-1L));
+            Problem problem = Problem.find.byId(problemContent.get("problemId").asLong(-1L));
             Logger.info("Problem: " + problem.getProblemId());
 
-            JsonNode score = json.get("score");
+            JsonNode score = problemContent.get("score");
             Logger.info("Score: " + Json.stringify(score));
 
 
@@ -68,8 +68,10 @@ public class SubmissionController extends Controller {
 
             return ok("Submission is saved");
         } catch (Exception ex) {
-            Logger.error("Submission failed: " + ex.getMessage());
-            return badRequest("Received request: " + request() + "\n" +
+            Logger.error("Submission failed.");
+            Logger.error("Received problem content: " + Json.stringify(problemContent));
+            ex.printStackTrace();
+            return badRequest("Received problem content: " + Json.stringify(problemContent) + "\n" +
                     "Exception: " + ex.getMessage());
         }
     }
