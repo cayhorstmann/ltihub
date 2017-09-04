@@ -137,8 +137,12 @@ public class HomeController extends Controller {
 	    	if (assignments.size() == 1) assignmentID = "" + assignments.get(0).getAssignmentId();
 	    }
 		
-		if (assignmentID == null && isInstructor(role))
-			return ok(create_exercise.render(contextID, resourceLinkID, toolConsumerInstanceGuID, launchPresentationReturnURL));
+		if (assignmentID == null) {
+			if (isInstructor(role))		
+				return ok(create_exercise.render(contextID, resourceLinkID, toolConsumerInstanceGuID, launchPresentationReturnURL));
+			else 
+				return badRequest("No assignment id and no assignment with context_id " + contextID + ", resource_link_id " + resourceLinkID + "");
+		}
 		else // TODO: Why redirect???
 			// return redirect(controllers.routes.HomeController.getAssignment(role, Long.parseLong(assignmentId), userID));
 			return getAssignment(role, Long.parseLong(assignmentID), userID);
