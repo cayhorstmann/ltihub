@@ -40,6 +40,9 @@ public class Submission extends Model {
     @Column
     public String content;
     
+    @Column
+    public String previous;
+    
     @ManyToOne
     public Problem problem;
 
@@ -100,6 +103,14 @@ public class Submission extends Model {
 
 	public void setActivity(String activity){
 		this.activity = activity;
+	}
+	
+	public String getPrevious() {
+		return previous;
+	}
+	
+	public void setPrevious(String previous) {
+		this.previous = previous;
 	}
 
 	@Override

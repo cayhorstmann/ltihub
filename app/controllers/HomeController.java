@@ -23,6 +23,8 @@ import java.net.*;
 import java.io.*;
 import java.util.stream.Collectors;
 
+import com.avaje.ebean.Ebean;
+
 import play.Logger;
 import play.mvc.*;
 import models.*;
@@ -93,7 +95,8 @@ public class HomeController extends Controller {
 
     public Result config() throws UnknownHostException {
         Http.Request request = request();
-        return ok(views.xml.lti_config.render()).as("application/xml");
+        String host = request().host() + getPrefix();
+        return ok(views.xml.lti_config.render(host)).as("application/xml");
     }     
     
     public Result index() throws UnsupportedEncodingException {    
@@ -123,12 +126,21 @@ public class HomeController extends Controller {
 		String toolConsumerInstanceGuID = getParam(postParams, "tool_consumer_instance_guid");
 		String role = getParam(postParams, "roles");
 		String launchPresentationReturnURL = getParam(postParams, "launch_presentation_return_url");
-	    String assignmentId = request().getQueryString("id");
+	    String assignmentID = request().getQueryString("id");
+	    if (assignmentID == null) { 
+	    	List<Assignment> assignments = Ebean.find(Assignment.class)
+	    			.where()
+	    			.eq("context_id", getParam(postParams, "context_id"))
+	    			.eq("resource_link_id", getParam(postParams, "resource_link_id"))
+	    			.findList();
+	    	if (assignments.size() == 1) assignmentID = "" + assignments.get(0).getAssignmentId();
+	    }
 		
-		if (assignmentId == null && isInstructor(role))
+		if (assignmentID == null && isInstructor(role))
 			return ok(create_exercise.render(contextID, resourceLinkID, toolConsumerInstanceGuID, launchPresentationReturnURL));
 		else // TODO: Why redirect???
-			return redirect(controllers.routes.HomeController.getAssignment(role, Long.parseLong(assignmentId), userID));		     	
+			// return redirect(controllers.routes.HomeController.getAssignment(role, Long.parseLong(assignmentId), userID));
+			return getAssignment(role, Long.parseLong(assignmentID), userID);
  	}
 
 	public Result createAssignment() {		
@@ -188,8 +200,7 @@ public class HomeController extends Controller {
 
        String launchPresentationReturnURL = bindedForm.get("launch_presentation_return_url");
         List<Problem> problems = assignment.getProblems();
-	   String assignmentURL = (request().secure() ? "https://" : "http://" ) 
-			   + request().host() + getPrefix() + "/assignment?id=" + assignment.getAssignmentId();
+	   String assignmentURL = "https://" + request().host() + getPrefix() + "/assignment?id=" + assignment.getAssignmentId();
        return ok(showassignment.render(launchPresentationReturnURL, 
     		   getParams(launchPresentationReturnURL), problems, assignmentURL));
     }
@@ -302,8 +313,7 @@ public class HomeController extends Controller {
 	    String returnUrl = launchReturnUrlCookie.value();
 	    Logger.info("ReturnURL is: " + returnUrl);
         //TODO: Check
-	    String assignmentURL = (request().secure() ? "https://" : "http://" ) 
-                + request().host() + getPrefix() + "/assignment?id=" + assignmentId;
+	    String assignmentURL = "https://" + request().host() + getPrefix() + "/assignment?id=" + assignmentId;
         return ok(showassignment.render(returnUrl, getParams(returnUrl), problems, assignmentURL));
 	}
 
