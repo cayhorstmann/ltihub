@@ -6,17 +6,12 @@ import models.Submission;
 import play.Logger;
 import play.libs.Json;
 import play.mvc.Controller;
-import play.mvc.Http;
 import play.mvc.Result;
-import views.html.errorPage;
-
-import java.util.Iterator;
-import java.util.List;
 
 public class SubmissionController extends Controller {
 
-    // Method to save the codecheck submission that is sent back from codecheck server
-    public Result addSubmissions(Long assignmentID, String userID) {
+    // Method to save problem submission that is sent back from codecheck server
+    public Result addSubmission(Long assignmentID, String userID) {
         Logger.info("Result is received");
 
         JsonNode json = request().body().asJson();
@@ -26,7 +21,7 @@ public class SubmissionController extends Controller {
         Logger.info("Received file: " + Json.stringify(json));
 
         try {
-            Logger.info("addSubmissions. AssignmentID: " + assignmentID + " UserID: " + userID);
+            Logger.info("addSubmission. AssignmentID: " + assignmentID + " UserID: " + userID);
 
             /*
              The script that will change the previously submitted state to the current state.
@@ -80,7 +75,7 @@ public class SubmissionController extends Controller {
     }
 
     //Method to save interactive Exercise score
-//    public Result addSubmissions(Long assignmentID) {
+//    public Result addSubmission(Long assignmentID) {
 //        JsonNode jsonPayload = request().body().asJson();
 //        Logger.info("json from client = {}", jsonPayload);
 //

@@ -29,7 +29,7 @@ POST    /assignment/saveAssignment  controllers.HomeController.saveEditedAssignm
 GET	/timedAssignment	controllers.HomeController.showTimedAssignment(assignmentId: Long, userId: String, duration: Long)
 
 # Score callback from CodeCheck (?) and Tyler
-POST	/submissions/:assignmentID/:userID		controllers.SubmissionController.addSubmissions(assignmentID: Long, userID: String)
+POST	/submissions/:assignmentID/:userID		controllers.SubmissionController.addSubmission(assignmentID: Long, userID: String)
 
 # When the record grade button is pushed. 
 # TODO: Add lis_outcome_service_url, lis_result_sourcedid to the request and make it a POST
