@@ -25,7 +25,7 @@ public class DataProvider {
      * @return a stringified json object with the user ids of the users that have made submissions
      * to any of the problems on the given assignment
      */
-    public static Result getUserIdsForAssignment(Long assignmentId) {
+    public Result getUserIdsForAssignment(Long assignmentId) {
         Assignment assignment = Assignment.find.byId(assignmentId);
         if (assignment == null)
             return badRequest("Assignment not found. ID Given: " + assignmentId);
@@ -48,7 +48,7 @@ public class DataProvider {
      * @param studentId the id of the user to find the submissions for
      * @return a stringified json object with contents from all of the submissions for a given problem id and user id
      */
-    public static Result getSubmissionContent(Long problemId, String studentId) {
+    public Result getSubmissionContent(Long problemId, String studentId) {
         Problem problem = Problem.find.byId(problemId);
         if (problem == null)
             return badRequest("Problem not found. ID Given: " + problemId);
