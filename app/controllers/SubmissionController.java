@@ -72,7 +72,7 @@ public class SubmissionController extends Controller {
             Logger.error("Received problem content: " + Json.stringify(problemContent));
             ex.printStackTrace();
             return badRequest("Received problem content: " + Json.stringify(problemContent) + "\n" +
-                    "Exception: " + ex.getMessage());
+                    "Exception message: " + ex.getMessage());
         }
     }
 
