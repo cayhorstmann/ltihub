@@ -14,7 +14,7 @@
          This is used to compute what has changed since the last time data was sent to the server, so that the server
          only needs to store the changes every update instead of storing the whole state every update.
          */
-        var problemIdToContent = {previous: {}, current: {}};
+        var problemIdToContent = {};
 
         // Sends the states of the problems that were previously submitted to the problems to be restored
         function restoreStatesOfProblems() {
@@ -39,9 +39,9 @@
 
                 // Didn't find submission for given studentID/problemID
                 if (!stateEditScripts || stateEditScripts.length === 0) {
-                    problemIdToContent.previous["@problem.getProblemId()"] = {};
+                    problemIdToContent["@problem.getProblemId()"] = {};
+                // Rebuild state using edit scripts
                 } else {
-                    // Rebuild state using edit scripts
                     var state = "";
                     for (var i = 0; i < stateEditScripts.length; i++) {
                         var editScript = stateEditScripts[i];
@@ -53,7 +53,7 @@
                         state = JSON.parse(state);
 
                         // Updates the previous version of the problem content so that we will know what changed
-                        problemIdToContent.previous["@problem.getProblemId()"] = {score: {}, state: state};
+                        problemIdToContent["@problem.getProblemId()"] = {score: {}, state: JSON.stringify(state)};
 
                         // Post message to iframe to populate the problem
                         var iframe = document.getElementById('@problem.getProblemId()');
@@ -61,8 +61,7 @@
                     }
                     catch (e) {
                     	console.log("Parse failed: " + e);
-                        problemIdToContent.previous["@problem.getProblemId()"] = {score: {}, state: state};
-                        // as unparsed string
+                        problemIdToContent["@problem.getProblemId()"] = {};
                     }
                 }
 
@@ -78,82 +77,62 @@
          When all of the iframes have reported back, we will send any changes to the server.
          */
         function updateStatesFromProblems() {
-            // Map is reset because the states in the array must be updated after this function is called
-            problemIdToContent.current = {};
-
             $('.exercise-iframe').each(function(_, iframe) {
                 iframe.contentWindow.postMessage({query: 'getContent', problemId: iframe.id}, '*');
             });
         }
 
 
-        function sendStateEditScriptsToServer() {
-            messagesSinceLastStatesSentToServer = 0;
+        function sendStateEditScriptToServer(problemId, score, state) {
+            if (!problemIdToContent.hasOwnProperty(problemId))
+                return;
 
-            // The problemId, scores, and an edit script to turn the previous submission's state into the current state
-            var problemsContents = [];
+            const previousScoreString = problemIdToContent[problemId].score;
+            const previousStateString = problemIdToContent[problemId].state;
 
-            for (var problemId in problemIdToContent.current) {
-                if (problemIdToContent.previous.hasOwnProperty(problemId) &&
-                        problemIdToContent.current.hasOwnProperty(problemId)) {
+            const currentScoreString = score !== undefined ? JSON.stringify(score) : "";
+            const currentStateString = state !== undefined ? JSON.stringify(state) : "";
 
-                    const previousScore = problemIdToContent.previous[problemId].score;
-                    const currentScore = problemIdToContent.current[problemId].score;
+            if (previousScoreString !== currentScoreString || previousStateString !== currentStateString) {
+                const data = {
+                    problemId: problemId,
+                    score: score,
+                    stateEditScript: shortestEditScript(previousStateString, currentStateString)
+                };
 
-                    const previousState = problemIdToContent.previous[problemId].state;
-                    const currentState = problemIdToContent.current[problemId].state;
-
-                    const previousScoreString = previousScore !== undefined ? JSON.stringify(previousScore) : "";
-                    const currentScoreString = currentScore !== undefined ? JSON.stringify(currentScore) : "";
-
-                    const previousStateString = typeof(previousState) === "string" ? previousState : previousState !== undefined ? JSON.stringify(previousState) : "";
-                    // This is to deal with the failure mode where the database didn't have correct edit instructions, yielding
-                    // an unparseable JSON object. In that case, we put the unparseable string, and not the converted
-                    // JSON object. 
-                    // TODO: Just always put the string. There is no sense in turning it into and out of JSON.
-                    const currentStateString = currentState !== undefined ? JSON.stringify(currentState) : "";
-
-                    if (previousStateString !== currentStateString || previousScoreString !== currentScoreString) {
-                        problemsContents.push({
-                            problemId: problemId,
-                            score: currentScore,
-                            stateEditScript: shortestEditScript(previousStateString, currentStateString)
-                        });
-                    }
-                }
-            }
-
-            if (problemsContents.length > 0) {
                 $.ajax({
                     url: '@preFix/submissions/@assignmentID/@userID',
                     method: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify(problemsContents),
+                    data: JSON.stringify(data),
                     success: function (msg) {
-                        problemIdToContent.previous = problemIdToContent.current;
-                        problemIdToContent.current = {};
+                        problemIdToContent[problemId] = {
+                            score: currentScoreString,
+                            state: currentStateString
+                        };
 
                         var response = document.getElementById('response');
                         response.innerHTML = "Your partially complete assignment is saved!";
                         setTimeout(function () {
                             $("#response").hide();
                         }, 5000);
+                    },
+                    error: function(XMLHttpRequest, textStatus, errorThrown) {
+                        alert("Error saving work: " + JSON.stringify(XMLHttpRequest));
                     }
                 });
             }
         }
 
-        var messagesSinceLastStatesSentToServer = 0;
         function receiveMessage(event) {
-            messagesSinceLastStatesSentToServer++;
-            console.log("receiveMessage. event.data=" + JSON.stringify(event.data))
-            if (event.data.request !== undefined)
-                problemIdToContent.current[event.data.request.problemId] =
-                        {score: event.data.score, state: event.data.state};
+            console.log("receiveMessage.event=" + JSON.stringify(event));
+            if (event.data.request === undefined)
+                return;
 
-            const iframes = document.getElementsByClassName('exercise-iframe');
-            if (messagesSinceLastStatesSentToServer === iframes.length)
-                sendStateEditScriptsToServer();
+            const problemId = event.data.request.problemId;
+            const score = event.data.score;
+            const state = event.data.state;
+            sendStateEditScriptToServer(problemId, score, state);
         }
 
         // Save work and report score
@@ -169,7 +148,6 @@
 
 @* Timed assignment specific code *@
 @if(duration != null && duration > 0L) {
-    @{System.out.println("Start duration");}
     <script type="text/javascript">
         const durationInMilliseconds = @duration * 60 * 1000;
         const startTimeInMilliseconds = Date.now(); // TODO: Get this number from database
@@ -206,7 +184,6 @@
 }
 
 @* Code to generate the iframes for problems *@
-@{System.out.println("Start generation iframes");}
 @for(problem <- problems) {
     @if(problemIdToSubmissionWithMostCorrect.contains(problem.getProblemId())) {
         <div style='width: 100% ;
@@ -234,8 +211,10 @@
 <button onclick="submitGrades()">Record my score</button>
 
 <p><!-- If you want to take a break and continue later, click on "Save my work".  -->
-    If you are done with all questions, click on "Record my score" to save your score in the gradebook.</p>
+    If you are done with all questions, click on "Record my score" to save your score in the gradebook.
+</p>
 
+@* Instructor specific code *@
 @if(isInstructor) {
     <a href="@routes.HomeController.showEditPage(assignmentID)"><button>Edit Assignment</button></a>
 }
