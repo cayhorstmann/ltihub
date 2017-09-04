@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.nio.Buffer;
 import java.nio.charset.StandardCharsets;
@@ -134,6 +135,37 @@ public class HomeController extends Controller {
          return ok(create_exercise_outside_LMS.render());
     }
 		
+	/**
+	 * Yields a map of query parameters in a HTTP URI
+	 * @param url the HTTP URL
+	 * @return the map of query parameters or an empty map if there are none
+	 * For example, if uri is http://fred.com?name=wilma&passw%C3%B6rd=c%26d%3De
+	 * then the result is { "name" -> "wilma", "passwörd" -> "c&d=e" }
+	 */
+	private static Map<String, String> getParams(String url)
+	{		
+		// https://www.talisman.org/~erlkonig/misc/lunatech%5Ewhat-every-webdev-must-know-about-url-encoding/
+		Map<String, String> params = new HashMap<>();
+		String rawQuery;
+		try {
+			rawQuery = new URI(url).getRawQuery();
+			if (rawQuery != null) {
+				for (String kvpair : rawQuery.split("&"))
+				{
+					int n = kvpair.indexOf("=");
+					params.put(
+						URLDecoder.decode(kvpair.substring(0, n), "UTF-8"), 
+						URLDecoder.decode(kvpair.substring(n + 1), "UTF-8"));
+				}
+			}
+		} catch (UnsupportedEncodingException e) {
+			// UTF-8 is supported
+		} catch (URISyntaxException e1) {
+			// Return empty map
+		}
+		return params;
+	}
+	
 	// This method gets called when an assignment has been created with create_exercise.scala.html.
 	public Result addAssignment() {        
        DynamicForm bindedForm = Form.form().bindFromRequest();
@@ -158,8 +190,8 @@ public class HomeController extends Controller {
         List<Problem> problems = assignment.getProblems();
 	   String assignmentURL = (request().secure() ? "https://" : "http://" ) 
 			   + request().host() + getPrefix() + "/assignment?id=" + assignment.getAssignmentId();
-	
-       return ok(showassignment.render(launchPresentationReturnURL, problems, assignmentURL));
+       return ok(showassignment.render(launchPresentationReturnURL, 
+    		   getParams(launchPresentationReturnURL), problems, assignmentURL));
     }
 	
 	public Result addAssignmentOutsideLMS() {        
@@ -187,13 +219,16 @@ public class HomeController extends Controller {
 
 		Assignment assignment = Assignment.find.byId(assignmentId);
 
-		if(assignment != null && isInstructor(role)){
-			List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).orderBy("problemId").findList();
-			return ok(showAssignmentInstructorView.render(problems,assignmentId, "Teacher", getPrefix()));
-		}
-
         // Maps each problemId to the submission with the most correct for that problem for the given user ID
         Map<Long, Submission> problemIdToSubmissionWithMostCorrect = new HashMap<>();
+
+        if(isInstructor(role)){
+			List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).orderBy("problemId").findList();
+			//return ok(showAssignmentInstructorView.render(problems,assignmentId, "Teacher", getPrefix()));
+			combinedAssignment.render(getPrefix(), assignmentId, userId, 0L /* duration */, true /* instructor */,
+                    problems, problemIdToSubmissionWithMostCorrect);
+		}
+
         Long duration = assignment.getDuration();
         List<Problem> problems = assignment.getProblems();
 
@@ -211,7 +246,7 @@ public class HomeController extends Controller {
         if (duration > 0 && problemIdToSubmissionWithMostCorrect.isEmpty())
             return ok(timedAssignmentWelcomeView.render(problems, assignmentId, userId, duration));
 		else
-            return ok(combinedAssignment.render(getPrefix(), assignmentId, userId, duration, isInstructor(role),
+            return ok(combinedAssignment.render(getPrefix(), assignmentId, userId, duration, false /* instructor */,
                     problems, problemIdToSubmissionWithMostCorrect));
     }
 
@@ -258,7 +293,7 @@ public class HomeController extends Controller {
         //TODO: Check
 	    String assignmentURL = (request().secure() ? "https://" : "http://" ) 
                 + request().host() + getPrefix() + "/assignment?id=" + assignmentId;
-        return ok(showassignment.render(returnUrl,problems, assignmentURL));
+        return ok(showassignment.render(returnUrl, getParams(returnUrl), problems, assignmentURL));
 	}
 
 	public Result showEditPage(Long assignment) {

@@ -43,7 +43,7 @@ GET     /count                      controllers.CountController.count
 # Canvas starts with call to createAssignment (presumably because of the XML config)
 POST    /createAssignment             controllers.HomeController.index
 
-# ???
+# For creating an assignment outside an LMS
 GET	/createAssignment	      controllers.HomeController.createAssignment
 
 # ???

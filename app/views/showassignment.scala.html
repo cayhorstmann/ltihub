@@ -1,4 +1,4 @@
-@(launchUrl: String, problems: List[models.Problem], assignmentURL: String)
+@(launchUrl: String, launchInputs: Map[String, String], problems: List[models.Problem], assignmentURL: String)
 <html>
     <body>
     <ul>
@@ -13,6 +13,9 @@
         <input type="hidden" name="return_type" value="lti_launch_url" />
 	    <input type="hidden" name="url" value="@assignmentURL" ></textarea>
         <input type="submit" name="submit" value="Next" />
+        @for((key, value) <- launchInputs) {
+            <input type="hidden" name="@key" value="@value"/> 
+        }
      </form>
      </body>
 </html>
