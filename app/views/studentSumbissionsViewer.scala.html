@@ -65,6 +65,7 @@
                                     problemIdToSubmissions['@problem.getProblemId()'].push(state);
                                 }
 
+                                console.log(stateSelectionEl);
                                 // Change the slider's max value to the number of submissions minus one
                                 stateSelectionEl.max =
                                         problemIdToSubmissions['@problem.getProblemId()'].length - 1;
