@@ -70,12 +70,15 @@
                                     }
                                 }
 
-
+                                // Reassign stateSelectionEl variable because it might have changed since the request
+                                // was sent
                                 stateSelectionEl = document.getElementById('stateSelection-@problem.getProblemId()');
+
                                 // Change the slider's max value to the number of submissions minus one
                                 stateSelectionEl.max =
                                         problemIdToSubmissions['@problem.getProblemId()'].length - 1;
                                 stateSelectionEl.value = stateSelectionEl.max;
+                                updateProblemState('@problem.getProblemId()');
 
                                 stateSelectionEl.disabled = false;
                             } catch (e) {
@@ -118,7 +121,7 @@
             id="problemIframe-@problem.getProblemId()" src=@problem.getProblemUrl().trim() ></iframe>
 
             <input type="range" class="stateSelection" id="stateSelection-@problem.getProblemId()"
-            onchange="updateProblemState('@problem.getProblemId()')" min="0" max="0">
+            oninput="updateProblemState('@problem.getProblemId()')" min="0" max="0">
         }
     </body>
 </html>
