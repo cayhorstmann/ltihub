@@ -48,7 +48,6 @@
                     var stateSelectionEl = document.getElementById('stateSelection-@problem.getProblemId()');
                     stateSelectionEl.disabled = true;
 
-                    // TODO: Make an ajax call for the edit scripts of each problem
                     var problemEditScripts = [];
                     $.ajax({
                         url: '@services.routes.DataProvider.getSubmissionContent(problem.getProblemId(), "")' + userId,
@@ -61,13 +60,13 @@
                                 var state = "";
                                 problemIdToSubmissions['@problem.getProblemId()'] = [];
                                 for (var i = 0; i < problemEditScripts.length; i++) {
-                                    state = applyEditScript(state, problemEditScripts[i]);
-
                                     try {
-                                        state = JSON.parse(state);
-                                        problemIdToSubmissions['@problem.getProblemId()'].push(state);
+                                        state = applyEditScript(state, problemEditScripts[i]);
+
+                                        problemIdToSubmissions['@problem.getProblemId()'].push(JSON.parse(state));
                                     } catch (e) {
-                                        alert("State is corrupted: " + e);
+                                        alert("State is corrupted: " + e + "\n" +
+                                        "State was: " + state);
                                     }
                                 }
 
