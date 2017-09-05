@@ -53,8 +53,13 @@ public class DataProvider {
         if (problem == null)
             return badRequest("Problem not found. ID Given: " + problemId);
 
+        List<Submission> submissions = problem.getSubmissions();
+        submissions.sort(
+                (s1, s2) -> (s1.getSubmissionId().compareTo(s2.getSubmissionId()))
+        );
+
         Collection<String> contents = new LinkedList<>();
-        for (Submission submission: problem.getSubmissions()) {
+        for (Submission submission: submissions) {
             if (studentId.equals(submission.getStudentId())) {
                 contents.add(submission.getContent());
             }
