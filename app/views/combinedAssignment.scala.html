@@ -53,7 +53,7 @@
                         state = JSON.parse(state);
 
                         // Updates the previous version of the problem content so that we will know what changed
-                        problemIdToContent["@problem.getProblemId()"] = {score: {}, state: JSON.stringify(state)};
+                        problemIdToContent["@problem.getProblemId()"] = {score: "", state: JSON.stringify(state)};
 
                         // Post message to iframe to populate the problem
                         var iframe = document.getElementById('@problem.getProblemId()');
@@ -87,8 +87,10 @@
             if (!problemIdToContent.hasOwnProperty(problemId))
                 return;
 
-            const previousScoreString = problemIdToContent[problemId].score;
-            const previousStateString = problemIdToContent[problemId].state;
+            const previousScoreString = problemIdToContent[problemId].score !== undefined ?
+                    problemIdToContent[problemId].score : "";
+            const previousStateString = problemIdToContent[problemId].state !== undefined ?
+                    problemIdToContent[problemId].state : "";
 
             const currentScoreString = score !== undefined ? JSON.stringify(score) : "";
             const currentStateString = state !== undefined ? JSON.stringify(state) : "";
