@@ -26,6 +26,5 @@
 .userIdSelection {
     text-align: center;
     display: block;
-    margin: auto;
-    margin-bottom: 10pt;
+    margin: auto auto 10pt;
 }
