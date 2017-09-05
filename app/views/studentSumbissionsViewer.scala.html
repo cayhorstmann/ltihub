@@ -121,11 +121,11 @@
 
         @* Code to generate the iframes for problems *@
         @for(problem <- problems) {
-            <iframe class='exercise-iframe'
-            id="problemIframe-@problem.getProblemId()" src=@problem.getProblemUrl().trim() ></iframe>
-
             <input type="range" class="stateSelection" id="stateSelection-@problem.getProblemId()"
             oninput="updateProblemState('@problem.getProblemId()')" min="0" max="0">
+
+            <iframe class='exercise-iframe'
+            id="problemIframe-@problem.getProblemId()" src=@problem.getProblemUrl().trim() ></iframe>
         }
     </body>
 </html>
