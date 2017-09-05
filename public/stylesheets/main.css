@@ -18,3 +18,14 @@
     width: 100%;
     height: 50em;
 }
+
+.stateSelection {
+    width: 100%;
+}
+
+.userIdSelection {
+    text-align: center;
+    display: block;
+    margin: auto;
+    margin-bottom: 10pt;
+}
