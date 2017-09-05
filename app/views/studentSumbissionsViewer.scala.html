@@ -62,7 +62,13 @@
                                 problemIdToSubmissions['@problem.getProblemId()'] = [];
                                 for (var i = 0; i < problemEditScripts.length; i++) {
                                     state = applyEditScript(state, problemEditScripts[i]);
-                                    problemIdToSubmissions['@problem.getProblemId()'].push(state);
+
+                                    try {
+                                        state = JSON.parse(state);
+                                        problemIdToSubmissions['@problem.getProblemId()'].push(state);
+                                    } catch (e) {
+                                        alert("State is corrupted: " + e);
+                                    }
                                 }
 
 
