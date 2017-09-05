@@ -60,8 +60,6 @@ public class DataProvider {
             }
         }
 
-        JsonNode contentsJSON = Json.toJson(contents);
-
-        return ok(Json.stringify(contentsJSON));
+        return ok(contents.toString());
     }
 }
