@@ -14,6 +14,12 @@
     color: red;
 }
 
+.highestScore {
+    width: 100% ;
+    height: 3em ;
+    border: 1px solid black;
+}
+
 .exercise-iframe {
     width: 100%;
     height: 50em;
