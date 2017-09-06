@@ -32,12 +32,8 @@
                         for (submission <- submissions) {
                             if (submission.getStudentId().equals(userID)
                             && submission.getContent() != null
-                            && !submission.getContent().isEmpty()
-                            && (submission.getPrevious() == null || submission.getPrevious().equals(previousHash))) {
+                            && !submission.getContent().isEmpty()) {
                                 stateEditScriptsList += submission.getContent();
-
-                                if (submission.getPrevious() != null)
-                                    previousHash = submission.getPrevious();
                             }
                         }
                     }
