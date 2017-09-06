@@ -37,6 +37,8 @@ public class SubmissionController extends Controller {
               */
             String stateEditScript = Json.stringify(problemContent.get("stateEditScript"));
 
+            String previousHash = Json.stringify(problemContent.get("previousHash"));
+
             Problem problem = Problem.find.byId(problemContent.get("problemId").asLong(-1L));
             Logger.info("Problem: " + problem.getProblemId());
 
@@ -49,6 +51,8 @@ public class SubmissionController extends Controller {
             submission.setAssignmentId(assignmentID);
             submission.setStudentId(userID);
             submission.setContent(stateEditScript);
+            submission.setPrevious(previousHash);
+            submission.setProblem(problem);
 
             if (score.get("correct") != null && score.get("maxscore") != null) {
                 submission.setCorrect(score.get("correct").asLong(0L));
@@ -58,7 +62,6 @@ public class SubmissionController extends Controller {
                 submission.setMaxScore(0L);
             }
 
-            submission.setProblem(problem);
 
             submission.save();
 
