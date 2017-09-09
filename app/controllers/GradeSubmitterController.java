@@ -8,30 +8,20 @@ import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
 import oauth.signpost.http.HttpParameters;
 import play.Logger;
+import play.libs.Json;
 import play.libs.ws.WSClient;
 import play.mvc.Controller;
-import play.mvc.Http;
 import play.mvc.Result;
-
 import javax.inject.Inject;
-
 import java.io.IOException;
-
 import javax.net.ssl.HttpsURLConnection;
-
-
-
-
-//import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.io.*;
-
 import models.*;
 
 public class GradeSubmitterController extends Controller {
@@ -43,9 +33,10 @@ public class GradeSubmitterController extends Controller {
 		this.ws = ws;
 	}
 
-	public Result submitGradeToCanvas(Long assignmentID, String userID) throws UnsupportedEncodingException {
+	public Result submitGradeToLMS() throws UnsupportedEncodingException {
 		// TODO: Eliminate cookies
-        Http.Cookie outcomeServiceUrlCookie = request().cookie("lis_outcome_service_url");
+        /*
+		Http.Cookie outcomeServiceUrlCookie = request().cookie("lis_outcome_service_url");
         Http.Cookie sourcedIdCookie = request().cookie("lis_result_sourcedid");
       	if (outcomeServiceUrlCookie == null) {
             Logger.info("lis_outcome_service_url cookie not found.");
@@ -58,54 +49,61 @@ public class GradeSubmitterController extends Controller {
       
        String outcomeServiceUrl = outcomeServiceUrlCookie.value();
        String sourcedId = URLDecoder.decode(sourcedIdCookie.value(),"UTF-8");
+*/
+		
+		
+        JsonNode params = request().body().asJson();
+        if (params == null) {
+        	Logger.info("GradeSubmitterController.submitGradeToLMS Expected JSON data. Received: " + request());
+            return badRequest("Expected JSON data. Received: " + request());
+        }
+		Logger.info("GradeSubmitterController.submitGradeToLMS params: " + Json.stringify(params));
 
+        String assignmentID = Json.stringify(params.get("assignment"));
+        String userID = Json.stringify(params.get("user"));
+        String outcomeServiceUrl = Json.stringify(params.get("lis_outcome_service_url"));
+		String sourcedId = Json.stringify(params.get("lis_result_sourcedid"));
+		
         if (outcomeServiceUrl == null || outcomeServiceUrl.equals("")
                 || sourcedId == null || sourcedId.equals("")) {
-            return badRequest();
+            return badRequest("Missing lis_outcome_service_url or lis_result_sourcedid");
         }
-
-        Logger.info("lis_outcome_service_url = {}", outcomeServiceUrl);
-        Logger.info("lis_result_sourcedid = {}", sourcedId);
 	
-	int correct = 0;
-	int maxscore = 0;
-	double score = 0.0;
-
-	// TODO: Find a way to weigh the problems. The instructor would
-	// need to assign the weights because we don't know the weight of an unattempted problem.
-	List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentID).findList();
-    for (Problem problem: problems) {
-	   Logger.info("Problem is = {}",problem.problemId);
-	   List<Submission> submissions = Submission.find.where().eq("problem.problemId",problem.problemId).eq("assignmentId",assignmentID).eq("studentId",userID).findList();
-	   // Logger.info("Submission size is={}",submissions.size());
-	   int correctForThisProblem = 0;
-
-	   double maxscoreForThisProblem = 0.0;
-	   for (Submission s: submissions) {
-		   double maxScore = (s.getMaxScore()).intValue();
-		   if (maxScore > 0)
-			   maxscoreForThisProblem = Math.max(maxscoreForThisProblem, 
-					   (s.getCorrect()).intValue() / maxScore);        
-	   }
-	   Logger.info("maxscore for problem is = {}",maxscoreForThisProblem);
-	   score += maxscoreForThisProblem;
-    }
-    if (problems.size() > 0)
-       score = score / problems.size();
-	Logger.info("Score is: " + score);        
+		double score = 0.0;
+	
+		// TODO: Find a way to weigh the problems. The instructor would
+		// need to assign the weights because we don't know the weight of an unattempted problem.
+		List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentID).findList();
+	    for (Problem problem: problems) {
+		   List<Submission> submissions = Submission.find.where().eq("problem.problemId",problem.problemId).eq("assignmentId",assignmentID).eq("studentId",userID).findList();
+		   // Logger.info("Submission size is={}",submissions.size());
+	
+		   double maxscoreForThisProblem = 0.0;
+		   for (Submission s: submissions) {
+			   double maxScore = (s.getMaxScore()).intValue();
+			   if (maxScore > 0)
+				   maxscoreForThisProblem = Math.max(maxscoreForThisProblem, 
+						   (s.getCorrect()).intValue() / maxScore);        
+		   }
+		   score += maxscoreForThisProblem;
+	    }
+	    if (problems.size() > 0)
+	       score = score / problems.size();
+		Logger.info("score: " + score);        
 
         try {
-        		String xmlString1 = "<?xml version = \"1.0\" encoding = \"UTF-8\"?> <imsx_POXEnvelopeRequest xmlns = \"http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0\"> <imsx_POXHeader> <imsx_POXRequestHeaderInfo> <imsx_version>V1.0</imsx_version> <imsx_messageIdentifier>12341234</imsx_messageIdentifier> </imsx_POXRequestHeaderInfo> </imsx_POXHeader> <imsx_POXBody> <replaceResultRequest> <resultRecord> <sourcedGUID> <sourcedId>";
-        		String xmlString2 = "</sourcedId> </sourcedGUID> <result> <resultScore> <language>en</language> <textString>";
-        		String xmlString3 = "</textString> </resultScore> </result> </resultRecord> </replaceResultRequest> </imsx_POXBody> </imsx_POXEnvelopeRequest>";        	
-        		String xmlString = // views.xml.scorepassback.render(sourcedId, score).toString()
-        				xmlString1 + sourcedId + xmlString2 + score + xmlString3;        	
-        		// xmlString = xml.replace("&quot;","\"");
-        			
+    		String xmlString1 = "<?xml version = \"1.0\" encoding = \"UTF-8\"?> <imsx_POXEnvelopeRequest xmlns = \"http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0\"> <imsx_POXHeader> <imsx_POXRequestHeaderInfo> <imsx_version>V1.0</imsx_version> <imsx_messageIdentifier>12341234</imsx_messageIdentifier> </imsx_POXRequestHeaderInfo> </imsx_POXHeader> <imsx_POXBody> <replaceResultRequest> <resultRecord> <sourcedGUID> <sourcedId>";
+    		String xmlString2 = "</sourcedId> </sourcedGUID> <result> <resultScore> <language>en</language> <textString>";
+    		String xmlString3 = "</textString> </resultScore> </result> </resultRecord> </replaceResultRequest> </imsx_POXBody> </imsx_POXEnvelopeRequest>";        	
+    		String xmlString = // views.xml.scorepassback.render(sourcedId, score).toString()
+    				xmlString1 + sourcedId + xmlString2 + score + xmlString3;        	
+    		// xmlString = xml.replace("&quot;","\"");
+    			
             passbackGradeToCanvas(outcomeServiceUrl, xmlString,
-                    "fred", "fred");
+                    "fred", "fred"); // TODO
         } catch (Exception e) {
             Logger.info(e.getMessage());
+            return badRequest(e.getMessage());
         }
         return ok("Grade saved in gradebook. You achieved " + (int) Math.round(100 * score) + "% of the total score.");
     }
