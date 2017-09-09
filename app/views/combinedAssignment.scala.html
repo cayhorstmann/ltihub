@@ -149,10 +149,10 @@
             // setTimeout(location.href = "@preFix/send-score/@assignmentID/@userID", 1000);
             setTimeout(function () {
             	const data = {
-            		assignment: @assignmentID,
-            		user: @userID,
-            		lis_outcome_service_url: @lisOutcomeServiceURL,
-            		lis_result_sourcedid: @lisResultSourcedID
+            		assignment: "@assignmentID",
+            		user: "@userID",
+            		lis_outcome_service_url: "@lisOutcomeServiceURL",
+            		lis_result_sourcedid: "@lisResultSourcedID"
             	}
             	$.ajax({
                     url: '@preFix/sendScore',
