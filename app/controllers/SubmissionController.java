@@ -68,7 +68,7 @@ public class SubmissionController extends Controller {
         		.findList();
             double maxScore = 0;
             for (Submission s : submissions) {
-            	if (s.maxscore > 0) maxScore = Math.max(maxScore,  s.correct / s.maxscore);
+            	if (s.maxscore > 0) maxScore = Math.max(maxScore,  s.correct * 1.0 / s.maxscore);
             }
 
             String response = String.format("Saved %s. Highest recorded score: %.1f%%", submission.getSubmittedAt(), 100 * maxScore);
