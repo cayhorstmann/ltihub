@@ -40,24 +40,6 @@ public class GradeSubmitterController extends Controller {
 	}
 
 	public Result submitGradeToLMS() throws UnsupportedEncodingException {
-		// TODO: Eliminate cookies
-        /*
-		Http.Cookie outcomeServiceUrlCookie = request().cookie("lis_outcome_service_url");
-        Http.Cookie sourcedIdCookie = request().cookie("lis_result_sourcedid");
-      	if (outcomeServiceUrlCookie == null) {
-            Logger.info("lis_outcome_service_url cookie not found.");
-           return badRequest();
-        }
-        if (sourcedIdCookie == null) {
-            Logger.info("lis_result_sourcedid cookie not found.");
-            return badRequest();
-       }
-      
-       String outcomeServiceUrl = outcomeServiceUrlCookie.value();
-       String sourcedId = URLDecoder.decode(sourcedIdCookie.value(),"UTF-8");
-*/
-		
-		
         JsonNode params = request().body().asJson();
         if (params == null) {
         	Logger.info("GradeSubmitterController.submitGradeToLMS Expected JSON data. Received: " + request());
@@ -79,7 +61,30 @@ public class GradeSubmitterController extends Controller {
 	
 		// TODO: Find a way to weigh the problems. The instructor would
 		// need to assign the weights because we don't know the weight of an unattempted problem.
-		List<Problem> problems = Ebean.find(Problem.class).where().eq("assignment.assignmentId",assignmentID).findList();
+	    List<Submission> submissionsForAssignment = Ebean.find(Submission.class)
+		   .select("correct, maxscore")
+		   .fetch("problem", "problemId")
+		   .where()
+		   .eq("assignmentId", assignmentID)
+		   .eq("studentId", userID)
+		   .findList();
+		
+	    Map<Long, Double> maxScores = new HashMap<Long, Double>();
+		for (Submission s : submissionsForAssignment) {
+			long problemId = s.getProblem().getProblemId();
+			double maxScore = s.getMaxScore();
+			if (maxScore > 0)
+				maxScores.put(problemId, Math.max(s.getCorrect() / maxScore,
+						maxScores.getOrDefault(problemId, 0.0)));
+		}
+		for (double s : maxScores.values()) score += s;
+		if (maxScores.size() > 0) score /= maxScores.size();
+		
+		/*
+		List<Problem> problems = Ebean.find(Problem.class)
+				.where()
+				.eq("assignment.assignmentId",assignmentID)
+				.findList();
 	    for (Problem problem: problems) {
 		   List<Submission> submissions = Ebean.find(Submission.class)
 				   .where()
@@ -87,7 +92,6 @@ public class GradeSubmitterController extends Controller {
 				   .eq("assignmentId",assignmentID)
 				   .eq("studentId",userID)
 				   .findList();
-		   // Logger.info("Submission size is={}",submissions.size());
 	
 		   double maxscoreForThisProblem = 0.0;
 		   for (Submission s: submissions) {
@@ -100,6 +104,8 @@ public class GradeSubmitterController extends Controller {
 	    }
 	    if (problems.size() > 0)
 	       score = score / problems.size();
+	    */			
+		
 		Logger.info("score: " + score);        
 
         try {
@@ -110,7 +116,7 @@ public class GradeSubmitterController extends Controller {
     				xmlString1 + sourcedId + xmlString2 + score + xmlString3;        	
     		// xmlString = xml.replace("&quot;","\"");
     			
-            passbackGradeToCanvas(outcomeServiceUrl, xmlString,
+            passbackGradeToLMS(outcomeServiceUrl, xmlString,
                     "fred", "fred"); // TODO
         } catch (Exception e) {
             Logger.info(e.getMessage());
@@ -134,7 +140,7 @@ public class GradeSubmitterController extends Controller {
 	 *            the oauth secret key
 	 * @throws NoSuchAlgorithmException 
 	 */
-	public static void passbackGradeToCanvas(String gradePassbackURL,
+	public static void passbackGradeToLMS(String gradePassbackURL,
 			String xml, String oauthKey, String oauthSecret)
 			throws URISyntaxException, IOException,
 			OAuthMessageSignerException, OAuthExpectationFailedException,
