@@ -103,6 +103,10 @@ public class HomeController extends Controller {
     
     public Result index() throws UnsupportedEncodingException {    
 	 	Map<String, String[]> postParams = request().body().asFormUrlEncoded();
+	 	if (postParams == null)
+	 		return badRequest("Post params missing." + "\n" +
+								"Request body: " + request().body());
+
 	 	Logger.info("HomeController.index: ");
     	for (String key : postParams.keySet())
     		Logger.info(key + ": " + Arrays.toString(postParams.get(key)));
@@ -110,9 +114,9 @@ public class HomeController extends Controller {
     	String lisOutcomeServiceURL = getParam(postParams, "lis_outcome_service_url");
     	String lisResultSourcedID = getParam(postParams, "lis_result_sourcedid");
 		if (isEmpty(lisOutcomeServiceURL)) {
-          	badRequest("lis_outcome_service_url missing.");
+          	return badRequest("lis_outcome_service_url missing.");
 		} else if (isEmpty(lisResultSourcedID)) {
-			badRequest("lis_result_sourcedid missing.");
+			return badRequest("lis_result_sourcedid missing.");
 		} else { // TODO: No cookies
 			response().setCookie(new Http.Cookie("lis_outcome_service_url", lisOutcomeServiceURL,
 		                 null, null, null, false, false));
