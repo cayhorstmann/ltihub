@@ -125,7 +125,7 @@
                         }, 5000);
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
-                        alert("Error saving work: " + JSON.stringify(XMLHttpRequest));
+                        prompt("Error saving work:", JSON.stringify(XMLHttpRequest));
                     }
                 });
             }
