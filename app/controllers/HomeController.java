@@ -23,6 +23,8 @@ import java.net.*;
 import java.io.*;
 import java.util.stream.Collectors;
 
+import javax.inject.Inject;
+
 import com.avaje.ebean.Ebean;
 
 import play.Logger;
@@ -186,38 +188,39 @@ public class HomeController extends Controller {
 	}
 	
 	// This method gets called when an assignment has been created with create_exercise.scala.html.
-	public Result addAssignment() {        
-       DynamicForm bindedForm = Form.form().bindFromRequest();
-       String problemlist = bindedForm.get("url");
+	public Result addAssignment() {
+		Map<String, String[]> postParams = request().body().asFormUrlEncoded();
+	 	
+		String problemlist = getParam(postParams, "url");
        
-       Assignment assignment = new Assignment();
-       assignment.setContextId(bindedForm.get("context_id"));
-       assignment.setResourceLinkId(bindedForm.get("resource_link_id"));
-       assignment.setToolConsumerInstanceGuId(bindedForm.get("tool_consumer_id"));
+		Assignment assignment = new Assignment();
+		assignment.setContextId(getParam(postParams, "context_id"));
+		assignment.setResourceLinkId(getParam(postParams, "resource_link_id"));
+		assignment.setToolConsumerInstanceGuId(getParam(postParams, "tool_consumer_id"));
        
-       String duration = bindedForm.get("duration");
-       if(duration.equals(""))
+		String duration = getParam(postParams, "duration");
+		if(duration.equals(""))
     	   assignment.setDuration(0L);
-       else
+		else
     	   assignment.setDuration(Long.parseLong(duration));
-       assignment.save();
-       Logger.info(problemlist);
+		assignment.save();
+		Logger.info(problemlist);
    
         addNewProblemsFromFormSubmission(problemlist, assignment);
 
-       String launchPresentationReturnURL = bindedForm.get("launch_presentation_return_url");
+        String launchPresentationReturnURL = getParam(postParams, "launch_presentation_return_url");
         List<Problem> problems = assignment.getProblems();
-	   String assignmentURL = "https://" + request().host() + getPrefix() + "/assignment?id=" + assignment.getAssignmentId();
-       return ok(showassignment.render(launchPresentationReturnURL, 
+        String assignmentURL = "https://" + request().host() + getPrefix() + "/assignment?id=" + assignment.getAssignmentId();
+        return ok(showassignment.render(launchPresentationReturnURL, 
     		   getParams(launchPresentationReturnURL), problems, assignmentURL));
     }
 	
 	public Result addAssignmentOutsideLMS() {        
-		DynamicForm bindedForm = Form.form().bindFromRequest();
-		String problemlist = bindedForm.get("url");
-		String key = bindedForm.get("key");
-		String secret = bindedForm.get("secret");
-		String duration = bindedForm.get("duration");
+	    Map<String, String[]> postParams = request().body().asFormUrlEncoded();
+		String problemlist = getParam(postParams, "url");
+		String key = getParam(postParams, "key");
+		String secret = getParam(postParams, "secret");
+		String duration = getParam(postParams, "duration");
 
 		if(key.equals("fred") && secret.equals("fred")){ // TODO
 		    Assignment assignment = new Assignment();
@@ -233,8 +236,9 @@ public class HomeController extends Controller {
 	}
 	
 	private Result getAssignment(String role, Long assignmentId, String userId, String lisOutcomeServiceURL, String lisResultSourcedID){
-
-		Assignment assignment = Assignment.find.byId(assignmentId);
+		Map<String, String[]> postParams = request().body().asFormUrlEncoded();
+	 	
+		Assignment assignment = Ebean.find(Assignment.class, assignmentId);
 
         // Maps each problemId to the submission with the most correct for that problem for the given user ID
         Map<Long, Submission> problemIdToSubmissionWithMostCorrect = new HashMap<>();
@@ -261,7 +265,7 @@ public class HomeController extends Controller {
 
 	public Result getSubmissionViewer(Long assignmentId, String role) {
 
-		Assignment assignment = Assignment.find.byId(assignmentId);
+		Assignment assignment = Ebean.find(Assignment.class, assignmentId);
 		List<Problem> problems = assignment.getProblems();
 
 		if (!isInstructor(role))
@@ -286,16 +290,20 @@ public class HomeController extends Controller {
 	}
 
 	public Result deleteProblem(Long assignmentId, Long problemID) {
-  		Problem.delete(problemID);
-		Assignment assignment = Assignment.find.byId(assignmentId);
-		List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).orderBy("problemId").findList();
+		Ebean.delete(Ebean.find(Problem.class, problemID));
+		Assignment assignment = Ebean.find(Assignment.class, assignmentId); // TODO: Doesn't the ORM do that?
+		List<Problem> problems = Ebean.find(Problem.class)
+			.where()
+			.eq("assignment.assignmentId",assignment.assignmentId)
+			.orderBy("problemId")
+			.findList();
   		return ok(editAssignment.render(assignment, problems));
 	}
 	
     public Result saveEditedAssignment(Long assignmentId) {
-	    DynamicForm bindedForm = Form.form().bindFromRequest();
-        String problemUrls = bindedForm.get("url");
-        Assignment assignment = Assignment.find.byId(assignmentId);
+	    Map<String, String[]> postParams = request().body().asFormUrlEncoded();
+	 	String problemUrls = getParam(postParams, "url");
+        Assignment assignment = Ebean.find(Assignment.class, assignmentId);
         Logger.info("New Problem Submission URLs: " + problemUrls);
         addNewProblemsFromFormSubmission(problemUrls, assignment);
         List<Problem> problems = assignment.getProblems();
@@ -309,9 +317,14 @@ public class HomeController extends Controller {
 	}
 
 	public Result showEditPage(Long assignment) {
-		Assignment assignment1 = Assignment.find.byId(assignment);
+		Assignment assignment1 = Ebean.find(Assignment.class, assignment);
 		
-        	List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment1.assignmentId).orderBy("problemId").findList();
+        	List<Problem> problems = Ebean.find(Problem.class) // TODO: Doesn't the ORM do that?
+        			.fetch("assignment")
+        			.where()
+        			.eq("assignment.assignmentId",assignment1.assignmentId)
+        			.orderBy("problemId")
+        			.findList();
         	
         	return ok(editAssignment.render(assignment1, problems));    
     }

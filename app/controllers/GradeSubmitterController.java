@@ -1,5 +1,6 @@
 package controllers;
 
+import com.avaje.ebean.Ebean;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import oauth.signpost.basic.DefaultOAuthConsumer;
@@ -12,9 +13,13 @@ import play.libs.Json;
 import play.libs.ws.WSClient;
 import play.mvc.Controller;
 import play.mvc.Result;
+
 import javax.inject.Inject;
+
 import java.io.IOException;
+
 import javax.net.ssl.HttpsURLConnection;
+
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -22,6 +27,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.io.*;
+
 import models.*;
 
 public class GradeSubmitterController extends Controller {
@@ -73,9 +79,14 @@ public class GradeSubmitterController extends Controller {
 	
 		// TODO: Find a way to weigh the problems. The instructor would
 		// need to assign the weights because we don't know the weight of an unattempted problem.
-		List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentID).findList();
+		List<Problem> problems = Ebean.find(Problem.class).where().eq("assignment.assignmentId",assignmentID).findList();
 	    for (Problem problem: problems) {
-		   List<Submission> submissions = Submission.find.where().eq("problem.problemId",problem.problemId).eq("assignmentId",assignmentID).eq("studentId",userID).findList();
+		   List<Submission> submissions = Ebean.find(Submission.class)
+				   .where()
+				   .eq("problem.problemId",problem.problemId)
+				   .eq("assignmentId",assignmentID)
+				   .eq("studentId",userID)
+				   .findList();
 		   // Logger.info("Submission size is={}",submissions.size());
 	
 		   double maxscoreForThisProblem = 0.0;

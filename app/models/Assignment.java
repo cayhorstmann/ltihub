@@ -28,10 +28,6 @@ public class Assignment extends Model {
 	@OneToMany(mappedBy="assignment")
 	public List<Problem> problems = new ArrayList<Problem>();
 
-	public static Finder<Long, Assignment> find = new Finder<Long, Assignment>(
-	  Long.class, Assignment.class
-	);
-
 	public Assignment() {
 	}
 

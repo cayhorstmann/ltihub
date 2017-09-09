@@ -1,7 +1,9 @@
 package services;
 
 
+import com.avaje.ebean.Ebean;
 import com.fasterxml.jackson.databind.JsonNode;
+
 import models.Assignment;
 import models.Problem;
 import models.Submission;
@@ -26,11 +28,11 @@ public class DataProvider {
      * to any of the problems on the given assignment
      */
     public Result getUserIdsForAssignment(Long assignmentId) {
-        Assignment assignment = Assignment.find.byId(assignmentId);
+        Assignment assignment = Ebean.find(Assignment.class, assignmentId);
         if (assignment == null)
             return badRequest("Assignment not found. ID Given: " + assignmentId);
 
-        Set<String> userIds = new TreeSet<>();
+        Set<String> userIds = new TreeSet<>(); // TODO: Make DB query
         for (Problem problem: assignment.getProblems()) {
             for (Submission submission: problem.getSubmissions()) {
                 userIds.add(submission.getStudentId());
@@ -49,22 +51,22 @@ public class DataProvider {
      * @return a stringified json object with contents from all of the submissions for a given problem id and user id
      */
     public Result getSubmissionContent(Long problemId, String studentId) {
-        Problem problem = Problem.find.byId(problemId);
-        if (problem == null)
-            return badRequest("Problem not found. ID Given: " + problemId);
-
-        List<Submission> submissions = problem.getSubmissions();
-        submissions.sort(
-                (s1, s2) -> (s1.getSubmissionId().compareTo(s2.getSubmissionId()))
-        );
-
-        Collection<String> contents = new LinkedList<>();
+    	
+    	
+        List<Submission> submissions = Ebean.find(Submission.class)
+        		.where()
+        		.eq("problem.problemId", problemId)
+        		.eq("student_id", studentId)
+        		.orderBy("submissionId")
+        		.findList();
+        StringBuilder result = new StringBuilder();
         for (Submission submission: submissions) {
-            if (studentId.equals(submission.getStudentId())) {
-                contents.add(submission.getContent());
-            }
+    		result.append(result.length() == 0 ? "[" : ",");
+    		String content = submission.getContent(); 
+            result.append(content != null && content.startsWith("\"") ? content : Json.toJson(content));
         }
-
-        return ok(contents.toString());
+    	result.append("]");
+        
+        return ok(result.toString());
     }
 }
