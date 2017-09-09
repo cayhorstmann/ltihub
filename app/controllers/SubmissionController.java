@@ -38,8 +38,8 @@ public class SubmissionController extends Controller {
              For example: to change "Hello world!" to "Hi world, I am a computer.":
                 "11,1|1,4| 1,1,i8,18,, I am a computer."
               */
-            String stateEditScript = Json.stringify(problemContent.get("stateEditScript"));
-            String previousHash = problemContent.get("previousHash").asText();
+            String stateEditScript = problemContent.get("stateEditScript").textValue();
+            String previousHash = problemContent.get("previousHash").textValue();
 
             Problem problem = Ebean.find(Problem.class, problemContent.get("problemId").asLong(-1L));
             Logger.info("Problem: " + problem.getProblemId());

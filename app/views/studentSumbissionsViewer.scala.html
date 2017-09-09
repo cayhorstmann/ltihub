@@ -48,28 +48,28 @@
                     var stateSelectionEl = document.getElementById('stateSelection-@problem.getProblemId()');
                     stateSelectionEl.disabled = true;
 
-                    var problemEditScripts = [];
+                    var stateEditScripts = [];
                     $.ajax({
                         url: '@services.routes.DataProvider.getSubmissionContent(problem.getProblemId(), "")' + userId,
                         method: 'GET',
                         success: function (msg) {
                             try {
-                                problemEditScripts = JSON.parse(msg);
+                                stateEditScripts = JSON.parse(msg);
 
                                 // Build the state from the edit scripts and store each version in the map
                                 var state = "";
                                 problemIdToSubmissions['@problem.getProblemId()'] = [];
-                                for (var i = 0; i < problemEditScripts.length; i++) {
-                                    // Don't apply edit scrip if state didn't change
-                                    if (!problemEditScripts[i])
+                                for (var i = 0; i < stateEditScripts.length; i++) {
+                                    // Don't apply edit script if state didn't change
+                                    if (!stateEditScripts[i])
                                         continue;
 
                                     try {
-                                        state = applyEditScript(state, problemEditScripts[i]);
+                                        state = applyEditScript(state, stateEditScripts[i]);
 
                                         problemIdToSubmissions['@problem.getProblemId()'].push(JSON.parse(state));
                                     } catch (e) {
-                                        alert("State is corrupted: " + e + "\n" +
+                                        prompt("Error:", "State is corrupted: " + e + "\n" +
                                         "State was: " + state);
                                     }
                                 }
@@ -86,7 +86,8 @@
 
                                 stateSelectionEl.disabled = false;
                             } catch (e) {
-                                alert("Error getting problem contents: " + e);
+                                prompt("Error:", "Error getting problem contents: " + e + "\n" +
+                                        "State edit scripts: " + JSON.stringify(stateEditScripts));
                             }
                         },
                         error: function(XMLHttpRequest, textStatus, errorThrown) {

@@ -21,54 +21,45 @@
         // Sends the states of the problems that were previously submitted to the problems to be restored
         function restoreStatesOfProblems() {
             @for(problem <- problems) {
+                problemIdToContent["@problem.getProblemId()"] = {};
+
                 // Get student's most recently submitted work as a series of changes
-                var stateEditScripts = @Html@{
-                    val stateEditScriptsList = ListBuffer.empty[String];
+                $.ajax({
+                    url: '@services.routes.DataProvider.getSubmissionContent(problem.getProblemId(), userID),
+                    method: 'GET',
+                    success: function (msg) {
+                        try {
+                            var stateEditScripts = JSON.parse(msg);
 
-                    val submissions = problem.getSubmissions().sortWith(_.getSubmissionId < _.getSubmissionId);
-                    if (!submissions.isEmpty()) {
+                            // Build the state from the edit scripts and store each version in the map
+                            var state = "";
+                            for (var i = 0; i < stateEditScripts.length; i++) {
+                                // Don't apply edit script if state didn't change
+                                if (!stateEditScripts[i])
+                                    continue;
 
-                        // The previousHash is for making sure a problem didn't branch into two versions
-                        var previousHash = "";
-                        for (submission <- submissions) {
-                            if (submission.getStudentId().equals(userID)
-                            && submission.getContent() != null
-                            && !submission.getContent().isEmpty()) {
-                                stateEditScriptsList += submission.getContent();
+                                try {
+                                    state = applyEditScript(state, stateEditScripts[i]);
+                                } catch (e) {
+                                    prompt("Error:", "State is corrupted: " + e + "\n" +
+                                            "State was: " + state);
+                                }
                             }
+
+                            // Updates the previous version of the problem content so that we will know what changed
+                            problemIdToContent["@problem.getProblemId()"] = {score: "", state: state};
+
+                            // Post message to iframe to populate the problem
+                            var iframe = document.getElementById('@problem.getProblemId()');
+                            iframe.contentWindow.postMessage({query: 'restoreState', state: JSON.parse(state)}, '*');
+                        } catch (e) {
+                            prompt("Error", "Error getting problem contents: " + e);
                         }
+                    },
+                    error: function(XMLHttpRequest, textStatus, errorThrown) {
+                        alert("Error getting problem contents: " + JSON.stringify(XMLHttpRequest));
                     }
-
-                   stateEditScriptsList.mkString("[", ", ", "]");
-                };
-
-                // Didn't find submission for given studentID/problemID
-                if (!stateEditScripts || stateEditScripts.length === 0) {
-                    problemIdToContent["@problem.getProblemId()"] = {};
-                // Rebuild state using edit scripts
-                } else {
-                    var state = "";
-                    for (var i = 0; i < stateEditScripts.length; i++) {
-                        var editScript = stateEditScripts[i];
-
-                        state = applyEditScript(state, editScript);
-                        console.log("i=" + i + ",editScript=" + editScript + ",state=" + state);
-                    }
-                    try {
-                        state = JSON.parse(state);
-
-                        // Updates the previous version of the problem content so that we will know what changed
-                        problemIdToContent["@problem.getProblemId()"] = {score: "", state: JSON.stringify(state)};
-
-                        // Post message to iframe to populate the problem
-                        var iframe = document.getElementById('@problem.getProblemId()');
-                        iframe.contentWindow.postMessage({query: 'restoreState', state: state}, '*');
-                    }
-                    catch (e) {
-                    	console.log("Parse failed: " + e);
-                        problemIdToContent["@problem.getProblemId()"] = {};
-                    }
-                }
+                });
 
             }
 
@@ -125,7 +116,7 @@
                         }, 5000);
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
-                        prompt("Error saving work:", JSON.stringify(XMLHttpRequest));
+                        prompt("Error:", "Error saving work: " + JSON.stringify(XMLHttpRequest));
                     }
                 });
             }
@@ -225,7 +216,8 @@
                     (problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getCorrect().toDouble /
                             problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getMaxScore().toDouble) *
                             100
-                }%</b> </p>
+                }%</b>
+            </p>
         </div>
     }
 
