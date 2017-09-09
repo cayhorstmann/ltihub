@@ -59,8 +59,7 @@ public class GradeSubmitterController extends Controller {
 	
 		double score = 0.0;
 	
-		// TODO: Find a way to weigh the problems. The instructor would
-		// need to assign the weights because we don't know the weight of an unattempted problem.
+		// TODO: Allow the instructor to assign a weight for each problem
 	    List<Submission> submissionsForAssignment = Ebean.find(Submission.class)
 		   .select("correct, maxscore")
 		   .fetch("problem", "problemId")

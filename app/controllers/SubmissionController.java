@@ -13,6 +13,7 @@ import play.mvc.Result;
 public class SubmissionController extends Controller {
 
     // Method to save problem submission that is sent back from codecheck server
+	// TODO: add params to JSON
     public Result addSubmission(Long assignmentID, String userID) {
         Logger.info("SubmissionController.addSubmission");
 
@@ -23,7 +24,7 @@ public class SubmissionController extends Controller {
         Logger.info("params: " + Json.stringify(problemContent));
 
         try {
-            Logger.info("addSubmission. AssignmentID: " + assignmentID + " UserID: " + userID);
+            Logger.info("AssignmentID: " + assignmentID + " UserID: " + userID);
 
             /*
              The script that will change the previously submitted state to the current state.
@@ -45,7 +46,6 @@ public class SubmissionController extends Controller {
 
             JsonNode score = problemContent.get("score");
 
-
             Submission submission = new Submission();
 
             submission.setAssignmentId(assignmentID);
@@ -53,23 +53,16 @@ public class SubmissionController extends Controller {
             submission.setContent(stateEditScript);
             submission.setPrevious(previousHash);
             submission.setProblem(problem);
-
-            if (score.get("correct") != null && score.get("maxscore") != null) {
-                submission.setCorrect(score.get("correct").asLong(0L));
-                submission.setMaxScore(score.get("maxscore").asLong(0L));
-            } else {
-                submission.setCorrect(0L);
-                submission.setMaxScore(0L);
-            }
-
+            submission.setCorrect(score.get("correct").asLong(0L));
+            submission.setMaxScore(score.get("maxscore").asLong(0L));
 
             submission.save();
-
-            Logger.info("Submission " + submission.getSubmissionId() + " saved.");
-
             problem.getSubmissions().add(submission);
 
-            return ok("Submission is saved");
+            String response = "Submission " + submission.getSubmissionId() + " saved at " + submission.getSubmittedAt();
+            Logger.info(response);
+
+            return ok(response);
         } catch (Exception ex) {
             Logger.error("Submission failed.");
             Logger.error("Received problem content: " + Json.stringify(problemContent));
