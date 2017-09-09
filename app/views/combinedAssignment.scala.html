@@ -25,7 +25,7 @@
 
                 // Get student's most recently submitted work as a series of changes
                 $.ajax({
-                    url: '@services.routes.DataProvider.getSubmissionContent(problem.getProblemId(), userID),
+                    url: '@services.routes.DataProvider.getSubmissionContent(problem.getProblemId(), userID)',
                     method: 'GET',
                     success: function (msg) {
                         try {
