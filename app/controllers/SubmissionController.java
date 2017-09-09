@@ -71,34 +71,5 @@ public class SubmissionController extends Controller {
                     "Exception message: " + ex.getMessage());
         }
     }
-
-    //Method to save interactive Exercise score
-//    public Result addSubmission(Long assignmentID) {
-//        JsonNode jsonPayload = request().body().asJson();
-//        Logger.info("json from client = {}", jsonPayload);
-//
-//        Logger.info("AssignmentID is: " + assignmentID);
-//        Http.Cookie userIdCookie = request().cookie("user_id");
-//        String userId = userIdCookie.value();
-//        Logger.info("UserID is: " + userId);
-//        Iterator<JsonNode> nodeIterator = jsonPayload.elements();
-//
-//        while (nodeIterator.hasNext()) {
-//            JsonNode exercise = nodeIterator.next();
-//            if (exercise.has("activity")) {
-//                Problem problem = Problem.find.where().eq("assignment.assignmentId", assignmentID).like("url", "%" + exercise.get("activity").asText() + "%").findList().get(0);
-//
-//                Submission submission = new Submission();
-//                submission.setAssignmentId(assignmentID);
-//                submission.setProblem(problem);
-//                submission.setStudentId(userId);
-//                submission.setActivity(exercise.get("activity").asText());
-//                submission.setCorrect(exercise.get("correct").asLong());
-//                submission.setMaxScore(exercise.get("maxscore").asLong());
-//                submission.save();
-//            }
-//        }
-//        return ok();
-//    }
 }
 
