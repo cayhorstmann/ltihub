@@ -59,7 +59,7 @@ public class GradeSubmitterController extends Controller {
         }
 		Logger.info("GradeSubmitterController.submitGradeToLMS params: " + Json.stringify(params));
 
-        String assignmentID = Json.stringify(params.get("assignment"));
+        long assignmentID = Long.parseLong(Json.stringify(params.get("assignment")));
         String userID = Json.stringify(params.get("user"));
         String outcomeServiceUrl = Json.stringify(params.get("lis_outcome_service_url"));
 		String sourcedId = Json.stringify(params.get("lis_result_sourcedid"));
