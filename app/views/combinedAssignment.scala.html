@@ -114,12 +114,8 @@
                             state: currentStateString
                         };
 
-                        var response = $("#response")
+                        var response = $("#highestScore-" + problemId)
                         response.html(msg);
-                        response.show();
-                        setTimeout(function () {
-                            response.hide();
-                        }, 5000);
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
                         prompt("Error:", "Error saving work: " + JSON.stringify(XMLHttpRequest));
@@ -217,7 +213,7 @@
 @for(problem <- problems) {
     @if(problemIdToSubmissionWithMostCorrect.contains(problem.getProblemId())) {
         <div class="highestScore"
-        id="@problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getSubmissionId()">
+        id="highestScore-@problem.problemId">
             <p>Highest recorded score:
                 <b>@{
                     (problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getCorrect().toDouble /

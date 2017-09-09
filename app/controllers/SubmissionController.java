@@ -1,5 +1,7 @@
 package controllers;
 
+import java.util.List;
+
 import com.avaje.ebean.Ebean;
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -58,8 +60,18 @@ public class SubmissionController extends Controller {
 
             submission.save();
             problem.getSubmissions().add(submission);
+            
+            List<Submission> submissions = Ebean.find(Submission.class)
+        		.select("correct, maxscore")
+        		.where()
+        		.eq("problem.problemId", problem.getProblemId())
+        		.findList();
+            double maxScore = 0;
+            for (Submission s : submissions) {
+            	if (s.maxscore > 0) maxScore = Math.max(maxScore,  s.correct / s.maxscore);
+            }
 
-            String response = "Submission " + submission.getSubmissionId() + " saved at " + submission.getSubmittedAt();
+            String response = String.format("Saved %s. Highest recorded score: %.1f%%", submission.getSubmittedAt(), 100 * maxScore);
             Logger.info(response);
 
             return ok(response);
