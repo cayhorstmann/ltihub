@@ -105,7 +105,7 @@ public class HomeController extends Controller {
 	 	Map<String, String[]> postParams = request().body().asFormUrlEncoded();
 	 	if (postParams == null)
 	 		return badRequest("Post params missing." + "\n" +
-								"Request body: " + request().body());
+								"Request body: " + request().body().asText());
 
 	 	Logger.info("HomeController.index: ");
     	for (String key : postParams.keySet())
