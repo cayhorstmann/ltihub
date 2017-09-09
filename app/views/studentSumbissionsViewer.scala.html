@@ -25,11 +25,12 @@
 
                             loadSubmissionsForSelectedUser();
                         } catch (e) {
-                            alert("Error getting user IDs: " + e);
+                            prompt("Error:", "Error getting user IDs: " + e + "\n" +
+                                    "Assignment ID was: " + @assignmentId););
                         }
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
-                        alert("Error getting user IDs: " + JSON.stringify(XMLHttpRequest));
+                        prompt("Error:", "Error getting user IDs: " + JSON.stringify(XMLHttpRequest));
                     }
                 });
             }
