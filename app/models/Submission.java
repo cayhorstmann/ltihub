@@ -119,6 +119,10 @@ public class Submission extends Model {
 		this.submittedAt = new Date();
 	}
 
+	public Date getSubmittedAt() {
+		return submittedAt;
+	}
+	
 	public String getContent(){
 		return this.content;
 	}
