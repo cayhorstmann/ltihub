@@ -114,10 +114,11 @@
                             state: currentStateString
                         };
 
-                        var response = document.getElementById('response');
-                        response.innerHTML = "Your partially complete assignment is saved!";
+                        var response = $("#response")
+                        response.html(msg);
+                        response.show();
                         setTimeout(function () {
-                            $("#response").hide();
+                            response.hide();
                         }, 5000);
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
@@ -156,10 +157,11 @@
                     contentType: 'application/json',
                     data: JSON.stringify(data),
                     success: function (msg) {
-                        var response = document.getElementById('response');
-                        response.innerHTML = msg;
+                        var response = $("#response");
+                        response.html(msg);
+                        response.show();
                         setTimeout(function () {
-                            $("#response").hide();
+                            response.hide();
                         }, 5000);
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
@@ -229,14 +231,13 @@
     <iframe class='exercise-iframe' id=@problem.problemId src=@problem.getProblemUrl().trim() ></iframe>
 }
 
-<div id='response'></div>
-<button onclick="submitGrades()">Record my score</button>
-
-<p><!-- If you want to take a break and continue later, click on "Save my work".  -->
+<p>
     If you are done with all questions, click on "Record my score" to save your score in the gradebook.
 </p>
 
-@* Instructor specific code *@
+<button onclick="submitGrades()">Record my score</button> <span id='response'></span>
+
+
 @if(isInstructor) {
     <a href="@routes.HomeController.showEditPage(assignmentID)"><button>Edit Assignment</button></a>
 }

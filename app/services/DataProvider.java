@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import models.Assignment;
 import models.Problem;
 import models.Submission;
-import play.Logger;
 import play.libs.Json;
 import play.mvc.Result;
 
@@ -51,8 +50,6 @@ public class DataProvider {
      * @return a stringified json object with contents from all of the submissions for a given problem id and user id
      */
     public Result getSubmissionContent(Long problemId, String studentId) {
-    	
-    	
         List<Submission> submissions = Ebean.find(Submission.class)
         		.select("content")
         		.where()
