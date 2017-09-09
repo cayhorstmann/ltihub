@@ -36,8 +36,9 @@ public class SubmissionController extends Controller {
                 "11,1|1,4| 1,1,i8,18,, I am a computer."
               */
             String stateEditScript = Json.stringify(problemContent.get("stateEditScript"));
-
+            Logger.info("stateEditScript " + stateEditScript);
             String previousHash = Json.stringify(problemContent.get("previousHash"));
+            Logger.info("previousHash " + previousHash);
 
             Problem problem = Problem.find.byId(problemContent.get("problemId").asLong(-1L));
             Logger.info("Problem: " + problem.getProblemId());
