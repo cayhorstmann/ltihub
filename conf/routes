@@ -17,7 +17,7 @@ POST    /assignment     controllers.HomeController.index
 POST	/addAssignment		controllers.HomeController.addAssignment
 
 # Redirect from controllers.HomeController.index, but why???
-GET	/assignment	        controllers.HomeController.getAssignment(role: String, assignmentId: Long, userId: String)
+# GET	/assignment	        controllers.HomeController.getAssignment(role: String, assignmentId: Long, userId: String)
 
 # When clicking on the Edit Assignment button in instructor view
 GET	/assignment/editAssignment	controllers.HomeController.showEditPage(id: Long)	
@@ -26,21 +26,21 @@ GET	/assignment/editAssignment	controllers.HomeController.showEditPage(id: Long)
 POST    /assignment/saveAssignment  controllers.HomeController.saveEditedAssignment(id: Long)
 
 # From app/views/timedAssignmentWelcomeView.scala.html
-GET	/timedAssignment	controllers.HomeController.showTimedAssignment(assignmentId: Long, userId: String, duration: Long)
+# GET	/timedAssignment	controllers.HomeController.showTimedAssignment(assignmentId: Long, userId: String, duration: Long)
 
 # Submission viewer
 GET /submission-viewer/:assignmentId/:role  controllers.HomeController.getSubmissionViewer(assignmentId: Long, role: String)
 
-# Score callback from CodeCheck (?) and Tyler
+# Score callback from Tyler (There is no longer a callback from CodeCheck)
 POST	/submissions/:assignmentId/:userId		controllers.SubmissionController.addSubmission(assignmentId: Long, userId: String)
 
 # When the record grade button is pushed. 
 # TODO: Add lis_outcome_service_url, lis_result_sourcedid to the request and make it a POST
-GET    /send-score/:assignmentId/:userId   controllers.GradeSubmitterController.submitGradeToCanvas(assignmentId: Long, userId: String)
+# GET    /send-score/:assignmentId/:userId   controllers.GradeSubmitterController.submitGradeToCanvas(assignmentId: Long, userId: String)
+POST    /sendScore   controllers.GradeSubmitterController.submitGradeToLMS()
 
-# An example controller showing how to use dependency injection--used by health check
+# An example controller showing how to use dependency injection--used by health check. DO NOT REMOVE.
 GET     /count                      controllers.CountController.count
-# GET     /lti/count                      controllers.CountController.count
 
 # For backwards compatibility
 # Canvas starts with call to createAssignment (presumably because of the XML config)

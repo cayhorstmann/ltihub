@@ -28,6 +28,7 @@ create table submission (
   activity                  text,
   submitted_at              timestamp,
   content                   text,
+  previous                  char(32),
   problem_problem_id        bigint,
   constraint pk_submission primary key (submission_id))
 ;
