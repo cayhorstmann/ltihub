@@ -46,6 +46,10 @@
                                 }
                             }
 
+                            // If the state was empty, then don't try to restore it
+                            if (!state)
+                                return;
+
                             // Updates the previous version of the problem content so that we will know what changed
                             problemIdToContent["@problem.getProblemId()"] = {score: "", state: state};
 
