@@ -60,14 +60,7 @@ public class DataProvider {
         		.eq("studentId", studentId)
         		.orderBy("submissionId")
         		.findList();
-        StringBuilder result = new StringBuilder();
-        for (Submission submission: submissions) {
-    		result.append(result.length() == 0 ? "[" : ",");
-    		String content = submission.getContent(); 
-            result.append(content != null && content.startsWith("\"") ? content : Json.toJson(content));
-        }
-    	result.append("]");
         
-        return ok(result.toString());
+        return ok(submissions.toString());
     }
 }
