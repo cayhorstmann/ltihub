@@ -54,9 +54,10 @@ public class DataProvider {
     	
     	
         List<Submission> submissions = Ebean.find(Submission.class)
+        		.select("content")
         		.where()
         		.eq("problem.problemId", problemId)
-        		.eq("student_id", studentId)
+        		.eq("studentId", studentId)
         		.orderBy("submissionId")
         		.findList();
         StringBuilder result = new StringBuilder();
