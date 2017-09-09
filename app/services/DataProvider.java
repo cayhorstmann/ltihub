@@ -61,11 +61,13 @@ public class DataProvider {
         		.orderBy("submissionId")
         		.findList();
 
-        StringBuilder result = new StringBuilder();
+        StringBuilder result = new StringBuilder("[");
         for (Submission submission: submissions) {
-            result.append(result.length() == 0 ? "[" : ",");
             String content = submission.getContent();
-            result.append(content != null && content.startsWith("\"") ? content : Json.toJson(content));
+            if (content != null && content.length() != 0 && !"\"\"".equals(content)) {
+            	if (result.length() > 1) result.append(",");            
+            	result.append(content != null && content.startsWith("\"") ? content : Json.toJson(content));
+            }
         }
         result.append("]");
         
