@@ -44,9 +44,6 @@ public class Submission extends Model {
     @ManyToOne
     public Problem problem;
 
-    public static Finder<Long, Submission> find = new Finder<>(
-        Long.class, Submission.class);
-
 	public Long getSubmissionId() {
 		return this.submissionId;
 	}

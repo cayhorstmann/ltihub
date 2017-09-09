@@ -1,6 +1,8 @@
 package controllers;
 
+import com.avaje.ebean.Ebean;
 import com.fasterxml.jackson.databind.JsonNode;
+
 import models.Problem;
 import models.Submission;
 import play.Logger;
@@ -38,7 +40,7 @@ public class SubmissionController extends Controller {
             String stateEditScript = Json.stringify(problemContent.get("stateEditScript"));
             String previousHash = problemContent.get("previousHash").asText();
 
-            Problem problem = Problem.find.byId(problemContent.get("problemId").asLong(-1L));
+            Problem problem = Ebean.find(Problem.class, problemContent.get("problemId").asLong(-1L));
             Logger.info("Problem: " + problem.getProblemId());
 
             JsonNode score = problemContent.get("score");

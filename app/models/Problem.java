@@ -26,9 +26,6 @@ public class Problem extends Model {
     @OneToMany(mappedBy="problem")
     public List<Submission> submissions = new ArrayList<Submission>();
 
-    public static Finder<Long, Problem> find = new Finder<Long, Problem>(
-          Long.class, Problem.class);
-		
 	public Problem(){
 		}
 		
@@ -67,9 +64,5 @@ public class Problem extends Model {
 
 	public void setSubmission(List<Submission> submissions){
 		this.submissions = submissions;
-	}
-
-	public static void delete(Long id) {
- 		 find.ref(id).delete();
 	}
 }
