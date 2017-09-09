@@ -53,7 +53,8 @@
                             var iframe = document.getElementById('@problem.getProblemId()');
                             iframe.contentWindow.postMessage({query: 'restoreState', state: JSON.parse(state)}, '*');
                         } catch (e) {
-                            prompt("Error", "Error getting problem contents: " + e);
+                            prompt("Error", "Error getting problem contents: " + e + "\n" +
+                                            "State edit scripts were: " + JSON.stringify(stateEditScripts));
                         }
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
