@@ -65,13 +65,15 @@ public class SubmissionController extends Controller {
         		.select("correct, maxscore")
         		.where()
         		.eq("problem.problemId", problem.getProblemId())
+        		.eq("studentId", userID)
         		.findList();
             double maxScore = 0;
             for (Submission s : submissions) {
             	if (s.maxscore > 0) maxScore = Math.max(maxScore,  s.correct * 1.0 / s.maxscore);
             }
 
-            String response = String.format("Saved %s. Highest recorded score: %.1f%%", submission.getSubmittedAt(), 100 * maxScore);
+            String response = String.format("Saved %s. Highest recorded score: %.1f%%", 
+            		submission.getSubmittedAt(), 100 * maxScore);
             Logger.info(response);
 
             return ok(response);
