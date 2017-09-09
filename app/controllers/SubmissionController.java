@@ -12,7 +12,7 @@ public class SubmissionController extends Controller {
 
     // Method to save problem submission that is sent back from codecheck server
     public Result addSubmission(Long assignmentID, String userID) {
-        Logger.info("Result is received");
+        Logger.info("SubmissionController.addSubmission");
 
         JsonNode problemContent = request().body().asJson();
         if (problemContent == null)

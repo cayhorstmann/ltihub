@@ -147,7 +147,7 @@ public class HomeController extends Controller {
 		}
 		else // TODO: Why redirect???
 			// return redirect(controllers.routes.HomeController.getAssignment(role, Long.parseLong(assignmentId), userID));
-			return getAssignment(role, Long.parseLong(assignmentID), userID);
+			return getAssignment(role, Long.parseLong(assignmentID), userID, lisOutcomeServiceURL, lisResultSourcedID);
  	}
 
 	public Result createAssignment() {		
@@ -232,48 +232,32 @@ public class HomeController extends Controller {
 			return ok("Secret or key doesn't match.");
 	}
 	
-	public Result getAssignment(String role, Long assignmentId, String userId){
-        Logger.info("getAssignment. Role: " + role + " Assignment_id: " + assignmentId + " UserID: " + userId);
+	private Result getAssignment(String role, Long assignmentId, String userId, String lisOutcomeServiceURL, String lisResultSourcedID){
 
 		Assignment assignment = Assignment.find.byId(assignmentId);
 
         // Maps each problemId to the submission with the most correct for that problem for the given user ID
         Map<Long, Submission> problemIdToSubmissionWithMostCorrect = new HashMap<>();
 
-        if(isInstructor(role)){
-			List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignment.assignmentId).orderBy("problemId").findList();
-			//return ok(showAssignmentInstructorView.render(problems,assignmentId, "Teacher", getPrefix()));
-			combinedAssignment.render(getPrefix(), assignmentId, userId, 0L /* duration */, true /* instructor */,
-                    problems, problemIdToSubmissionWithMostCorrect);
-		}
-
         Long duration = assignment.getDuration();
         List<Problem> problems = assignment.getProblems();
 
-		for(Problem problem: problems){
-            Optional<Submission> submissionStream = problem.getSubmissions().stream()
+        if(!isInstructor(role)) {
+        	for(Problem problem: problems){
+        		Optional<Submission> submissionStream = problem.getSubmissions().stream()
                     .filter((submission) -> (submission.getStudentId().equals(userId)))
                     .max((submission1, submission2) ->
                             (submission1.getCorrect().compareTo(submission2.getCorrect())));
 
-            if (submissionStream.isPresent())
-                problemIdToSubmissionWithMostCorrect.put(
+        		if (submissionStream.isPresent())
+        			problemIdToSubmissionWithMostCorrect.put(
                         problem.getProblemId(), submissionStream.get());
+        	}
 		}
 
-        if (duration > 0 && problemIdToSubmissionWithMostCorrect.isEmpty())
-            return ok(timedAssignmentWelcomeView.render(problems, assignmentId, userId, duration));
-		else
-            return ok(combinedAssignment.render(getPrefix(), assignmentId, userId, duration, false /* instructor */,
-                    problems, problemIdToSubmissionWithMostCorrect));
+        return ok(combinedAssignment.render(getPrefix(), assignmentId, userId, duration, isInstructor(role),
+            problems, problemIdToSubmissionWithMostCorrect, lisOutcomeServiceURL, lisResultSourcedID));
     }
-
-	public Result showTimedAssignment(Long assignmentId, String userId, Long duration) {
-		Assignment assignment = Assignment.find.byId(assignmentId);
-        List<Problem> problems = Problem.find.fetch("assignment").where().eq("assignment.assignmentId",assignmentId).orderBy("problemId").findList();
-        Logger.info("showTimedAssignment. UserID is: " + userId);
-        return ok(timedFinalAssignment.render(problems, assignmentId, userId, getPrefix(), duration));
-	}
 
 	public Result getSubmissionViewer(Long assignmentId, String role) {
 

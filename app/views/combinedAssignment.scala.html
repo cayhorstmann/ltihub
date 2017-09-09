@@ -1,6 +1,7 @@
 @import scala.collection.mutable.ListBuffer
 @(preFix: String, assignmentID: Long, userID: String, duration: Long, isInstructor: Boolean,
-        problems: List[Problem], problemIdToSubmissionWithMostCorrect: Map[Long, Submission])
+        problems: List[Problem], problemIdToSubmissionWithMostCorrect: Map[Long, Submission],
+        lisOutcomeServiceURL: String, lisResultSourcedID: String)
 
 <link rel="stylesheet" href="@routes.Assets.at("stylesheets/main.css")">
 
@@ -77,8 +78,7 @@
         }
 
         /*
-         Tell the iframes to report their state back.
-         When all of the iframes have reported back, we will send any changes to the server.
+           Tell the iframes to report their state back.
          */
         function updateStatesFromProblems() {
             $('.exercise-iframe').each(function(_, iframe) {
@@ -131,7 +131,7 @@
             }
         }
 
-        // All the iframes report thier score with a post message, this function handles those messages
+        // All the iframes report their score with a post message, this function handles those messages
         function receiveMessage(event) {
             console.log("receiveMessage.event=" + JSON.stringify(event));
             if (event.data.request === undefined)
@@ -146,7 +146,31 @@
         // Save work and report score
         function submitGrades() {
             updateStatesFromProblems();
-            setTimeout(location.href = "@preFix/send-score/@assignmentID/@userID", 1000);
+            // setTimeout(location.href = "@preFix/send-score/@assignmentID/@userID", 1000);
+            setTimeout(function () {
+            	const data = {
+            		assignment: @assignmentID,
+            		user: @userID,
+            		lis_outcome_service_url: @lisOutcomeServiceURL,
+            		lis_result_sourcedid: @lisResultSourcedID
+            	}
+            	$.ajax({
+                    url: '@preFix/sendScore',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(data),
+                    success: function (msg) {
+                        var response = document.getElementById('response');
+                        response.innerHTML = msg;
+                        setTimeout(function () {
+                            $("#response").hide();
+                        }, 5000);
+                    },
+                    error: function(XMLHttpRequest, textStatus, errorThrown) {
+                        alert("Error saving work: " + JSON.stringify(XMLHttpRequest));
+                    }
+                });            	
+            }, 1000)
         }
 
         window.addEventListener("message", receiveMessage, false);
@@ -209,9 +233,6 @@
 }
 
 <div id='response'></div>
-<!-- 
-<input disabled id="saveMyWorkButton" type="button" value="Save my work" onclick="updateStatesFromProblems(event)"/>
- -->
 <button onclick="submitGrades()">Record my score</button>
 
 <p><!-- If you want to take a break and continue later, click on "Save my work".  -->
