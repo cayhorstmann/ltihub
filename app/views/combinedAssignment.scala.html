@@ -54,7 +54,7 @@
                             iframe.contentWindow.postMessage({query: 'restoreState', state: JSON.parse(state)}, '*');
                         } catch (e) {
                             prompt("Error", "Error getting problem contents: " + e + "\n" +
-                                            "State edit scripts were: " + JSON.stringify(stateEditScripts));
+                                            "State edit scripts were: " + msg);
                         }
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
