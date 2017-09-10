@@ -26,11 +26,12 @@
                             loadSubmissionsForSelectedUser();
                         } catch (e) {
                             prompt("Error:", "Error getting user IDs: " + e + "\n" +
-                                    "Assignment ID was: " + @assignmentId);
+                                    "Assignment ID was: @assignmentId");
                         }
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
-                        prompt("Error:", "Error getting user IDs: " + JSON.stringify(XMLHttpRequest));
+                        prompt("Error:", "Error getting user IDs: " + JSON.stringify(XMLHttpRequest) + "\n" +
+                                "Assignment ID was: @assignmentId");
                     }
                 });
             }
@@ -71,7 +72,9 @@
                                         problemIdToSubmissions['@problem.getProblemId()'].push(JSON.parse(state));
                                     } catch (e) {
                                         prompt("Error:", "State is corrupted: " + e + "\n" +
-                                        "State was: " + state);
+                                        "User ID was: " + userId + "\n" +
+                                        "State was: " + state + "\n" +
+                                        "Edit script that caused corruption was: " + stateEditScripts[i]);
                                     }
                                 }
 
@@ -88,11 +91,13 @@
                                 stateSelectionEl.disabled = false;
                             } catch (e) {
                                 prompt("Error:", "Error getting problem contents: " + e + "\n" +
+                                        "User ID was: " + userId + "\n" +
                                         "State edit scripts: " + JSON.stringify(stateEditScripts));
                             }
                         },
                         error: function(XMLHttpRequest, textStatus, errorThrown) {
-                            alert("Error getting problem contents: " + JSON.stringify(XMLHttpRequest));
+                            prompt("Error:", "Error getting problem contents: " + JSON.stringify(XMLHttpRequest) + "\n" +
+                                    "User ID was: " + userId + "\n");
                         }
                     });
 
