@@ -113,18 +113,8 @@ public class HomeController extends Controller {
 
     	String lisOutcomeServiceURL = getParam(postParams, "lis_outcome_service_url");
     	String lisResultSourcedID = getParam(postParams, "lis_result_sourcedid");
-		if (isEmpty(lisOutcomeServiceURL)) {
-          	return badRequest("lis_outcome_service_url missing.");
-		} else if (isEmpty(lisResultSourcedID)) {
-			return badRequest("lis_result_sourcedid missing.");
-		} else { // TODO: No cookies
-			response().setCookie(new Http.Cookie("lis_outcome_service_url", lisOutcomeServiceURL,
-		                 null, null, null, false, false));
-			response().setCookie(new Http.Cookie("lis_result_sourcedid", URLEncoder.encode(lisResultSourcedID,"UTF-8"),
-		                 null, null, null, false, false));
-		}
 
-		String userID = getParam(postParams, "custom_canvas_user_id"); 
+    	String userID = getParam(postParams, "custom_canvas_user_id"); 
 		if (userID == null) userID = getParam(postParams, "user_id");
 		if (isEmpty(userID)) return badRequest("No user id");
 		Logger.info("User ID: " + userID);
@@ -151,9 +141,19 @@ public class HomeController extends Controller {
 			else 
 				return badRequest("No assignment id and no assignment with context_id " + contextID + ", resource_link_id " + resourceLinkID + "");
 		}
-		else // TODO: Why redirect???
-			// return redirect(controllers.routes.HomeController.getAssignment(role, Long.parseLong(assignmentId), userID));
-			return getAssignment(role, Long.parseLong(assignmentID), userID, lisOutcomeServiceURL, lisResultSourcedID);
+		
+		if (isEmpty(lisOutcomeServiceURL)) {
+          	return badRequest("lis_outcome_service_url missing.");
+		} else if (isEmpty(lisResultSourcedID)) {
+			return badRequest("lis_result_sourcedid missing.");
+		} else { // TODO: No cookies
+			response().setCookie(new Http.Cookie("lis_outcome_service_url", lisOutcomeServiceURL,
+		                 null, null, null, false, false));
+			response().setCookie(new Http.Cookie("lis_result_sourcedid", URLEncoder.encode(lisResultSourcedID,"UTF-8"),
+		                 null, null, null, false, false));
+		}
+
+		return getAssignment(role, Long.parseLong(assignmentID), userID, lisOutcomeServiceURL, lisResultSourcedID);
  	}
 
 	public Result createAssignment() {		
