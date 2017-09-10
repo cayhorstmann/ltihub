@@ -135,8 +135,10 @@ public class HomeController extends Controller {
 	    	if (assignments.size() == 1) assignmentID = "" + assignments.get(0).getAssignmentId();
 	    }
 		
+	    boolean instructor = isInstructor(role); 
+	    
 		if (assignmentID == null) {
-			if (isInstructor(role))		
+			if (instructor)		
 				return ok(create_exercise.render(contextID, resourceLinkID, toolConsumerInstanceGuID, launchPresentationReturnURL));
 			else 
 				return badRequest("No assignment id and no assignment with context_id " + contextID + ", resource_link_id " + resourceLinkID + "");
@@ -144,7 +146,7 @@ public class HomeController extends Controller {
 		
 		if (isEmpty(lisOutcomeServiceURL)) {
           	return badRequest("lis_outcome_service_url missing.");
-		} else if (isEmpty(lisResultSourcedID)) {
+		} else if (!instructor && isEmpty(lisResultSourcedID)) {
 			return badRequest("lis_result_sourcedid missing.");
 		} else { // TODO: No cookies
 			response().setCookie(new Http.Cookie("lis_outcome_service_url", lisOutcomeServiceURL,
