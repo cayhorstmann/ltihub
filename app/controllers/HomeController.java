@@ -151,7 +151,7 @@ public class HomeController extends Controller {
 		} else { // TODO: No cookies
 			response().setCookie(new Http.Cookie("lis_outcome_service_url", lisOutcomeServiceURL,
 		                 null, null, null, false, false));
-			response().setCookie(new Http.Cookie("lis_result_sourcedid", URLEncoder.encode(lisResultSourcedID,"UTF-8"),
+			if (lisResultSourcedID != null) response().setCookie(new Http.Cookie("lis_result_sourcedid", URLEncoder.encode(lisResultSourcedID,"UTF-8"),
 		                 null, null, null, false, false));
 		}
 
