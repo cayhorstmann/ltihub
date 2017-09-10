@@ -63,7 +63,7 @@ public class DataProvider {
             String content = submission.getContent();
             if (content != null && content.length() != 0 && !"\"\"".equals(content)) {
             	if (result.length() > 1) result.append(",");            
-            	result.append(content != null && content.startsWith("\"") ? content : Json.toJson(content));
+            	    result.append(content.startsWith("\"") ? content : Json.toJson(content));
             }
         }
         result.append("]");
