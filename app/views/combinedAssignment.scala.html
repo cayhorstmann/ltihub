@@ -42,7 +42,10 @@
                                     state = applyEditScript(state, stateEditScripts[i]);
                                 } catch (e) {
                                     prompt("Error:", "State is corrupted: " + e + "\n" +
-                                            "State was: " + state);
+                                            "Problem ID was: @problem.getProblemId()" + "\n" +
+                                            "User ID was: @userID" + "\n" +
+                                            "State was: " + state + "\n" +
+                                            "Edit script that caused corruption was: " + stateEditScripts[i]);
                                 }
                             }
 
@@ -58,11 +61,13 @@
                             iframe.contentWindow.postMessage({query: 'restoreState', state: JSON.parse(state)}, '*');
                         } catch (e) {
                             prompt("Error", "Error getting problem contents: " + e + "\n" +
-                                            "State edit scripts were: " + msg);
+                                    "Problem ID was: @problem.getProblemId()" + "\n" +
+                                    "User ID was: @userID" + "\n" +
+                                    "State edit scripts were: " + msg);
                         }
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
-                        alert("Error getting problem contents: " + JSON.stringify(XMLHttpRequest));
+                        alert("Error getting problem contents: " + JSON.stringify(XMLHttpRequest) +);
                     }
                 });
 
@@ -118,7 +123,12 @@
                         response.html(msg);
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
-                        prompt("Error:", "Error saving work: " + JSON.stringify(XMLHttpRequest));
+                        prompt("Error:", "Error saving work: " + JSON.stringify(XMLHttpRequest) + "\n" +
+                        "Problem ID was: " + problemId + "\n" +
+                        "User ID was: @userID" + "\n" +
+                        "Score was: " + currentScoreString + "\n" +
+                        "Previous state was: " + previousStateString + "\n" +
+                        "Current state was: " + currentStateString + "\n");
                     }
                 });
             }
@@ -146,7 +156,7 @@
             		user: "@userID",
             		lis_outcome_service_url: "@lisOutcomeServiceURL",
             		lis_result_sourcedid: "@lisResultSourcedID"
-            	}
+            	};
             	$.ajax({
                     url: '@preFix/sendScore',
                     method: 'POST',
@@ -161,7 +171,12 @@
                         }, 5000);
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
-                        alert("Error saving work: " + JSON.stringify(XMLHttpRequest));
+                        prompt("Error:", "Error saving work: " + JSON.stringify(XMLHttpRequest) + "\n" +
+                        "Problem ID was: " + problemId + "\n" +
+                        "User ID was: @userID" + "\n" +
+                        "Score was: " + currentScoreString + "\n" +
+                        "Previous state was: " + previousStateString + "\n" +
+                        "Current state was: " + currentStateString + "\n");
                     }
                 });            	
             }, 1000)
