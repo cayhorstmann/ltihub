@@ -118,7 +118,7 @@ public class GradeSubmitterController extends Controller {
             passbackGradeToLMS(outcomeServiceUrl, xmlString,
                     "fred", "fred"); // TODO
         } catch (Exception e) {
-            Logger.info(e.getMessage());
+            Logger.info(Util.getStackTrace(e));
             return badRequest(e.getMessage());
         }
         return ok("Grade saved in gradebook. You achieved " + (int) Math.round(100 * score) + "% of the total score.");
@@ -197,7 +197,7 @@ public class GradeSubmitterController extends Controller {
 			InputStream in = request.getInputStream();
 			String body = org.apache.commons.io.IOUtils.toString(in);
 			Logger.info("Response body received from LMS: " + body);
-		} catch (Exception e) {
+		} catch (Exception e) {			
 			InputStream in = request.getErrorStream();
 			String body = org.apache.commons.io.IOUtils.toString(in);
 			Logger.info("Response error received from LMS: " + body);

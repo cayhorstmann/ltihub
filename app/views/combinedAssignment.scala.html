@@ -136,14 +136,18 @@
 
         // All the iframes report their score with a post message, this function handles those messages
         function receiveMessage(event) {
-            console.log("receiveMessage.event=" + JSON.stringify(event));
-            if (event.data.request === undefined)
-                return;
-
-            const problemId = event.data.request.problemId;
-            const score = event.data.score;
-            const state = event.data.state;
-            sendStateEditScriptToServer(problemId, score, state);
+          if (event.data.request) { // It's a response
+            if (event.data.request.query === 'docHeight') {
+              const newHeight = event.data.docHeight + 200;
+              $('#' + event.data.request.id).height(newHeight)
+            }
+            else if (event.data.request.query === 'getContent') {
+              const problemId = event.data.request.problemId;
+              const score = event.data.score;
+              const state = event.data.state;
+              sendStateEditScriptToServer(problemId, score, state);
+            } 
+          }
         }
 
         // Save work and report score
@@ -185,6 +189,15 @@
         window.addEventListener("message", receiveMessage, false);
 
         window.onload = restoreStatesOfProblems;
+
+        $(document).ready(function() {    
+          $('iframe').each(function(i, e) {
+            $(e).load(function() {
+              e.contentWindow.postMessage({query: 'docHeight', id: $(e).attr('id')}, '*')
+           })
+         })
+       })
+        
 </script>
 
 @* Timed assignment specific code *@

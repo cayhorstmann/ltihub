@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import models.Problem;
 import models.Submission;
+import models.Util;
 import play.Logger;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -80,7 +81,7 @@ public class SubmissionController extends Controller {
         } catch (Exception ex) {
             Logger.error("Submission failed.");
             Logger.error("Received problem content: " + Json.stringify(problemContent));
-            ex.printStackTrace();
+            Logger.info(Util.getStackTrace(ex));
             return badRequest("Received problem content: " + Json.stringify(problemContent) + "\n" +
                     "Exception message: " + ex.getMessage());
         }
