@@ -48,12 +48,6 @@ public class HomeController extends Controller {
 		return str == null || str.trim().length() == 0 || str.trim().equals("null");		
 	}
 	
-	private static String getStackTrace(Throwable t) {
-		StringWriter out = new StringWriter();
-		t.printStackTrace(new PrintWriter(out));
-		return out.toString();
-	}	
-
 	private static String httpPost(String urlString, Map<String, String> postData) {
 		StringBuilder result = new StringBuilder();
 		try {
@@ -89,7 +83,7 @@ public class HomeController extends Controller {
 			    }
 			}			
 		} catch (Throwable ex) {
-			result.append(getStackTrace(ex));
+			result.append(Util.getStackTrace(ex));
 		}
 		return result.toString();		
 	}
