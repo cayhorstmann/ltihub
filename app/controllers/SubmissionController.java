@@ -18,7 +18,7 @@ public class SubmissionController extends Controller {
     // Method to save problem submission that is sent back from codecheck server
 	// TODO: add params to JSON
     public Result addSubmission(Long assignmentID, String userID) {
-        Logger.info("SubmissionController.addSubmission");
+        Logger.info("SubmissionController.addSubmission AssignmentID: " + assignmentID + " UserID: " + userID);
 
         JsonNode problemContent = request().body().asJson();
         if (problemContent == null)
@@ -27,7 +27,6 @@ public class SubmissionController extends Controller {
         Logger.info("params: " + Json.stringify(problemContent));
 
         try {
-            Logger.info("AssignmentID: " + assignmentID + " UserID: " + userID);
 
             /*
              The script that will change the previously submitted state to the current state.
@@ -42,11 +41,10 @@ public class SubmissionController extends Controller {
                 "11,1|1,4| 1,1,i8,18,, I am a computer."
               */
             String stateEditScript = problemContent.get("stateEditScript").textValue();
-            String previousHash = problemContent.get("previousHash").textValue();
+            JsonNode previousHashNode = problemContent.get("previousHash"); 
+            String previousHash = previousHashNode == null ? "" : previousHashNode.textValue();
 
             Problem problem = Ebean.find(Problem.class, problemContent.get("problemId").asLong(-1L));
-            Logger.info("Problem: " + problem.getProblemId());
-
             JsonNode score = problemContent.get("score");
 
             Submission submission = new Submission();
@@ -76,11 +74,8 @@ public class SubmissionController extends Controller {
             String response = String.format("Saved %s. Highest recorded score: %.1f%%", 
             		submission.getSubmittedAt(), 100 * maxScore);
             Logger.info(response);
-
             return ok(response);
         } catch (Exception ex) {
-            Logger.error("Submission failed.");
-            Logger.error("Received problem content: " + Json.stringify(problemContent));
             Logger.info(Util.getStackTrace(ex));
             return badRequest("Received problem content: " + Json.stringify(problemContent) + "\n" +
                     "Exception message: " + ex.getMessage());

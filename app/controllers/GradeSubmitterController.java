@@ -32,7 +32,7 @@ import models.*;
 
 public class GradeSubmitterController extends Controller {
 
-	private final WSClient ws;
+	private final WSClient ws; // TODO: Why?
 
 	@Inject
 	public GradeSubmitterController(WSClient ws) {
@@ -42,8 +42,9 @@ public class GradeSubmitterController extends Controller {
 	public Result submitGradeToLMS() throws UnsupportedEncodingException {
         JsonNode params = request().body().asJson();
         if (params == null) {
-        	Logger.info("GradeSubmitterController.submitGradeToLMS Expected JSON data. Received: " + request());
-            return badRequest("Expected JSON data. Received: " + request());
+        	String result = "Expected JSON data. Received: " + request();
+        	Logger.info("GradeSubmitterController.submitGradeToLMS " + result);
+            return badRequest(result);
         }
 		Logger.info("GradeSubmitterController.submitGradeToLMS params: " + Json.stringify(params));
 
@@ -54,7 +55,9 @@ public class GradeSubmitterController extends Controller {
 		
         if (outcomeServiceUrl == null || outcomeServiceUrl.equals("")
                 || sourcedId == null || sourcedId.equals("")) {
-            return badRequest("Missing lis_outcome_service_url or lis_result_sourcedid");
+        	String result = "Missing lis_outcome_service_url or lis_result_sourcedid";
+        	Logger.info(result);
+            return badRequest(result);
         }
 	
 		double score = 0.0;
@@ -105,8 +108,6 @@ public class GradeSubmitterController extends Controller {
 	       score = score / problems.size();
 	    */			
 		
-		Logger.info("score: " + score);        
-
         try {
     		String xmlString1 = "<?xml version = \"1.0\" encoding = \"UTF-8\"?> <imsx_POXEnvelopeRequest xmlns = \"http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0\"> <imsx_POXHeader> <imsx_POXRequestHeaderInfo> <imsx_version>V1.0</imsx_version> <imsx_messageIdentifier>12341234</imsx_messageIdentifier> </imsx_POXRequestHeaderInfo> </imsx_POXHeader> <imsx_POXBody> <replaceResultRequest> <resultRecord> <sourcedGUID> <sourcedId>";
     		String xmlString2 = "</sourcedId> </sourcedGUID> <result> <resultScore> <language>en</language> <textString>";
@@ -118,10 +119,13 @@ public class GradeSubmitterController extends Controller {
             passbackGradeToLMS(outcomeServiceUrl, xmlString,
                     "fred", "fred"); // TODO
         } catch (Exception e) {
+    		Logger.info("score: " + score);        
             Logger.info(Util.getStackTrace(e));
             return badRequest(e.getMessage());
         }
-        return ok("Grade saved in gradebook. You achieved " + (int) Math.round(100 * score) + "% of the total score.");
+        String result = "Grade saved in gradebook. You achieved " + (int) Math.round(100 * score) + "% of the total score.";
+        Logger.info(result);
+        return ok(result);
     }
 
 	/**
@@ -175,14 +179,11 @@ public class GradeSubmitterController extends Controller {
         //params.put("realm", gradePassbackURL); // http://zewaren.net/site/?q=node/123
         consumer.setAdditionalParameters(params);
         
-		// Logger.info("Request before signing: {}", request.getRequestProperties().toString());
-
-		// Sign the request per the oauth 1.0 spec
 		consumer.sign(request); // Throws OAuthMessageSignerException,
 				// OAuthExpectationFailedException,
 				// OAuthCommunicationException		
-		Logger.info("Request after signing: {}", consumer.getRequestParameters());
-		Logger.info("XML: {}", xml);
+		// Logger.info("Request after signing: {}", consumer.getRequestParameters());
+		// Logger.info("XML: {}", xml);
 
 
 		// POST the xml to the grade passback url
