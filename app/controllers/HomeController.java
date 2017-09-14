@@ -97,13 +97,13 @@ public class HomeController extends Controller {
     
     public Result index() throws UnsupportedEncodingException {    
 	 	Map<String, String[]> postParams = request().body().asFormUrlEncoded();
-	 	if (postParams == null)
-	 		return badRequest("Post params missing." + "\n" +
-								"Request body: " + request().body().asText());
+	 	if (postParams == null) {
+	 		String result = "Post params missing. Request body: " + request().body().asText();
+	 		Logger.info("HomeController.index: " + result);
+	 		return badRequest(result);
+	 	}
 
-	 	Logger.info("HomeController.index: ");
-    	for (String key : postParams.keySet())
-    		Logger.info(key + ": " + Arrays.toString(postParams.get(key)));
+	 	Logger.info("HomeController.index: " + Util.paramsToString(postParams));
 
     	String lisOutcomeServiceURL = getParam(postParams, "lis_outcome_service_url");
     	String lisResultSourcedID = getParam(postParams, "lis_result_sourcedid");
@@ -111,7 +111,6 @@ public class HomeController extends Controller {
     	String userID = getParam(postParams, "custom_canvas_user_id"); 
 		if (userID == null) userID = getParam(postParams, "user_id");
 		if (isEmpty(userID)) return badRequest("No user id");
-		Logger.info("User ID: " + userID);
 
 		String contextID = getParam(postParams, "context_id");
 		String resourceLinkID = getParam(postParams, "resource_link_id");
@@ -125,7 +124,6 @@ public class HomeController extends Controller {
 	    			.eq("context_id", contextID)
 	    			.eq("resource_link_id", resourceLinkID)
 	    			.findList();
-	    	Logger.info("id empty, looking for assignment with context_id " + contextID + ", resource_link_id " + resourceLinkID + ", found " + assignments.size());
 	    	if (assignments.size() == 1) assignmentID = "" + assignments.get(0).getAssignmentId();
 	    }
 		
@@ -134,20 +132,23 @@ public class HomeController extends Controller {
 		if (assignmentID == null) {
 			if (instructor)		
 				return ok(create_exercise.render(contextID, resourceLinkID, toolConsumerInstanceGuID, launchPresentationReturnURL));
-			else 
-				return badRequest("No assignment id and no assignment with context_id " + contextID + ", resource_link_id " + resourceLinkID + "");
+			else {
+				String result = "No assignment id and no assignment with context_id " + contextID + ", resource_link_id " + resourceLinkID;
+				Logger.info(result);
+				return badRequest(result);
+			}
 		}
 		
 		if (isEmpty(lisOutcomeServiceURL)) {
           	return badRequest("lis_outcome_service_url missing.");
 		} else if (!instructor && isEmpty(lisResultSourcedID)) {
 			return badRequest("lis_result_sourcedid missing.");
-		} else { // TODO: No cookies
+		}  else { // TODO: Eliminate 
 			response().setCookie(new Http.Cookie("lis_outcome_service_url", lisOutcomeServiceURL,
 		                 null, null, null, false, false));
 			if (lisResultSourcedID != null) response().setCookie(new Http.Cookie("lis_result_sourcedid", URLEncoder.encode(lisResultSourcedID,"UTF-8"),
 		                 null, null, null, false, false));
-		}
+		} 
 
 		return getAssignment(role, Long.parseLong(assignmentID), userID, lisOutcomeServiceURL, lisResultSourcedID);
  	}
@@ -204,7 +205,6 @@ public class HomeController extends Controller {
 		else
     	   assignment.setDuration(Long.parseLong(duration));
 		assignment.save();
-		Logger.info(problemlist);
    
         addNewProblemsFromFormSubmission(problemlist, assignment);
 
@@ -304,14 +304,11 @@ public class HomeController extends Controller {
 	    Map<String, String[]> postParams = request().body().asFormUrlEncoded();
 	 	String problemUrls = getParam(postParams, "url");
         Assignment assignment = Ebean.find(Assignment.class, assignmentId);
-        Logger.info("New Problem Submission URLs: " + problemUrls);
         addNewProblemsFromFormSubmission(problemUrls, assignment);
         List<Problem> problems = assignment.getProblems();
 
-	    Http.Cookie launchReturnUrlCookie = request().cookie("launch_presentation_return_url");
+	    Http.Cookie launchReturnUrlCookie = request().cookie("launch_presentation_return_url"); // TODO: Eliminate
 	    String returnUrl = launchReturnUrlCookie.value();
-	    Logger.info("ReturnURL is: " + returnUrl);
-        //TODO: Check
 	    String assignmentURL = "https://" + request().host() + getPrefix() + "/assignment?id=" + assignmentId;
         return ok(showassignment.render(returnUrl, getParams(returnUrl), problems, assignmentURL));
 	}
