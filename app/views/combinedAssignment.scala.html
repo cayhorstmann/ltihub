@@ -44,8 +44,9 @@
                     $.ajax({
                         url: '@services.routes.DataProvider.getSubmissions(problem.getProblemId(), userID)',
                         method: 'GET',
-                        success: function (submissions) {
+                        success: function (msg) {
                             try {
+                                var submissions = msg;
                                 if (submissions.length <= 0)
                                     return;
 
@@ -117,7 +118,7 @@
                                 prompt("Error", "Error getting problem contents: " + e + "\n" +
                                         "Problem ID was: @problem.getProblemId()" + "\n" +
                                         "User ID was: @userID" + "\n" +
-                                        "Submissions were: " + JSON.stringify(submissions));
+                                        "Submissions were: " + JSON.stringify(msg));
                             }
                         },
                         error: function(XMLHttpRequest, textStatus, errorThrown) {
@@ -194,7 +195,7 @@
             function updateHighestScoreDisplay(problemId, submission) {
                 var highestScoreEl = document.getElementById('highestScore-' + problemId);
                 highestScoreEl.innerHTML = "<p>Submission saved at: " + new Date(submission.submittedAt) +
-                        " | Highest recorded score: <b>" + (submission.correct / submission.maxscore) * 100.0 + "%</b></p>"
+                        " | Highest recorded score: <b>" + ((submission.correct / submission.maxscore) * 100.0) + "%</b></p>"
             }
 
             // All the iframes report their score with a post message, this function handles those messages

@@ -54,8 +54,10 @@
                     $.ajax({
                         url: '@services.routes.DataProvider.getSubmissions(problem.getProblemId(), "")' + userId,
                         method: 'GET',
-                        success: function (submissions) {
+                        success: function (msg) {
                             try {
+                                var submissions = msg;
+                                
                                 // Find the state edit scripts
                                 var stateEditScriptsStack = [];
                                 var previousSubmission;
