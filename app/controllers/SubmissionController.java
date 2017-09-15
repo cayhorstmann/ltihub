@@ -77,7 +77,7 @@ public class SubmissionController extends Controller {
             responseMap.put("submissionId", submission.getSubmissionId());
             responseMap.put("submittedAt", submission.getSubmittedAt());
             responseMap.put("correct", highestScore);
-            responseMap.put("maxScore", 1.0);
+            responseMap.put("maxscore", 1.0);
             responseMap.put("content", submission.getContent());
             responseMap.put("previous", submission.getPrevious());
 
