@@ -116,7 +116,7 @@
                                 prompt("Error", "Error getting problem contents: " + e + "\n" +
                                         "Problem ID was: @problem.getProblemId()" + "\n" +
                                         "User ID was: @userID" + "\n" +
-                                        "State edit scripts were: " + msg);
+                                        "Submissions were: " + JSON.stringify(submissions));
                             }
                         },
                         error: function(XMLHttpRequest, textStatus, errorThrown) {
