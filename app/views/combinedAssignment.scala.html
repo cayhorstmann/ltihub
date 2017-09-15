@@ -182,7 +182,7 @@
                             prompt("Error:", "Error saving work: " + JSON.stringify(XMLHttpRequest) + "\n" +
                             "Problem ID was: " + problemId + "\n" +
                             "User ID was: @userID" + "\n" +
-                            "Score was: " + currentScoreString + "\n" +
+                            "Score was: " + JSON.stringify(score) + "\n" +
                             "Previous state was: " + previousStateString + "\n" +
                             "Current state was: " + currentStateString + "\n");
                         }
@@ -238,12 +238,9 @@
                             }, 5000);
                         },
                         error: function(XMLHttpRequest, textStatus, errorThrown) {
-                            prompt("Error:", "Error saving work: " + JSON.stringify(XMLHttpRequest) + "\n" +
-                            "Problem ID was: " + problemId + "\n" +
-                            "User ID was: @userID" + "\n" +
-                            "Score was: " + currentScoreString + "\n" +
-                            "Previous state was: " + previousStateString + "\n" +
-                            "Current state was: " + currentStateString + "\n");
+                            prompt("Error:", "Error submitting grades: " + JSON.stringify(XMLHttpRequest) + "\n" +
+                            "Assignment ID was: " + @assignmentID + "\n" +
+                            "User ID was: " + @userID);
                         }
                     });
                 }, 1000)
