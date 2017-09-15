@@ -68,7 +68,7 @@ public class DataProvider {
             submissionValues.put("submissionId", submission.getSubmissionId());
             submissionValues.put("submittedAt", submission.getSubmittedAt());
             submissionValues.put("correct", submission.getCorrect());
-            submissionValues.put("maxScore", submission.getMaxScore());
+            submissionValues.put("maxscore", submission.getMaxScore());
             submissionValues.put("previous", submission.getPrevious());
 
             // Some values are stringifed strings, but the client is expecting just the strings themselves
