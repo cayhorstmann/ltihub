@@ -52,7 +52,7 @@
                                 // Find the state edit scripts and highest score
                                 var stateEditScriptsStack = [];
                                 var bestSubmission = submissions[submissions.length - 1];
-                                var previousSubmission;
+                                var previousSubmission = submissions[submissions.length - 1].previous;
                                 while (submissions.length > 0) {
                                     var submission = submissions.pop();
 
@@ -61,7 +61,7 @@
                                      If a submission's previous property is not a number, then automatically accept it
                                       */
                                     if (!submission.previous || isNaN(submission.previous) ||
-                                            (previousSubmission && submission.submissionId === previousSubmission)) {
+                                            (submission.submissionId === previousSubmission)) {
                                         stateEditScriptsStack.push(submission.content);
                                         previousSubmission = submission.previous;
 
