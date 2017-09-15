@@ -249,7 +249,7 @@
 
             window.addEventListener("message", receiveMessage, false);
 
-            $(document).ready(restoreStatesOfProblems);
+            window.onload = restoreStatesOfProblems;
 
             $(document).ready(function() {
               $('iframe').each(function(i, e) {
