@@ -60,7 +60,7 @@
                                      The newer submissions should have a number as the previous property
                                      If a submission's previous property is not a number, then automatically accept it
                                       */
-                                    if (!submission.previous || isNaN(submission.previous)
+                                    if (!submission.previous || isNaN(submission.previous) ||
                                             (previousSubmission && submission.submissionId === previousSubmission)) {
                                         stateEditScriptsStack.push(submission.content);
                                         previousSubmission = submission.previous;
