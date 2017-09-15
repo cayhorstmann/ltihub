@@ -45,16 +45,17 @@
                         url: '@services.routes.DataProvider.getSubmissions(problem.getProblemId(), userID)',
                         method: 'GET',
                         success: function (submissions) {
-                            console.log(submissions.length);
                             try {
                                 if (submissions.length <= 0)
                                     return;
+
                                 // Find the state edit scripts and highest score
                                 var stateEditScriptsStack = [];
                                 var bestSubmission;
                                 var previousSubmission;
                                 while (submissions.length > 0) {
                                     var submission = submissions.pop();
+                                    console.log(submission);
 
                                     /*
                                      The newer submissions should have a number as the previous property
