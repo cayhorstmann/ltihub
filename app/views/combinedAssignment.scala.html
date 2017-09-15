@@ -45,7 +45,7 @@
                         url: '@services.routes.DataProvider.getSubmissions(problem.getProblemId(), userID)',
                         method: 'GET',
                         success: function (submissions) {
-                            console.log(submissions);
+                            console.log(submissions.length);
                             try {
                                 if (submissions.length <= 0)
                                     return;
