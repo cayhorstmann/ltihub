@@ -68,7 +68,7 @@
                                         var scorePercent = (submission.correct / submission.maxscore) * 100.0;
                                         var highestScorePercent = bestSubmission ?
                                                 (bestSubmission.correct / bestSubmission.maxscore) * 100.0 : 0.0;
-                                        if (scorePercent > highestScorePercent) {
+                                        if (scorePercent >= highestScorePercent) {
                                             bestSubmission = submission;
                                         }
                                     }
