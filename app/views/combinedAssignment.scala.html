@@ -55,7 +55,6 @@
                                 var previousSubmission;
                                 while (submissions.length > 0) {
                                     var submission = submissions.pop();
-                                    console.log(submission);
 
                                     /*
                                      The newer submissions should have a number as the previous property
@@ -75,6 +74,7 @@
                                     }
                                 }
 
+                                console.log(bestSubmission);
                                 updateHighestScoreDisplay(@problem.getProblemId(), bestSubmission);
 
                                 // Build the state from the edit scripts and store each version in the map
