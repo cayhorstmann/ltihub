@@ -193,7 +193,6 @@
 
             // Update the highest score element to display the score from the given submission
             function updateHighestScoreDisplay(problemId, submission) {
-                console.log(submission);
                 var highestScoreEl = document.getElementById('highestScore-' + problemId);
                 highestScoreEl.innerHTML = "<p>Submission saved at: " + new Date(submission.submittedAt) +
                         " | Highest recorded score: <b>" + ((submission.correct / submission.maxscore) * 100.0) + "%</b></p>"
