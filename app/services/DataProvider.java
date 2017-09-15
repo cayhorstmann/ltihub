@@ -2,6 +2,7 @@ package services;
 
 
 import com.avaje.ebean.Ebean;
+import com.avaje.ebean.Query;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import models.Assignment;
@@ -44,30 +45,65 @@ public class DataProvider {
     }
 
     /**
-     * Provides contents from all of the submissions for a given problem id and user id
+     * Provides all of the submissions for a given problem id and user id
      * @param problemId the id of the problem to find the submissions for
      * @param studentId the id of the user to find the submissions for
-     * @return a stringified json object with contents from all of the submissions for a given problem id and user id
+     * @return a stringified json object with the properties:
+     * <code>
+     *     submissionId, submittedAt, correct, maxscore, content, previous
+     * </code>
      */
-    public Result getSubmissionContent(Long problemId, String studentId) {
+    public Result getSubmissions(Long problemId, String studentId) {
         List<Submission> submissions = Ebean.find(Submission.class)
-        		.select("content")
-        		.where()
-        		.eq("problem.problemId", problemId)
-        		.eq("studentId", studentId)
-        		.orderBy("submissionId")
-        		.findList();
+                .select("submissionId, submittedAt, correct, maxscore, content, previous")
+                .where()
+                .eq("problem.problemId", problemId)
+                .eq("studentId", studentId)
+                .orderBy("submissionId")
+                .findList();
 
-        StringBuilder result = new StringBuilder("[");
+        List<JsonNode> submissionsJsonList = new ArrayList<>();
         for (Submission submission: submissions) {
-            String content = submission.getContent();
-            if (content != null && content.length() != 0 && !"\"\"".equals(content)) {
-            	if (result.length() > 1) result.append(",");            
-            	    result.append(content.startsWith("\"") ? content : Json.toJson(content));
-            }
+            Map<String, Object> submissionValues = new HashMap<>();
+            submissionValues.put("submissionId", submission.getSubmissionId());
+            submissionValues.put("submittedAt", submission.getSubmittedAt());
+            submissionValues.put("correct", submission.getCorrect());
+            submissionValues.put("maxScore", submission.getMaxScore());
+            submissionValues.put("previous", submission.getPrevious());
+
+            // Some values are stringifed strings, but the client is expecting just the strings themselves
+            submissionValues.put("content",
+                    submission.getContent().startsWith("\"") ?
+                            Json.parse(submission.getContent()) : submission.getContent()
+            );
+
+            submissionsJsonList.add(Json.toJson(submissionValues));
         }
-        result.append("]");
-        
-        return ok(result.toString());
+
+        return ok(Json.toJson(submissionsJsonList));
+    }
+
+    /**
+     * Provides the time of the first submission to the assignment with the given assignment ID
+     * by the student with the given student ID
+     * @param assignmentId the ID of the assignment to get the first submission time of
+     * @param studentId the ID of the student to find the first submission time for
+     * @return the time of the first submission to the assignment with the given assignment ID
+     * by the student with the given student ID
+     */
+    public Result getStartTimeInMilliseconds(Long assignmentId, String studentId) {
+        Submission firstSubmission = Ebean.find(Submission.class)
+                .select("submittedAt")
+                .where()
+                .eq("assignmentId", assignmentId)
+                .eq("studentId", studentId)
+                .orderBy("submissionId")
+                .setMaxRows(1)
+                .findUnique();
+
+        if (firstSubmission != null)
+            return ok(Json.toJson(firstSubmission.getSubmittedAt().getTime()));
+        else
+            return ok(Json.toJson((new Date()).getTime()));
     }
 }

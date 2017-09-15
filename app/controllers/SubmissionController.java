@@ -1,6 +1,8 @@
 package controllers;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.avaje.ebean.Ebean;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -41,7 +43,7 @@ public class SubmissionController extends Controller {
                 "11,1|1,4| 1,1,i8,18,, I am a computer."
               */
             String stateEditScript = problemContent.get("stateEditScript").textValue();
-            JsonNode previousHashNode = problemContent.get("previousHash"); 
+            JsonNode previousHashNode = problemContent.get("previousSubmissionId");
             String previousHash = previousHashNode == null ? "" : previousHashNode.textValue();
 
             Problem problem = Ebean.find(Problem.class, problemContent.get("problemId").asLong(-1L));
@@ -66,15 +68,21 @@ public class SubmissionController extends Controller {
         		.eq("problem.problemId", problem.getProblemId())
         		.eq("studentId", userID)
         		.findList();
-            double maxScore = 0;
+            double highestScore = 0;
             for (Submission s : submissions) {
-            	if (s.maxscore > 0) maxScore = Math.max(maxScore,  s.correct * 1.0 / s.maxscore);
+            	if (s.maxscore > 0) highestScore = Math.max(highestScore,  s.correct * 1.0 / s.maxscore);
             }
 
-            String response = String.format("Saved %s. Highest recorded score: %.1f%%", 
-            		submission.getSubmittedAt(), 100 * maxScore);
-            Logger.info(response);
-            return ok(response);
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("submissionId", submission.getSubmissionId());
+            responseMap.put("submittedAt", submission.getSubmittedAt());
+            responseMap.put("correct", highestScore);
+            responseMap.put("maxScore", 1.0);
+            responseMap.put("content", submission.getContent());
+            responseMap.put("previous", submission.getPrevious());
+
+            Logger.info("Saved submission: " + responseMap.toString());
+            return ok(Json.toJson(responseMap));
         } catch (Exception ex) {
             Logger.info(Util.getStackTrace(ex));
             return badRequest("Received problem content: " + Json.stringify(problemContent) + "\n" +

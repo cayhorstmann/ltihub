@@ -239,28 +239,11 @@ public class HomeController extends Controller {
 		Map<String, String[]> postParams = request().body().asFormUrlEncoded();
 	 	
 		Assignment assignment = Ebean.find(Assignment.class, assignmentId);
-
-        // Maps each problemId to the submission with the most correct for that problem for the given user ID
-        Map<Long, Submission> problemIdToSubmissionWithMostCorrect = new HashMap<>();
-
         Long duration = assignment.getDuration();
         List<Problem> problems = assignment.getProblems();
 
-        if(!isInstructor(role)) {
-        	for(Problem problem: problems){
-        		Optional<Submission> submissionStream = problem.getSubmissions().stream()
-                    .filter((submission) -> (submission.getStudentId().equals(userId)))
-                    .max((submission1, submission2) ->
-                            (submission1.getCorrect().compareTo(submission2.getCorrect())));
-
-        		if (submissionStream.isPresent())
-        			problemIdToSubmissionWithMostCorrect.put(
-                        problem.getProblemId(), submissionStream.get());
-        	}
-		}
-
         return ok(combinedAssignment.render(getPrefix(), assignmentId, userId, duration, isInstructor(role),
-            problems, problemIdToSubmissionWithMostCorrect, lisOutcomeServiceURL, lisResultSourcedID));
+            problems, lisOutcomeServiceURL, lisResultSourcedID));
     }
 
 	public Result getSubmissionViewer(Long assignmentId, String role) {
