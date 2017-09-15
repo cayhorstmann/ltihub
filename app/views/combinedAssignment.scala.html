@@ -51,8 +51,9 @@
 
                                 // Find the state edit scripts and highest score
                                 var stateEditScriptsStack = [];
-                                var bestSubmission = submissions[submissions.length - 1];
-                                var previousSubmission = submissions[submissions.length - 1].previous;
+                                var lastSubmission = submissions[submissions.length - 1]
+                                var bestSubmission = lastSubmission;
+                                var previousSubmission = lastSubmission.previous;
                                 while (submissions.length > 0) {
                                     var submission = submissions.pop();
 
@@ -102,7 +103,7 @@
 
                                 // Updates the previous version of the problem content so that we will know what changed
                                 problemIdToContent["@problem.getProblemId()"] = {
-                                    previousSubmissionId: submissions[submissions.length - 1].previous,
+                                    previousSubmissionId: lastSubmission.previous,
                                     score: {
                                         correct: bestSubmission.correct,
                                         maxscore: bestSubmission.maxscore,
