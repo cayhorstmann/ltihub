@@ -173,7 +173,10 @@
                         success: function (submission) {
                             problemIdToContent[problemId] = {
                                 previousSubmissionId: submission.submissionId,
-                                score: currentScorePercent,
+                                score: {
+                                    correct: currentScorePercent,
+                                    maxscore: 100
+                                },
                                 state: currentStateString
                             };
 
