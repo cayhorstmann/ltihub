@@ -1,267 +1,342 @@
 @import scala.collection.mutable.ListBuffer
 @(preFix: String, assignmentID: Long, userID: String, duration: Long, isInstructor: Boolean,
-        problems: List[Problem], problemIdToSubmissionWithMostCorrect: Map[Long, Submission],
-        lisOutcomeServiceURL: String, lisResultSourcedID: String)
+        problems: List[Problem], lisOutcomeServiceURL: String, lisResultSourcedID: String)
 
-<link rel="stylesheet" href="@routes.Assets.at("stylesheets/main.css")">
+<head>
+    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/main.css")">
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-<script src="@routes.Assets.at("javascripts/shortest-edit-script.js")"></script>
-<script src="@routes.Assets.at("javascripts/MD5.js")"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="@routes.Assets.at("javascripts/shortest-edit-script.js")"></script>
 
-@* Score and state handlers *@
-<script type="text/javascript">
-        /*
-         The states that the server currently has stored.
-         This is used to compute what has changed since the last time data was sent to the server, so that the server
-         only needs to store the changes every update instead of storing the whole state every update.
-         */
-        var problemIdToContent = {};
-
-        // Sends the states of the problems that were previously submitted to the problems to be restored
-        function restoreStatesOfProblems() {
-            @for(problem <- problems) {
-                problemIdToContent["@problem.getProblemId()"] = {};
-
-                // Get student's most recently submitted work as a series of changes
-                $.ajax({
-                    url: '@services.routes.DataProvider.getSubmissionContent(problem.getProblemId(), userID)',
-                    method: 'GET',
-                    success: function (msg) {
-                        try {
-                            var stateEditScripts = JSON.parse(msg);
-
-                            // Build the state from the edit scripts and store each version in the map
-                            var state = "";
-                            for (var i = 0; i < stateEditScripts.length; i++) {
-                                // Don't apply edit script if state didn't change
-                                if (!stateEditScripts[i])
-                                    continue;
-
-                                try {
-                                    state = applyEditScript(state, stateEditScripts[i]);
-                                } catch (e) {
-                                    prompt("Error:", "State is corrupted: " + e + "\n" +
-                                            "Problem ID was: @problem.getProblemId()" + "\n" +
-                                            "User ID was: @userID" + "\n" +
-                                            "State was: " + state + "\n" +
-                                            "Edit script that caused corruption was: " + stateEditScripts[i]);
-                                }
-                            }
-
-                            // If the state was empty, then don't try to restore it
-                            if (!state)
-                                return;
-
-                            // Updates the previous version of the problem content so that we will know what changed
-                            problemIdToContent["@problem.getProblemId()"] = {score: "", state: state};
-
-                            // Post message to iframe to populate the problem
-                            var iframe = document.getElementById('@problem.getProblemId()');
-                            iframe.contentWindow.postMessage({query: 'restoreState', state: JSON.parse(state)}, '*');
-                        } catch (e) {
-                            prompt("Error", "Error getting problem contents: " + e + "\n" +
-                                    "Problem ID was: @problem.getProblemId()" + "\n" +
-                                    "User ID was: @userID" + "\n" +
-                                    "State edit scripts were: " + msg);
-                        }
-                    },
-                    error: function(XMLHttpRequest, textStatus, errorThrown) {
-                        alert("Error getting problem contents: " + JSON.stringify(XMLHttpRequest));
-                    }
-                });
-
-            }
-
-
-            setInterval(updateStatesFromProblems, 10000);
-            // document.getElementById("saveMyWorkButton").disabled = false;
-        }
-
-        /*
-           Tell the iframes to report their state back.
-         */
-        function updateStatesFromProblems() {
-            $('.exercise-iframe').each(function(_, iframe) {
-                iframe.contentWindow.postMessage({query: 'getContent', problemId: iframe.id}, '*');
-            });
-        }
-
-        // If the state or the score changed since the last submission, then send the new state and score to the server
-        function sendStateEditScriptToServer(problemId, score, state) {
-            if (!problemIdToContent.hasOwnProperty(problemId))
-                return;
-
-            const previousScoreString = problemIdToContent[problemId].score !== undefined ?
-                    problemIdToContent[problemId].score : "";
-            const previousStateString = problemIdToContent[problemId].state !== undefined ?
-                    problemIdToContent[problemId].state : "";
-
-            const currentScoreString = score !== undefined ? JSON.stringify(score) : "";
-            const currentStateString = state !== undefined ? JSON.stringify(state) : "";
-
-            if (previousScoreString !== currentScoreString || previousStateString !== currentStateString) {
-                const data = {
-                    problemId: problemId,
-                    score: score,
-                    stateEditScript: shortestEditScript(previousStateString, currentStateString),
-                    previousHash: MD5(previousStateString)
-                };
-
-                $.ajax({
-                    url: '@preFix/submissions/@assignmentID/@userID',
-                    method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify(data),
-                    success: function (msg) {
-                        problemIdToContent[problemId] = {
-                            score: currentScoreString,
-                            state: currentStateString
-                        };
-
-                        var response = $("#highestScore-" + problemId)
-                        response.html(msg);
-                    },
-                    error: function(XMLHttpRequest, textStatus, errorThrown) {
-                        prompt("Error:", "Error saving work: " + JSON.stringify(XMLHttpRequest) + "\n" +
-                        "Problem ID was: " + problemId + "\n" +
-                        "User ID was: @userID" + "\n" +
-                        "Score was: " + currentScoreString + "\n" +
-                        "Previous state was: " + previousStateString + "\n" +
-                        "Current state was: " + currentStateString + "\n");
-                    }
-                });
-            }
-        }
-
-        // All the iframes report their score with a post message, this function handles those messages
-        function receiveMessage(event) {
-          if (event.data.request) { // It's a response
-            if (event.data.request.query === 'docHeight') {
-              const newHeight = event.data.docHeight + 200;
-              $('#' + event.data.request.id).height(newHeight)
-            }
-            else if (event.data.request.query === 'getContent') {
-              const problemId = event.data.request.problemId;
-              const score = event.data.score;
-              const state = event.data.state;
-              sendStateEditScriptToServer(problemId, score, state);
-            } 
-          }
-        }
-
-        // Save work and report score
-        function submitGrades() {
-            updateStatesFromProblems();
-            // setTimeout(location.href = "@preFix/send-score/@assignmentID/@userID", 1000);
-            setTimeout(function () {
-            	const data = {
-            		assignment: @assignmentID,
-            		user: "@userID",
-            		lis_outcome_service_url: "@lisOutcomeServiceURL",
-            		lis_result_sourcedid: "@lisResultSourcedID"
-            	};
-            	$.ajax({
-                    url: '@preFix/sendScore',
-                    method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify(data),
-                    success: function (msg) {
-                        var response = $("#response");
-                        response.html(msg);
-                        response.show();
-                        setTimeout(function () {
-                            response.hide();
-                        }, 5000);
-                    },
-                    error: function(XMLHttpRequest, textStatus, errorThrown) {
-                        prompt("Error:", "Error saving work: " + JSON.stringify(XMLHttpRequest) + "\n" +
-                        "Problem ID was: " + problemId + "\n" +
-                        "User ID was: @userID" + "\n" +
-                        "Score was: " + currentScoreString + "\n" +
-                        "Previous state was: " + previousStateString + "\n" +
-                        "Current state was: " + currentStateString + "\n");
-                    }
-                });            	
-            }, 1000)
-        }
-
-        window.addEventListener("message", receiveMessage, false);
-
-        window.onload = restoreStatesOfProblems;
-
-        $(document).ready(function() {    
-          $('iframe').each(function(i, e) {
-            $(e).load(function() {
-              e.contentWindow.postMessage({query: 'docHeight', id: $(e).attr('id')}, '*')
-           })
-         })
-       })
-        
-</script>
-
-@* Timed assignment specific code *@
-@if(duration != null && duration > 0L) {
+    @* Score and state handlers *@
     <script type="text/javascript">
-        const durationInMilliseconds = @duration * 60 * 1000;
-        const startTimeInMilliseconds = Date.now(); // TODO: Get this number from database
+            /*
+             The states that the server currently has stored.
+             This is used to compute what has changed since the last time data was sent to the server, so that the server
+             only needs to store the changes every update instead of storing the whole state every update.
+             */
+            var problemIdToContent = {};
 
-        const endTimeInMilliseconds = startTimeInMilliseconds + durationInMilliseconds;
+            // Sends the states of the problems that were previously submitted to the problems to be restored
+            function restoreStatesOfProblems() {
+                @for(problem <- problems) {
+                    problemIdToContent["@problem.getProblemId()"] = {};
 
-        function updateTimeLeftDisplay() {
-            var timeLeftObj = new Date();
-            timeLeftObj.setTime(endTimeInMilliseconds - timeLeftObj.getTime());
+                    /*
+                     Get student's submissions from server.
+                     Each submission has the properties: submissionId, submittedAt, correct, maxscore, content, and previous
+                     Content contains edit scripts that are used to build the state that the student had the problem in.
+                     Previous contains the submissionId of the previous submissionId to chain the edit scripts together
+                     in the correct order
+                        i.e.
+                            Suppose A, B, C, and D are submissionIds
+                            Submissions could be received like this:
+                                submissionId: A, previous: null,
+                                submissionId: B, previous: A,
+                                submissionId: C, previous: A,
+                                submissionId: D, prevoius: B
 
-            // Time is up, submit assignment
-            if (timeLeftObj.getTime() <= 0) {
-                submitGrades();
+                            This could happen if the student has two tabs open, and we want their latest changes,
+                            so we keep track of both chains of submissions, and take the latest submission and work
+                            backwards (D->B->A) to find the edit scripts, and then apply them (A->B->D) to rebuild the
+                            state.
+                      */
+                    $.ajax({
+                        url: '@services.routes.DataProvider.getSubmissions(problem.getProblemId(), userID)',
+                        method: 'GET',
+                        success: function (submissions) {
+                            try {
+                                if (submissions.length <= 0)
+                                    return;
+
+                                // Find the state edit scripts and highest score
+                                var stateEditScriptsStack = [];
+                                var bestSubmission;
+                                var previousSubmission;
+                                while (submissions.length > 0) {
+                                    var submission = submissions.pop();
+
+                                    /*
+                                     The newer submissions should have a number as the previous property
+                                     If a submission's previous property is not a number, then automatically accept it
+                                      */
+                                    if (!submission.previous || isNaN(submission.previous)
+                                            (previousSubmission && submission.submissionId === previousSubmission)) {
+                                        stateEditScriptsStack.push(submission.content);
+                                        previousSubmission = submission.previous;
+
+                                        var scorePercent = (submission.correct / submission.maxscore) * 100.0;
+                                        var highestScorePercent = bestSubmission ?
+                                                (bestSubmission.correct / bestSubmission.maxscore) * 100.0 : 0.0;
+                                        if (scorePercent > highestScorePercent) {
+                                            bestSubmission = submission;
+                                        }
+                                    }
+                                }
+
+                                updateHighestScoreDisplay(@problem.getProblemId(), bestSubmission);
+
+                                // Build the state from the edit scripts and store each version in the map
+                                var state = "";
+                                while (stateEditScriptsStack.length > 0) {
+                                    var editScript = stateEditScriptsStack.pop();
+
+                                    // Don't apply edit script if state didn't change
+                                    if (!editScript)
+                                        continue;
+
+                                    try {
+                                        state = applyEditScript(state, editScript);
+                                    } catch (e) {
+                                        prompt("Error:", "State is corrupted: " + e + "\n" +
+                                                "Problem ID was: @problem.getProblemId()" + "\n" +
+                                                "User ID was: @userID" + "\n" +
+                                                "State was: " + state + "\n" +
+                                                "Edit script that caused corruption was: " + editScript);
+                                    }
+                                }
+
+                                // If the state was empty, then don't try to restore it
+                                if (!state)
+                                    return;
+
+                                // Updates the previous version of the problem content so that we will know what changed
+                                problemIdToContent["@problem.getProblemId()"] = {
+                                    previousSubmissionId: submissions[submissions.length - 1].previousSubmissionId
+                                    score: {
+                                        correct: bestSubmission.correct,
+                                        maxscore: bestSubmission.maxscore,
+                                    },
+                                    state: state};
+
+                                // Post message to iframe to populate the problem
+                                var iframe = document.getElementById('@problem.getProblemId()');
+                                iframe.contentWindow.postMessage({query: 'restoreState', state: JSON.parse(state)}, '*');
+                            } catch (e) {
+                                prompt("Error", "Error getting problem contents: " + e + "\n" +
+                                        "Problem ID was: @problem.getProblemId()" + "\n" +
+                                        "User ID was: @userID" + "\n" +
+                                        "State edit scripts were: " + msg);
+                            }
+                        },
+                        error: function(XMLHttpRequest, textStatus, errorThrown) {
+                            alert("Error getting problem contents: " + JSON.stringify(XMLHttpRequest));
+                        }
+                    });
+
+                }
+
+
+                setInterval(updateStatesFromProblems, 10000);
+                // document.getElementById("saveMyWorkButton").disabled = false;
             }
 
-            /*
-            All hours and days will be put into minutes
-            i.e. two hours and 30 minutes will turn into 150 minutes
-             */
-            const timeLeftMin = Math.floor((timeLeftObj.getTime() / 1000) / 60);
-            const timeLeftSec = timeLeftObj.getSeconds();
+            // Tell the iframes to report their state back.
+            function updateStatesFromProblems() {
+                $('.exercise-iframe').each(function(_, iframe) {
+                    iframe.contentWindow.postMessage({query: 'getContent', problemId: iframe.id}, '*');
+                });
+            }
 
-            var timeLeftEl = document.getElementById('timeLeft');
+            // If the state or the score changed since the last submission, then send the new state and score to the server
+            function sendScoreAndStateEditScriptToServer(problemId, score, state) {
+                if (!problemIdToContent.hasOwnProperty(problemId))
+                    return;
 
-            timeLeftEl.innerHTML = "Time Left: " + timeLeftMin + ":" + timeLeftSec;
-        }
+                const previousScorePercent = problemIdToContent[problemId].score ?
+                        problemIdToContent[problemId].score : 0.0;
+                const currentScorePercent = score && score.correct && score.maxscore ?
+                        (score.correct / score.maxscore) * 100.0 : 0.0;
 
-        updateTimeLeftDisplay();
-        setInterval(updateTimeLeftDisplay, 1000);
+                const previousStateString = problemIdToContent[problemId].state ?
+                        problemIdToContent[problemId].state : "";
+                const currentStateString = state ? JSON.stringify(state) : "";
+
+                const previousSubmissionId = problemIdToContent[problemId].previousSubmissionId ?
+                        problemIdToContent[problemId].previousSubmissionId : null;
+
+                if (currentScorePercent > previousScorePercent || previousStateString !== currentStateString) {
+                    const data = {
+                        problemId: problemId,
+                        score: score,
+                        stateEditScript: shortestEditScript(previousStateString, currentStateString),
+                        previousSubmissionId: previousSubmissionId
+                    };
+
+                    $.ajax({
+                        url: '@preFix/submissions/@assignmentID/@userID',
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(data),
+                        success: function (submission) {
+                            problemIdToContent[problemId] = {
+                                previousSubmissionId: submission.submissionId,
+                                score: currentScorePercent,
+                                state: currentStateString
+                            };
+
+                            updateHighestScoreDisplay(problemId, submission);
+                        },
+                        error: function(XMLHttpRequest, textStatus, errorThrown) {
+                            prompt("Error:", "Error saving work: " + JSON.stringify(XMLHttpRequest) + "\n" +
+                            "Problem ID was: " + problemId + "\n" +
+                            "User ID was: @userID" + "\n" +
+                            "Score was: " + currentScoreString + "\n" +
+                            "Previous state was: " + previousStateString + "\n" +
+                            "Current state was: " + currentStateString + "\n");
+                        }
+                    });
+                }
+            }
+
+            // Update the highest score element to display the score from the given submission
+            function updateHighestScoreDisplay(problemId, submission) {
+                var highestScoreEl = document.getElementById('highestScore-' + problemId);
+                highestScoreEl.innerHTML = "<p>Submission saved at: " + new Date(submission.submittedAt) + "<br />" +
+                        "Highest recorded score: <b>" + (submission.correct / submission.maxscore) * 100.0 + "%</b></p>"
+            }
+
+            // All the iframes report their score with a post message, this function handles those messages
+            function receiveMessage(event) {
+              if (event.data.request) { // It's a response
+                if (event.data.request.query === 'docHeight') {
+                  const newHeight = event.data.docHeight + 200;
+                  $('#' + event.data.request.id).height(newHeight)
+                }
+                else if (event.data.request.query === 'getContent') {
+                  const problemId = event.data.request.problemId;
+                  const score = event.data.score;
+                  const state = event.data.state;
+                  sendScoreAndStateEditScriptToServer(problemId, score, state);
+                }
+              }
+            }
+
+            // Save work and report score
+            function submitGrades() {
+                updateStatesFromProblems();
+                // setTimeout(location.href = "@preFix/send-score/@assignmentID/@userID", 1000);
+                setTimeout(function () {
+                    const data = {
+                        assignment: @assignmentID,
+                        user: "@userID",
+                        lis_outcome_service_url: "@lisOutcomeServiceURL",
+                        lis_result_sourcedid: "@lisResultSourcedID"
+                    };
+                    $.ajax({
+                        url: '@preFix/sendScore',
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(data),
+                        success: function (msg) {
+                            var response = $("#response");
+                            response.html(msg);
+                            response.show();
+                            setTimeout(function () {
+                                response.hide();
+                            }, 5000);
+                        },
+                        error: function(XMLHttpRequest, textStatus, errorThrown) {
+                            prompt("Error:", "Error saving work: " + JSON.stringify(XMLHttpRequest) + "\n" +
+                            "Problem ID was: " + problemId + "\n" +
+                            "User ID was: @userID" + "\n" +
+                            "Score was: " + currentScoreString + "\n" +
+                            "Previous state was: " + previousStateString + "\n" +
+                            "Current state was: " + currentStateString + "\n");
+                        }
+                    });
+                }, 1000)
+            }
+
+            window.addEventListener("message", receiveMessage, false);
+
+            $(document.ready(restoreStatesOfProblems));
+
+            $(document).ready(function() {
+              $('iframe').each(function(i, e) {
+                $(e).load(function() {
+                  e.contentWindow.postMessage({query: 'docHeight', id: $(e).attr('id')}, '*')
+               })
+             })
+           })
+
     </script>
 
-    <div id="timeLeft" class="rightSidebar">
-    </div>
-}
+    @* Timed assignment specific code *@
+    @if(duration != null && duration > 0L) {
+        <script type="text/javascript">
+            const durationInMilliseconds = @duration * 60 * 1000;
 
-@* Code to generate the iframes for problems *@
-@for(problem <- problems) {
-    @if(problemIdToSubmissionWithMostCorrect.contains(problem.getProblemId())) {
-        <div class="highestScore"
-        id="highestScore-@problem.problemId">
-            <p>Highest recorded score:
-                <b>@{
-                    (problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getCorrect().toDouble /
-                            problemIdToSubmissionWithMostCorrect.get(problem.getProblemId()).getMaxScore().toDouble) *
-                            100
-                }%</b>
-            </p>
-        </div>
+            var endTimeInMilliseconds;
+
+            function initializeTimer() {
+                var timerEl = document.createElement('div');
+                timerEl.id = 'timer';
+                timerEl.className = 'rightSidebar';
+                document.body.appendChild(timerEl);
+
+                $.ajax({
+                    url: '@services.routes.DataProvider.getStartTimeInMilliseconds(assignmentID, userID)',
+                    method: 'GET',
+                    success: function (startTimeInMilliseconds) {
+                        endTimeInMilliseconds = startTimeInMilliseconds + durationInMilliseconds;
+
+                        updateTimeLeftDisplay();
+                        setInterval(updateTimeLeftDisplay, 1000);
+                    },
+                    error: function(XMLHttpRequest, textStatus, errorThrown) {
+                        prompt("Error:", "Error getting start time: " + JSON.stringify(XMLHttpRequest) + "\n" +
+                                "AssignmentID:" + @assignmentID + "\n" +
+                                "UserID:" + @userID);
+                    }
+                });
+            }
+
+            function updateTimeLeftDisplay() {
+                var timeLeftObj = new Date();
+                timeLeftObj.setTime(endTimeInMilliseconds - timeLeftObj.getTime());
+
+                // Time is up, submit assignment
+                if (timeLeftObj.getTime() <= 0) {
+                    submitGrades();
+                }
+
+                /*
+                All hours and days will be put into minutes
+                i.e. two hours and 30 minutes will turn into 150 minutes
+                 */
+                const timeLeftMin = Math.floor((timeLeftObj.getTime() / 1000) / 60);
+                const timeLeftSec = timeLeftObj.getSeconds();
+
+                var timerEl = document.getElementById('timer');
+
+                timerEl.innerHTML = "Time Left: " + timeLeftMin + ":" + timeLeftSec;
+            }
+
+            $(document).ready(initializeTimer);
+        </script>
     }
 
-    <iframe class='exercise-iframe' id=@problem.problemId src=@problem.getProblemUrl().trim() ></iframe>
-}
 
-<p>
-    If you are done with all questions, click on "Record my score" to save your score in the gradebook.
-</p>
+</head>
 
-<button onclick="submitGrades()">Record my score</button> <span id='response'></span>
+<body>
+    @* Code to generate the iframes for problems *@
+    @for(problem <- problems) {
+        <div class="highestScore" id="highestScore-@problem.problemId">
+        </div>
+
+        <iframe class='exercise-iframe' id=@problem.problemId src=@problem.getProblemUrl().trim() ></iframe>
+    }
+
+    <p>
+        If you are done with all questions, click on "Record my score" to save your score in the gradebook.
+    </p>
+
+    <button onclick="submitGrades()">Record my score</button> <span id='response'></span>
 
 
-@if(isInstructor) {
-    <a href="@routes.HomeController.showEditPage(assignmentID)"><button>Edit Assignment</button></a>
-}
+    @if(isInstructor) {
+        <a href="@routes.HomeController.showEditPage(assignmentID)"><button>Edit Assignment</button></a>
+    }
+</body>

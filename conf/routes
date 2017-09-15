@@ -59,5 +59,8 @@ POST	/assignment/deleteProblem     controllers.HomeController.deleteProblem(assi
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
 # Get data for student submission viewer
-GET     /userIds/:assignmentId  services.DataProvider.getUserIdsForAssignment(assignmentId: Long)
-GET     /contents/:problemId/:userId  services.DataProvider.getSubmissionContent(problemId: Long, userId: String)
+GET     /userIds/:assignmentId                  services.DataProvider.getUserIdsForAssignment(assignmentId: Long)
+GET     /get-submissions/:problemId/:userId     services.DataProvider.getSubmissions(problemId: Long, userId: String)
+
+# To determine the time left for the student on a timed assignment
+GET     /get-start-time/:assignmentId/:userId   services.DataProvider.getStartTimeInMilliseconds(assignmentId: Long, userId: String)

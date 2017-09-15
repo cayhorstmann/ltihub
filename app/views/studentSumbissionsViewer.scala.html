@@ -52,29 +52,45 @@
 
                     var stateEditScripts = [];
                     $.ajax({
-                        url: '@services.routes.DataProvider.getSubmissionContent(problem.getProblemId(), "")' + userId,
+                        url: '@services.routes.DataProvider.getSubmissions(problem.getProblemId(), "")' + userId,
                         method: 'GET',
-                        success: function (msg) {
+                        success: function (submissions) {
                             try {
-                                stateEditScripts = JSON.parse(msg);
+                                // Find the state edit scripts
+                                var stateEditScriptsStack = [];
+                                var previousSubmission;
+                                while (submissions.length > 0) {
+                                    var submission = submissions.pop();
+
+                                    /*
+                                     The newer submissions should have a number as the previous property
+                                     If a submission's previous property is not a number, then automatically accept it
+                                     */
+                                    if (!submission.previous || isNaN(submission.previous)
+                                            (previousSubmission && submission.submissionId === previousSubmission)) {
+                                        stateEditScriptsStack.push(submission.content);
+                                        previousSubmission = submission.previous;
+                                    }
+                                }
 
                                 // Build the state from the edit scripts and store each version in the map
                                 var state = "";
                                 problemIdToSubmissions['@problem.getProblemId()'] = [];
-                                for (var i = 0; i < stateEditScripts.length; i++) {
+                                while(stateEditScriptsStack.length > 0) {
+                                    var editScript = stateEditScriptsStack.pop();
                                     // Don't apply edit script if state didn't change
-                                    if (!stateEditScripts[i])
+                                    if (!editScript)
                                         continue;
 
                                     try {
-                                        state = applyEditScript(state, stateEditScripts[i]);
+                                        state = applyEditScript(state, editScript);
 
                                         problemIdToSubmissions['@problem.getProblemId()'].push(JSON.parse(state));
                                     } catch (e) {
                                         prompt("Error:", "State is corrupted: " + e + "\n" +
                                         "User ID was: " + userId + "\n" +
                                         "State was: " + state + "\n" +
-                                        "Edit script that caused corruption was: " + stateEditScripts[i]);
+                                        "Edit script that caused corruption was: " + editScript);
                                     }
                                 }
 
@@ -92,7 +108,7 @@
                             } catch (e) {
                                 prompt("Error:", "Error getting problem contents: " + e + "\n" +
                                         "User ID was: " + userId + "\n" +
-                                        "State edit scripts: " + JSON.stringify(stateEditScripts));
+                                        "Server message: " + JSON.stringify(msg));
                             }
                         },
                         error: function(XMLHttpRequest, textStatus, errorThrown) {
