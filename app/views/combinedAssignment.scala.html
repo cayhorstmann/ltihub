@@ -45,10 +45,10 @@
                         url: '@services.routes.DataProvider.getSubmissions(problem.getProblemId(), userID)',
                         method: 'GET',
                         success: function (submissions) {
+                            console.log(submissions);
                             try {
                                 if (submissions.length <= 0)
                                     return;
-                                console.log(submissions);
                                 // Find the state edit scripts and highest score
                                 var stateEditScriptsStack = [];
                                 var bestSubmission;
