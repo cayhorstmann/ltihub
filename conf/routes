@@ -16,11 +16,8 @@ POST    /assignment     controllers.HomeController.index
 # in controllers.HomeController.index
 POST	/addAssignment		controllers.HomeController.addAssignment
 
-# Redirect from controllers.HomeController.index, but why???
-# GET	/assignment	        controllers.HomeController.getAssignment(role: String, assignmentId: Long, userId: String)
-
 # When clicking on the Edit Assignment button in instructor view
-GET	/assignment/editAssignment	controllers.HomeController.showEditPage(id: Long)	
+GET	    /assignment/editAssignment	controllers.HomeController.showEditPage(id: Long)	
 
 # When saving an edited assignment in instructor view
 POST    /assignment/saveAssignment  controllers.HomeController.saveEditedAssignment(id: Long)
@@ -29,14 +26,12 @@ POST    /assignment/saveAssignment  controllers.HomeController.saveEditedAssignm
 # GET	/timedAssignment	controllers.HomeController.showTimedAssignment(assignmentId: Long, userId: String, duration: Long)
 
 # Submission viewer
-GET /submission-viewer/:assignmentId/:role  controllers.HomeController.getSubmissionViewer(assignmentId: Long, role: String)
+GET     /submissionViewer/:assignmentId  controllers.HomeController.getSubmissionViewer(assignmentId: Long)
 
-# Score callback from Tyler (There is no longer a callback from CodeCheck)
+# Score update from combinedAssignment.scala.html
 POST	/submissions/:assignmentId/:userId		controllers.SubmissionController.addSubmission(assignmentId: Long, userId: String)
 
-# When the record grade button is pushed. 
-# TODO: Add lis_outcome_service_url, lis_result_sourcedid to the request and make it a POST
-# GET    /send-score/:assignmentId/:userId   controllers.GradeSubmitterController.submitGradeToCanvas(assignmentId: Long, userId: String)
+# When the record grade button is pushed in combinedAssignment.scala.html 
 POST    /sendScore   controllers.GradeSubmitterController.submitGradeToLMS()
 
 # An example controller showing how to use dependency injection--used by health check. DO NOT REMOVE.
@@ -47,10 +42,10 @@ GET     /count                      controllers.CountController.count
 POST    /createAssignment             controllers.HomeController.index
 
 # For creating an assignment outside an LMS
-GET	/createAssignment	      controllers.HomeController.createAssignment
+GET	/createAssignment	      controllers.HomeController.createAssignmentOutsideLMS
 
-# ???
-POST	/addassignment		  controllers.HomeController.addAssignmentOutsideLMS
+# Called from create_exercise_outside_LMS.scala.html
+POST	/addAssignmentOutsideLMS     controllers.HomeController.addAssignmentOutsideLMS
 
 # When clicking on a delete button when editing assignment
 POST	/assignment/deleteProblem     controllers.HomeController.deleteProblem(assignmentID: Long, problemID: Long)

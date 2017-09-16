@@ -6,10 +6,43 @@
     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/main.css")">
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script src="@routes.Assets.at("javascripts/shortest-edit-script.js")"></script>
 
-    @* Score and state handlers *@
     <script type="text/javascript">
+
+          // Response from messages to iframe
+          function receiveMessage(event) {
+            if (event.data.request) { // It's a response
+              if (event.data.request.query === 'docHeight') {
+                const newHeight = event.data.docHeight + 200;
+                $('#' + event.data.request.id).height(newHeight)
+              }
+              else if (event.data.request.query === 'getContent') {
+                const problemId = event.data.request.problemId;
+                const score = event.data.score;
+                const state = event.data.state;
+                sendScoreAndStateEditScriptToServer(problemId, score, state);
+              }
+            }
+          }
+
+          window.addEventListener("message", receiveMessage, false);
+
+          // Fix heights of iframes 
+          $(document).ready(function() {
+            $('iframe').each(function(i, e) {
+              $(e).on('load', function() {
+                e.contentWindow.postMessage({query: 'docHeight', id: $(e).attr('id')}, '*')
+             })
+           })
+         })
+
+    </script>
+        
+    @if(!isInstructor) {        
+        <script src="@routes.Assets.at("javascripts/shortest-edit-script.js")"></script>
+
+        @* Score and state handlers *@
+        <script type="text/javascript">
             /*
              The states that the server currently has stored.
              This is used to compute what has changed since the last time data was sent to the server, so that the server
@@ -201,22 +234,6 @@
                         " | Highest recorded score: <b>" + ((submission.correct / submission.maxscore) * 100.0) + "%</b></p>"
             }
 
-            // All the iframes report their score with a post message, this function handles those messages
-            function receiveMessage(event) {
-              if (event.data.request) { // It's a response
-                if (event.data.request.query === 'docHeight') {
-                  const newHeight = event.data.docHeight + 200;
-                  $('#' + event.data.request.id).height(newHeight)
-                }
-                else if (event.data.request.query === 'getContent') {
-                  const problemId = event.data.request.problemId;
-                  const score = event.data.score;
-                  const state = event.data.state;
-                  sendScoreAndStateEditScriptToServer(problemId, score, state);
-                }
-              }
-            }
-
             // Save work and report score
             function submitGrades() {
                 updateStatesFromProblems();
@@ -236,10 +253,12 @@
                         success: function (msg) {
                             var response = $("#response");
                             response.html(msg);
+                            /*
                             response.show();
                             setTimeout(function () {
                                 response.hide();
                             }, 5000);
+                            */
                         },
                         error: function(XMLHttpRequest, textStatus, errorThrown) {
                             prompt("Error:", "Error submitting grades: " + JSON.stringify(XMLHttpRequest) + "\n" +
@@ -250,20 +269,11 @@
                 }, 1000)
             }
 
-            window.addEventListener("message", receiveMessage, false);
 
             window.onload = restoreStatesOfProblems;
-
-            $(document).ready(function() {
-              $('iframe').each(function(i, e) {
-                $(e).load(function() {
-                  e.contentWindow.postMessage({query: 'docHeight', id: $(e).attr('id')}, '*')
-               })
-             })
-           })
-
-    </script>
-
+        </script>
+    }
+            
     @* Timed assignment specific code *@
     @if(duration != null && duration > 0L) {
         <script type="text/javascript">
@@ -323,22 +333,25 @@
 </head>
 
 <body>
+    @if(isInstructor) {
+        <a href="@routes.HomeController.showEditPage(assignmentID)">Edit Assignment</a> |
+        <a href="@routes.HomeController.getSubmissionViewer(assignmentID)">View Submissions</a>
+    }
     @* Code to generate the iframes for problems *@
     @for(problem <- problems) {
-        <div class="highestScore" id="highestScore-@problem.problemId">
-        </div>
+        @if(!isInstructor) {
+            <div class="highestScore" id="highestScore-@problem.problemId">
+            </div>
+        }
 
         <iframe class='exercise-iframe' id=@problem.problemId src=@problem.getProblemUrl().trim() ></iframe>
     }
 
-    <p>
-        If you are done with all questions, click on "Record my score" to save your score in the gradebook.
-    </p>
+    @if(!isInstructor) {
+        <p>
+            If you are done with all questions, click on "Record my score" to save your score in the gradebook.
+        </p>
 
-    <button onclick="submitGrades()">Record my score</button> <span id='response'></span>
-
-
-    @if(isInstructor) {
-        <a href="@routes.HomeController.showEditPage(assignmentID)"><button>Edit Assignment</button></a>
+        <button onclick="submitGrades()">Record my score</button> <span id='response'></span>
     }
 </body>

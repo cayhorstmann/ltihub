@@ -10,11 +10,9 @@ import oauth.signpost.exception.OAuthMessageSignerException;
 import oauth.signpost.http.HttpParameters;
 import play.Logger;
 import play.libs.Json;
-import play.libs.ws.WSClient;
 import play.mvc.Controller;
 import play.mvc.Result;
 
-import javax.inject.Inject;
 
 import java.io.IOException;
 
@@ -31,13 +29,6 @@ import java.io.*;
 import models.*;
 
 public class GradeSubmitterController extends Controller {
-
-	private final WSClient ws; // TODO: Why?
-
-	@Inject
-	public GradeSubmitterController(WSClient ws) {
-		this.ws = ws;
-	}
 
 	public Result submitGradeToLMS() throws UnsupportedEncodingException {
         JsonNode params = request().body().asJson();
@@ -196,7 +187,7 @@ public class GradeSubmitterController extends Controller {
 		Logger.info(request.getResponseCode() + " " + request.getResponseMessage());
 		try {
 			InputStream in = request.getInputStream();
-			String body = org.apache.commons.io.IOUtils.toString(in);
+			String body = org.apache.commons.io.IOUtils.toString(in); // TODO: This is the only use of Commons IO. Eliminate?
 			Logger.info("Response body received from LMS: " + body);
 		} catch (Exception e) {			
 			InputStream in = request.getErrorStream();
