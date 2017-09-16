@@ -25,6 +25,10 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import org.imsglobal.lti.launch.LtiOauthVerifier;
+import org.imsglobal.lti.launch.LtiVerificationResult;
+import org.imsglobal.lti.launch.LtiVerifier;
+
 import com.avaje.ebean.Ebean;
 
 import play.Logger;
@@ -104,6 +108,17 @@ public class HomeController extends Controller {
 	 	}
 
 	 	Logger.info("HomeController.index: " + Util.paramsToString(postParams));
+	 	
+	 	try {
+		 	LtiVerifier verifier = new LtiOauthVerifier();
+		 	Map<String, String> map = new HashMap<>();
+		 	for (Map.Entry<String, String[]> entry : postParams.entrySet()) map.put(entry.getKey(), entry.getValue()[0]);
+		 	String url = request().host();
+		 	LtiVerificationResult verificationResult = verifier.verifyParameters(map, url, "fred", "fred");
+		 	Logger.info("Verification: " + verificationResult.getSuccess());
+	 	} catch (Exception ex) {
+	 		Logger.error(Util.getStackTrace(ex));
+	 	}
 
     	String lisOutcomeServiceURL = getParam(postParams, "lis_outcome_service_url");
     	String lisResultSourcedID = getParam(postParams, "lis_result_sourcedid");
@@ -153,10 +168,6 @@ public class HomeController extends Controller {
 		return getAssignment(role, Long.parseLong(assignmentID), userID, lisOutcomeServiceURL, lisResultSourcedID);
  	}
 
-	public Result createAssignment() {		
-         return ok(create_exercise_outside_LMS.render());
-    }
-		
 	/**
 	 * Yields a map of query parameters in a HTTP URI
 	 * @param url the HTTP URL
@@ -215,12 +226,17 @@ public class HomeController extends Controller {
     		   getParams(launchPresentationReturnURL), problems, assignmentURL));
     }
 	
+	public Result createAssignmentOutsideLMS() {		
+        return ok(create_exercise_outside_LMS.render());
+   }
+		
 	public Result addAssignmentOutsideLMS() {        
 	    Map<String, String[]> postParams = request().body().asFormUrlEncoded();
 		String problemlist = getParam(postParams, "url");
 		String key = getParam(postParams, "key");
 		String secret = getParam(postParams, "secret");
 		String duration = getParam(postParams, "duration");
+		if (duration == null) duration = "0";
 
 		if(key.equals("fred") && secret.equals("fred")){ // TODO
 		    Assignment assignment = new Assignment();
@@ -246,15 +262,13 @@ public class HomeController extends Controller {
             problems, lisOutcomeServiceURL, lisResultSourcedID));
     }
 
-	public Result getSubmissionViewer(Long assignmentId, String role) {
+	public Result getSubmissionViewer(Long assignmentId) {
 
 		Assignment assignment = Ebean.find(Assignment.class, assignmentId);
 		List<Problem> problems = assignment.getProblems();
 
-		if (!isInstructor(role))
-			return badRequest("Error, user is not authorized to view submissions.");
-
 		return ok(studentSumbissionsViewer.render(assignmentId, problems));
+		//TODO: Make it viewable by student
 	}
 
 	/**
