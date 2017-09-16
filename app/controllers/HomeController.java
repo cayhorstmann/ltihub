@@ -113,7 +113,7 @@ public class HomeController extends Controller {
 		 	LtiVerifier verifier = new LtiOauthVerifier();
 		 	Map<String, String> map = new HashMap<>();
 		 	for (Map.Entry<String, String[]> entry : postParams.entrySet()) map.put(entry.getKey(), entry.getValue()[0]);
-		 	String url = "https://" + request().host() + "/" + request().uri();
+		 	String url = "https://" + request().host() + request().uri();
 		 	Logger.info("url: " + url);
 		 	LtiVerificationResult verificationResult = verifier.verifyParameters(map, url, "POST", "fred");
 		 	Logger.info("Verification: " + verificationResult.getSuccess());
