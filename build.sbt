@@ -11,4 +11,3 @@ libraryDependencies ++= Seq(
   "org.imsglobal" % "basiclti-util" % "1.1.2",
   "org.postgresql" % "postgresql" % "42.1.4"
 )
-
