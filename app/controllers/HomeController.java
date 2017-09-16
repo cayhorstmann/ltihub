@@ -25,6 +25,12 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import net.oauth.OAuthAccessor;
+import net.oauth.OAuthConsumer;
+import net.oauth.OAuthMessage;
+import net.oauth.OAuthValidator;
+import net.oauth.SimpleOAuthValidator;
+
 import org.imsglobal.lti.launch.LtiOauthVerifier;
 import org.imsglobal.lti.launch.LtiVerificationResult;
 import org.imsglobal.lti.launch.LtiVerifier;
@@ -110,13 +116,27 @@ public class HomeController extends Controller {
 	 	Logger.info("HomeController.index: " + Util.paramsToString(postParams));
 	 	
 	 	try {
-		 	LtiVerifier verifier = new LtiOauthVerifier();
-		 	Map<String, String> map = new HashMap<>();
-		 	for (Map.Entry<String, String[]> entry : postParams.entrySet()) map.put(entry.getKey(), entry.getValue()[0]);
+		 	//LtiVerifier verifier = new LtiOauthVerifier();
+		 	Set<Map.Entry<String, String>> entries = new HashSet<>();
+		 	for (Map.Entry<String, String[]> entry : postParams.entrySet()) 
+		 		for (String s : entry.getValue())
+		 			entries.add(new AbstractMap.SimpleEntry<>(entry.getKey(), s));
 		 	String url = "https://" + request().host() + request().uri();
 		 	Logger.info("url: " + url);
-		 	LtiVerificationResult verificationResult = verifier.verifyParameters(map, url, "POST", "fred");
-		 	Logger.info("Verification: " + verificationResult.getSuccess());
+		 	OAuthMessage oam = new OAuthMessage("POST", url, entries);
+ 	        OAuthConsumer cons = new OAuthConsumer(null, "fred", "fred", null);
+ 	        OAuthValidator oav = new SimpleOAuthValidator();
+ 	        OAuthAccessor acc = new OAuthAccessor(cons);
+		 	
+  	       	try {
+              oav.validateMessage(oam, acc);
+	              Logger.info("Validated");
+	          } catch (Exception e) {
+	        	  Logger.info("Did not validate: " + e.getLocalizedMessage());
+            }
+		 	
+		 	//LtiVerificationResult verificationResult = verifier.verifyParameters(map, url, "POST", "fred");
+		 	//Logger.info("Verification: " + verificationResult.getSuccess());
 	 	} catch (Exception ex) {
 	 		Logger.error(Util.getStackTrace(ex));
 	 	}
