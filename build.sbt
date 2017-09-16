@@ -7,9 +7,8 @@ lazy val root = (project in file(".")).enablePlugins(PlayJava,PlayEbean)
 scalaVersion := "2.11.7"
 
 libraryDependencies ++= Seq(  
-  "org.imsglobal" % "basiclti-util" % "1.1.2"
-)
-
-val appDependencies = Seq(
+  javaJdbc,
+  "org.imsglobal" % "basiclti-util" % "1.1.2",
   "org.postgresql" % "postgresql" % "42.1.4"
 )
+
