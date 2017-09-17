@@ -106,6 +106,9 @@ public class HomeController extends Controller {
     }     
     
     public Result index() throws UnsupportedEncodingException {    
+	 	if (!Util.validate(request()))
+	 		return badRequest("Failed OAuth validation");
+
 	 	Map<String, String[]> postParams = request().body().asFormUrlEncoded();
 	 	if (postParams == null) {
 	 		String result = "Post params missing. Request body: " + request().body().asText();
@@ -114,38 +117,6 @@ public class HomeController extends Controller {
 	 	}
 
 	 	Logger.info("HomeController.index: " + Util.paramsToString(postParams));
-	 	
-	 	try {
-		 	//LtiVerifier verifier = new LtiOauthVerifier();
-		 	Set<Map.Entry<String, String>> entries = new HashSet<>();
-		 	for (Map.Entry<String, String[]> entry : postParams.entrySet()) 
-		 		for (String s : entry.getValue())
-		 			entries.add(new AbstractMap.SimpleEntry<>(entry.getKey(), s));
-		 	String url = "https://" + request().host() + request().uri();
-		 	for (Map.Entry<String, String> entry : getParams(url).entrySet())
-		 		entries.add(entry);
-		 	int n = url.lastIndexOf("?"); if (n >= 0) url = url.substring(0, n); 
-		 	String body = request().body().asText();
-		 	Logger.info("url: " + url);
-		 	Logger.info("entries: " + entries);
-		 	OAuthMessage oam = new OAuthMessage("POST", url, entries);
- 	        OAuthConsumer cons = new OAuthConsumer(null, "fred", "fred", null);
- 	        OAuthValidator oav = new SimpleOAuthValidator();
- 	        OAuthAccessor acc = new OAuthAccessor(cons);
-		 	//TODO: Also need to check the body hash https://www.programcreek.com/java-api-examples/index.php?api=net.oauth.signature.OAuthSignatureMethod
-  	       	try {
-              oav.validateMessage(oam, acc);
-	              Logger.info("Validated");
-	          } catch (Exception e) {
-	        	  Logger.info("Did not validate: " + e.getLocalizedMessage());
-            }
-		 	
-		 	//LtiVerificationResult verificationResult = verifier.verifyParameters(map, url, "POST", "fred");
-		 	//Logger.info("Verification: " + verificationResult.getSuccess());
-	 	} catch (Exception ex) {
-	 		Logger.error(Util.getStackTrace(ex));
-	 	}
-
     	String lisOutcomeServiceURL = getParam(postParams, "lis_outcome_service_url");
     	String lisResultSourcedID = getParam(postParams, "lis_result_sourcedid");
 
@@ -194,37 +165,6 @@ public class HomeController extends Controller {
 		return getAssignment(role, Long.parseLong(assignmentID), userID, lisOutcomeServiceURL, lisResultSourcedID);
  	}
 
-	/**
-	 * Yields a map of query parameters in a HTTP URI
-	 * @param url the HTTP URL
-	 * @return the map of query parameters or an empty map if there are none
-	 * For example, if uri is http://fred.com?name=wilma&passw%C3%B6rd=c%26d%3De
-	 * then the result is { "name" -> "wilma", "passwörd" -> "c&d=e" }
-	 */
-	private static Map<String, String> getParams(String url)
-	{		
-		// https://www.talisman.org/~erlkonig/misc/lunatech%5Ewhat-every-webdev-must-know-about-url-encoding/
-		Map<String, String> params = new HashMap<>();
-		String rawQuery;
-		try {
-			rawQuery = new URI(url).getRawQuery();
-			if (rawQuery != null) {
-				for (String kvpair : rawQuery.split("&"))
-				{
-					int n = kvpair.indexOf("=");
-					params.put(
-						URLDecoder.decode(kvpair.substring(0, n), "UTF-8"), 
-						URLDecoder.decode(kvpair.substring(n + 1), "UTF-8"));
-				}
-			}
-		} catch (UnsupportedEncodingException e) {
-			// UTF-8 is supported
-		} catch (URISyntaxException e1) {
-			// Return empty map
-		}
-		return params;
-	}
-	
 	// This method gets called when an assignment has been created with create_exercise.scala.html.
 	public Result addAssignment() {
 		Map<String, String[]> postParams = request().body().asFormUrlEncoded();
@@ -249,7 +189,7 @@ public class HomeController extends Controller {
         List<Problem> problems = assignment.getProblems();
         String assignmentURL = "https://" + request().host() + getPrefix() + "/assignment?id=" + assignment.getAssignmentId();
         return ok(showassignment.render(launchPresentationReturnURL, 
-    		   getParams(launchPresentationReturnURL), problems, assignmentURL));
+    		   Util.getParams(launchPresentationReturnURL), problems, assignmentURL));
     }
 	
 	public Result createAssignmentOutsideLMS() {		
@@ -333,7 +273,7 @@ public class HomeController extends Controller {
 	    Http.Cookie launchReturnUrlCookie = request().cookie("launch_presentation_return_url"); // TODO: Eliminate
 	    String returnUrl = launchReturnUrlCookie.value();
 	    String assignmentURL = "https://" + request().host() + getPrefix() + "/assignment?id=" + assignmentId;
-        return ok(showassignment.render(returnUrl, getParams(returnUrl), problems, assignmentURL));
+        return ok(showassignment.render(returnUrl, Util.getParams(returnUrl), problems, assignmentURL));
 	}
 
 	public Result showEditPage(Long assignment) {
