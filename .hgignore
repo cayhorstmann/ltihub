@@ -14,3 +14,6 @@ out/
 *.war
 *.ear
 hs_err_pid*
+.project
+.classpath
+.settings
