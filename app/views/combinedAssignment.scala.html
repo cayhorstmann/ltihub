@@ -334,17 +334,20 @@
 
 <body>
     @if(isInstructor) {
-        <a href="@routes.HomeController.showEditPage(assignmentID)">Edit Assignment</a> |
-        <a href="@routes.HomeController.getSubmissionViewer(assignmentID)">View Submissions</a>
+        <p class="message">You are viewing this assignment as instructor.</p>
+        <p>
+            <a href="@routes.HomeController.showEditPage(assignmentID)">Edit Assignment</a> |
+            <a href="@routes.HomeController.getSubmissionViewer(assignmentID)">View Submissions</a>
+        </p>
     }
     @* Code to generate the iframes for problems *@
     @for(problem <- problems) {
         @if(!isInstructor) {
-            <div class="highestScore" id="highestScore-@problem.problemId">
+            <div class="highestScore message" id="highestScore-@problem.problemId">
             </div>
         }
 
-        <iframe class='exercise-iframe' id=@problem.problemId src=@problem.getProblemUrl().trim() ></iframe>
+        <iframe class='exercise-iframe' frameBorder='0' id='@problem.problemId' src='@problem.getProblemUrl().trim()'></iframe>
     }
 
     @if(!isInstructor) {
@@ -352,6 +355,6 @@
             If you are done with all questions, click on "Record my score" to save your score in the gradebook.
         </p>
 
-        <button onclick="submitGrades()">Record my score</button> <span id='response'></span>
+        <button onclick="submitGrades()">Record my score</button> <span class="message" id='response'></span>
     }
 </body>
