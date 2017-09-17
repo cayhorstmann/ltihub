@@ -2,46 +2,30 @@ package controllers;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-import java.nio.Buffer;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
 
-import play.*;
-import play.data.*;
-import play.libs.Json;
-import static play.data.Form.*;
-
-import java.net.*;
-import java.io.*;
-import java.util.stream.Collectors;
-
-import javax.inject.Inject;
-
-import net.oauth.OAuthAccessor;
-import net.oauth.OAuthConsumer;
-import net.oauth.OAuthMessage;
-import net.oauth.OAuthValidator;
-import net.oauth.SimpleOAuthValidator;
-
-import org.imsglobal.lti.launch.LtiOauthVerifier;
-import org.imsglobal.lti.launch.LtiVerificationResult;
-import org.imsglobal.lti.launch.LtiVerifier;
+import models.Assignment;
+import models.Problem;
+import models.Util;
+import play.Logger;
+import play.mvc.Controller;
+import play.mvc.Http;
+import play.mvc.Result;
+import play.mvc.Security;
 
 import com.avaje.ebean.Ebean;
 
-import play.Logger;
-import play.mvc.*;
-import models.*;
 import views.html.*;
-
 
 public class HomeController extends Controller {
 	private static String getParam(Map<String, String[]> params, String key) {

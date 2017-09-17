@@ -8,7 +8,7 @@ scalaVersion := "2.11.7"
 
 libraryDependencies ++= Seq(  
   javaJdbc,
-  "org.imsglobal" % "basiclti-util" % "1.1.2",
   "net.oauth.core" % "oauth-provider" % "20100527",
+  "oauth.signpost" % "signpost-core" % "1.2.1.2",
   "org.postgresql" % "postgresql" % "42.1.4"
 )

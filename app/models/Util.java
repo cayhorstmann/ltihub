@@ -1,5 +1,8 @@
 package models;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
@@ -12,6 +15,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import java.io.ByteArrayOutputStream;
 
 import net.oauth.OAuthAccessor;
 import net.oauth.OAuthConsumer;
@@ -102,5 +107,19 @@ public class Util {
 			// Return empty map
 		}
 		return params;
+	}
+	
+	public static byte[] readAllBytes(InputStream in) throws IOException {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		copy(in, out);
+		out.close();
+		return out.toByteArray();
+	}
+	
+	public static void copy(InputStream in, OutputStream out) throws IOException {
+		final int BLOCKSIZE = 1024;
+		byte[] bytes = new byte[BLOCKSIZE];
+		int len;
+		while ((len = in.read(bytes)) != -1) out.write(bytes, 0, len);
 	}
 }

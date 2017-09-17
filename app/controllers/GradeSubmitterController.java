@@ -1,8 +1,23 @@
 package controllers;
 
-import com.avaje.ebean.Ebean;
-import com.fasterxml.jackson.databind.JsonNode;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import javax.net.ssl.HttpsURLConnection;
+
+import models.Submission;
+import models.Util;
 import oauth.signpost.basic.DefaultOAuthConsumer;
 import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
@@ -13,20 +28,8 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 
-
-import java.io.IOException;
-
-import javax.net.ssl.HttpsURLConnection;
-
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.*;
-import java.io.*;
-
-import models.*;
+import com.avaje.ebean.Ebean;
+import com.fasterxml.jackson.databind.JsonNode;
 
 public class GradeSubmitterController extends Controller {
 
@@ -187,11 +190,11 @@ public class GradeSubmitterController extends Controller {
 		Logger.info(request.getResponseCode() + " " + request.getResponseMessage());
 		try {
 			InputStream in = request.getInputStream();
-			String body = org.apache.commons.io.IOUtils.toString(in); // TODO: This is the only use of Commons IO. Eliminate?
+			String body = new String(Util.readAllBytes(in), "UTF-8");
 			Logger.info("Response body received from LMS: " + body);
 		} catch (Exception e) {			
 			InputStream in = request.getErrorStream();
-			String body = org.apache.commons.io.IOUtils.toString(in);
+			String body = new String(Util.readAllBytes(in), "UTF-8");
 			Logger.info("Response error received from LMS: " + body);
 		}
 	}
