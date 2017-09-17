@@ -253,12 +253,10 @@
                         success: function (msg) {
                             var response = $("#response");
                             response.html(msg);
-                            /*
                             response.show();
                             setTimeout(function () {
                                 response.hide();
-                            }, 5000);
-                            */
+                            }, 20000);
                         },
                         error: function(XMLHttpRequest, textStatus, errorThrown) {
                             prompt("Error:", "Error submitting grades: " + JSON.stringify(XMLHttpRequest) + "\n" +

@@ -108,15 +108,19 @@ public class HomeController extends Controller {
     public Result index() throws UnsupportedEncodingException {    
 	 	Map<String, String[]> postParams = request().body().asFormUrlEncoded();
 	 	Logger.info("HomeController.index: " + Util.paramsToString(postParams));
-	 	if (!Util.validate(request()))
+	 	if (!Util.validate(request())) {
+	 		session().clear();
 	 		return badRequest("Failed OAuth validation");
+	 	}	 	
+	 	
 
     	String lisOutcomeServiceURL = getParam(postParams, "lis_outcome_service_url");
     	String lisResultSourcedID = getParam(postParams, "lis_result_sourcedid");
 
-    	String userID = getParam(postParams, "custom_canvas_user_id"); 
+    	String userID = getParam(postParams, "custom_canvas_user_id");  // TODO: Add server ID to user ID
 		if (userID == null) userID = getParam(postParams, "user_id");
 		if (isEmpty(userID)) return badRequest("No user id");
+		session().put("user", userID);
 
 		String contextID = getParam(postParams, "context_id");
 		String resourceLinkID = getParam(postParams, "resource_link_id");
@@ -222,6 +226,7 @@ public class HomeController extends Controller {
             problems, lisOutcomeServiceURL, lisResultSourcedID));
     }
 
+	@Security.Authenticated(Secured.class)
 	public Result getSubmissionViewer(Long assignmentId) {
 
 		Assignment assignment = Ebean.find(Assignment.class, assignmentId);
