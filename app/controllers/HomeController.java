@@ -106,17 +106,11 @@ public class HomeController extends Controller {
     }     
     
     public Result index() throws UnsupportedEncodingException {    
+	 	Map<String, String[]> postParams = request().body().asFormUrlEncoded();
+	 	Logger.info("HomeController.index: " + Util.paramsToString(postParams));
 	 	if (!Util.validate(request()))
 	 		return badRequest("Failed OAuth validation");
 
-	 	Map<String, String[]> postParams = request().body().asFormUrlEncoded();
-	 	if (postParams == null) {
-	 		String result = "Post params missing. Request body: " + request().body().asText();
-	 		Logger.info("HomeController.index: " + result);
-	 		return badRequest(result);
-	 	}
-
-	 	Logger.info("HomeController.index: " + Util.paramsToString(postParams));
     	String lisOutcomeServiceURL = getParam(postParams, "lis_outcome_service_url");
     	String lisResultSourcedID = getParam(postParams, "lis_result_sourcedid");
 

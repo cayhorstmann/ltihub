@@ -29,6 +29,7 @@ public class Util {
 	}
 	
     public static String paramsToString(Map<String, String[]> params) {
+    	if (params == null) return "null";
     	StringBuilder result = new StringBuilder();
     	result.append("{");
     	for (String key : params.keySet()) {
@@ -42,7 +43,13 @@ public class Util {
     }
     
     public static boolean validate(Http.Request request) {
+    	// Useful background: https://dev.twitter.com/oauth/overview/creating-signatures
+    	// Fixes broken code http://grepcode.com/file/repo1.maven.org/maven2/org.imsglobal/basiclti-util/1.1.1/org/imsglobal/lti/launch/LtiOauthVerifier.java?av=f
+	 	// For JSON payload, would need to check the body hash 
+        // https://www.programcreek.com/java-api-examples/index.php?api=net.oauth.signature.OAuthSignatureMethod
+    	
     	Map<String, String[]> postParams = request.body().asFormUrlEncoded();
+    	if (postParams == null) return false;
     	Set<Map.Entry<String, String>> entries = new HashSet<>();
 	 	for (Map.Entry<String, String[]> entry : postParams.entrySet()) 
 	 		for (String s : entry.getValue())
@@ -55,7 +62,6 @@ public class Util {
         OAuthConsumer cons = new OAuthConsumer(null, "fred", "fred", null); // TODO
         OAuthValidator oav = new SimpleOAuthValidator();
         OAuthAccessor acc = new OAuthAccessor(cons);
-	 	//TODO: For JSON payload, need to check the body hash https://www.programcreek.com/java-api-examples/index.php?api=net.oauth.signature.OAuthSignatureMethod
 	    try {
           oav.validateMessage(oam, acc);
           return true;
