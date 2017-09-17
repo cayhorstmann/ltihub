@@ -118,10 +118,13 @@ public class HomeController extends Controller {
 	 	try {
 		 	//LtiVerifier verifier = new LtiOauthVerifier();
 		 	Set<Map.Entry<String, String>> entries = new HashSet<>();
-		 	for (Map.Entry<String, String[]> entry : request().headers().entrySet()) 
+		 	for (Map.Entry<String, String[]> entry : postParams.entrySet()) 
 		 		for (String s : entry.getValue())
 		 			entries.add(new AbstractMap.SimpleEntry<>(entry.getKey(), s));
 		 	String url = "https://" + request().host() + request().uri();
+		 	for (Map.Entry<String, String> entry : getParams(url).entrySet())
+		 		entries.add(entry);
+		 	int n = url.lastIndexOf("?"); if (n >= 0) url = url.substring(0, n); 
 		 	String body = request().body().asText();
 		 	Logger.info("url: " + url);
 		 	Logger.info("entries: " + entries);
