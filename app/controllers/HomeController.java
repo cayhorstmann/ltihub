@@ -118,16 +118,18 @@ public class HomeController extends Controller {
 	 	try {
 		 	//LtiVerifier verifier = new LtiOauthVerifier();
 		 	Set<Map.Entry<String, String>> entries = new HashSet<>();
-		 	for (Map.Entry<String, String[]> entry : postParams.entrySet()) 
+		 	for (Map.Entry<String, String[]> entry : request().headers().entrySet()) 
 		 		for (String s : entry.getValue())
 		 			entries.add(new AbstractMap.SimpleEntry<>(entry.getKey(), s));
 		 	String url = "https://" + request().host() + request().uri();
+		 	String body = request().body().asText();
 		 	Logger.info("url: " + url);
+		 	Logger.info("entries: " + entries);
 		 	OAuthMessage oam = new OAuthMessage("POST", url, entries);
  	        OAuthConsumer cons = new OAuthConsumer(null, "fred", "fred", null);
  	        OAuthValidator oav = new SimpleOAuthValidator();
  	        OAuthAccessor acc = new OAuthAccessor(cons);
-		 	
+		 	//TODO: Also need to check the body hash https://www.programcreek.com/java-api-examples/index.php?api=net.oauth.signature.OAuthSignatureMethod
   	       	try {
               oav.validateMessage(oam, acc);
 	              Logger.info("Validated");
