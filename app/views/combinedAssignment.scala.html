@@ -9,12 +9,6 @@
 
     <script type="text/javascript">
 
-        /*
-         This interval calls the function to request the updated states and scores of problems,
-         that way if the score or the states changed, then we can report those changes to the server.
-          */
-        var updateStatesInterval = setInterval(updateStatesFromProblems, 10000);
-
         // Load the iframes for the problems of the assignment
         function loadProblems() {
             $.ajax({
@@ -57,20 +51,6 @@
             });
         }
 
-        // Delete the iframes of the problems in the assignment
-        function deleteProblems() {
-            var highestScoreEls = Array.from(document.getElementsByClassName('highestScore'));
-            var problemIframes = Array.from(document.getElementsByClassName('exercise-iframe'));
-
-            for (var i = 0; i < highestScoreEls.length; i++)
-                highestScoreEls[i].remove();
-
-            for (var i = 0; i < problemIframes.length; i++)
-                problemIframes[i].remove();
-
-            clearInterval(updateStatesInterval);
-        }
-
         // Response from messages to iframe
         function receiveMessage(event) {
             if (event.data.request) { // It's a response
@@ -105,6 +85,13 @@
 
         @* Score and state handlers *@
         <script type="text/javascript">
+
+            /*
+             This interval calls the function to request the updated states and scores of problems,
+             that way if the score or the states changed, then we can report those changes to the server.
+             */
+            var updateStatesInterval = setInterval(updateStatesFromProblems, 10000);
+
             /*
              The states that the server currently has stored.
              This is used to compute what has changed since the last time data was sent to the server, so that the server
@@ -391,6 +378,20 @@
                 var timerEl = document.getElementById('timer');
 
                 timerEl.innerHTML = "Time Left: " + timeLeftMin + ":" + timeLeftSec;
+            }
+
+            // Delete the iframes of the problems in the assignment
+            function deleteProblems() {
+                var highestScoreEls = Array.from(document.getElementsByClassName('highestScore'));
+                var problemIframes = Array.from(document.getElementsByClassName('exercise-iframe'));
+
+                for (var i = 0; i < highestScoreEls.length; i++)
+                    highestScoreEls[i].remove();
+
+                for (var i = 0; i < problemIframes.length; i++)
+                    problemIframes[i].remove();
+
+                clearInterval(updateStatesInterval);
             }
 
             $(document).ready(initializeTimer);
