@@ -43,8 +43,8 @@ public class SubmissionController extends Controller {
                 "11,1|1,4| 1,1,i8,18,, I am a computer."
               */
             String stateEditScript = problemContent.get("stateEditScript").textValue();
-            JsonNode previousHashNode = problemContent.get("previousSubmissionId");
-            String previousHash = previousHashNode == null ? "" : previousHashNode.textValue();
+            JsonNode previousIdNode = problemContent.get("previousSubmissionId");
+            String previousId = previousIdNode == null ? "" : Long.toString(previousIdNode.longValue());
 
             Problem problem = Ebean.find(Problem.class, problemContent.get("problemId").asLong(-1L));
             JsonNode score = problemContent.get("score");
@@ -54,7 +54,7 @@ public class SubmissionController extends Controller {
             submission.setAssignmentId(assignmentID);
             submission.setStudentId(userID);
             submission.setContent(stateEditScript);
-            submission.setPrevious(previousHash);
+            submission.setPrevious(previousId);
             submission.setProblem(problem);
             submission.setCorrect(score.get("correct").asLong(0L));
             submission.setMaxScore(score.get("maxscore").asLong(0L));
