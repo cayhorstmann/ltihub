@@ -187,7 +187,7 @@
 
                                 // Updates the previous version of the problem content so that we will know what changed
                                 problemIdToContent["@problem.getProblemId()"] = {
-                                    previousSubmissionId: lastSubmission.previous,
+                                    submissionId: lastSubmission.submissionId,
                                     score: {
                                         correct: bestSubmission.correct,
                                         maxscore: bestSubmission.maxscore
@@ -235,8 +235,8 @@
                         problemIdToContent[problemId].state : "";
                 const currentStateString = state ? JSON.stringify(state) : "";
 
-                const previousSubmissionId = problemIdToContent[problemId].previousSubmissionId ?
-                        problemIdToContent[problemId].previousSubmissionId : null;
+                const previousSubmissionId = problemIdToContent[problemId].submissionId ?
+                        problemIdToContent[problemId].submissionId : null;
 
                 if (currentScorePercent > previousScorePercent || previousStateString !== currentStateString) {
                     const data = {
@@ -253,7 +253,7 @@
                         data: JSON.stringify(data),
                         success: function (submission) {
                             problemIdToContent[problemId] = {
-                                previousSubmissionId: submission.submissionId,
+                                submissionId: submission.submissionId,
                                 score: {
                                     correct: currentScorePercent,
                                     maxscore: 100
