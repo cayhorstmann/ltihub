@@ -14,9 +14,8 @@
                 $.ajax({
                     url: '@services.routes.DataProvider.getUserIdsForAssignment(assignmentId)',
                     method: 'GET',
-                    success: function (msg) {
+                    success: function (userIds) {
                         try {
-                            userIds = JSON.parse(msg);
                             for (var i = 0; i < userIds.length; i++) {
                                 var userIdEl = document.createElement("option");
                                 userIdEl.text = userIds[i];
@@ -40,11 +39,14 @@
             var problemIdToSubmissions = {};
 
             function loadSubmissionsForSelectedUser() {
+                const userId = userIdSelectionEl.value;
+                if (!userId)
+                    return;
+
                 // Lock userIdSelectionEl to prevent this function from being called twice
                 const userIdSelectionEl = document.getElementById('userIdSelection');
                 userIdSelectionEl.disabled = true;
 
-                const userId = userIdSelectionEl.value;
                 @for(problem <- problems) {
                     // Lock the slider while the submissions corresponding to it are changed
                     var stateSelectionEl = document.getElementById('stateSelection-@problem.getProblemId()');
