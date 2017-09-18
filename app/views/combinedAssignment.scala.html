@@ -114,6 +114,7 @@
 
             // Sends the states of the problems that were previously submitted to the problems to be restored
             function restoreStatesOfProblems() {
+                // TODO: change twirlapi for loop to an ajax request
                 @for(problem <- problems) {
                     problemIdToContent["@problem.getProblemId()"] = {};
 
@@ -375,7 +376,7 @@
 
                     if (timeLeftInterval)
                         clearInterval(timeLeftInterval);
-                    
+
                     alert("You ran out of time, your work has been saved, and your assignment has been graded");
                 }
 
