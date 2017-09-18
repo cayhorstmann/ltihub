@@ -59,10 +59,14 @@
                         success: function (msg) {
                             try {
                                 var submissions = msg.slice();
+                                if (submissions.length <= 0) {
+                                    userIdSelectionEl.disabled = false;
+                                    return;
+                                }
 
                                 // Find the state edit scripts
                                 var stateEditScriptsStack = [];
-                                var previousSubmission;
+                                var previousSubmissionId = submissions[submissions.length - 1].submissionId;
                                 while (submissions.length > 0) {
                                     var submission = submissions.pop();
 
@@ -71,9 +75,9 @@
                                      If a submission's previous property is not a number, then automatically accept it
                                      */
                                     if (!submission.previous || isNaN(submission.previous) ||
-                                            (previousSubmission && submission.submissionId === previousSubmission)) {
+                                            (submission.submissionId === previousSubmissionId)) {
                                         stateEditScriptsStack.push(submission.content);
-                                        previousSubmission = submission.previous;
+                                        previousSubmissionId = submission.previous;
                                     }
                                 }
 
