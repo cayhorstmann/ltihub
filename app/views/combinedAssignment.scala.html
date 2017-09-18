@@ -137,7 +137,7 @@
                                 var stateEditScriptsStack = [];
                                 var lastSubmission = submissions[submissions.length - 1];
                                 var bestSubmission = lastSubmission;
-                                var previousSubmission = lastSubmission.previous;
+                                var previousSubmissionId = lastSubmission.submissionId;
                                 while (submissions.length > 0) {
                                     var submission = submissions.pop();
 
@@ -146,9 +146,9 @@
                                      If a submission's previous property is not a number, then automatically accept it
                                       */
                                     if (!submission.previous || isNaN(submission.previous) ||
-                                            (submission.submissionId === previousSubmission)) {
+                                            (submission.submissionId === previousSubmissionId)) {
                                         stateEditScriptsStack.push(submission.content);
-                                        previousSubmission = submission.previous;
+                                        previousSubmissionId = submission.previous;
 
                                         var scorePercent = (submission.correct / submission.maxscore) * 100.0;
                                         var highestScorePercent = bestSubmission ?
