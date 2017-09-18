@@ -339,6 +339,8 @@
 
             var endTimeInMilliseconds;
 
+            var timeLeftInterval;
+
             function initializeTimer() {
                 var timerEl = document.createElement('div');
                 timerEl.id = 'timer';
@@ -352,7 +354,7 @@
                         endTimeInMilliseconds = startTimeInMilliseconds + durationInMilliseconds;
 
                         updateTimeLeftDisplay();
-                        setInterval(updateTimeLeftDisplay, 1000);
+                        timeLeftInterval = (updateTimeLeftDisplay, 1000);
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
                         prompt("Error:", "Error getting start time: " + JSON.stringify(XMLHttpRequest) + "\n" +
@@ -370,6 +372,11 @@
                 if (timeLeftObj.getTime() <= 0) {
                     submitGrades();
                     deleteProblems();
+
+                    if (timeLeftInterval)
+                        clearInterval(timeLeftInterval);
+                    
+                    alert("You ran out of time, your work has been saved, and your assignment has been graded");
                 }
 
                 /*
