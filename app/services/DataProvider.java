@@ -22,10 +22,36 @@ import static play.mvc.Results.ok;
 public class DataProvider {
 
     /**
+     * Provides the problems of the assignment with the given assignment ID
+     * @param assignmentId the ID of the assignment to get the problems for
+     * @return a JSON array containing the problems of the assignment with the given ID as JSON objects with the
+     * properties:
+     * <code>
+     *     problemId, problemUrl
+     * </code>
+     */
+    public Result getProblems(Long assignmentId) {
+        Assignment assignment = Ebean.find(Assignment.class, assignmentId);
+        if (assignment == null)
+            return badRequest("Assignment not found. ID Given: " + assignmentId);
+
+        List<JsonNode> problemsJsonList = new ArrayList<>();
+        for (Problem problem: assignment.getProblems()) {
+            Map<String, Object> problemValues = new HashMap<>();
+            problemValues.put("problemId", problem.getProblemId());
+            problemValues.put("problemUrl", problem.getProblemUrl());
+
+            problemsJsonList.add(Json.toJson(problemValues));
+        }
+
+        return ok(Json.toJson(problemsJsonList));
+    }
+
+    /**
      * Provides the user ids of the users that have made submissions to any of the problems on the given assignment
      * @param assignmentId the id of the assignment to collect the user ids of
-     * @return a stringified json object with the user ids of the users that have made submissions
-     * to any of the problems on the given assignment
+     * @return a JSON array containing the user ids of the users that have made submission to any of the problems on
+     * the assignment with the given ID
      */
     public Result getUserIdsForAssignment(Long assignmentId) {
         Assignment assignment = Ebean.find(Assignment.class, assignmentId);
@@ -39,16 +65,15 @@ public class DataProvider {
             }
         }
 
-        JsonNode userIdsJSON = Json.toJson(userIds);
-
-        return ok(Json.stringify(userIdsJSON));
+        return ok(Json.toJson(userIds));
     }
 
     /**
      * Provides all of the submissions for a given problem id and user id
      * @param problemId the id of the problem to find the submissions for
      * @param studentId the id of the user to find the submissions for
-     * @return a stringified json object with the properties:
+     * @return a JSON array containing all of the submissions for the problem with the given problem ID as
+     * JSON objects with the properties:
      * <code>
      *     submissionId, submittedAt, correct, maxscore, content, previous
      * </code>

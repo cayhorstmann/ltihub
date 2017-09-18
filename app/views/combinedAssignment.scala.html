@@ -9,32 +9,86 @@
 
     <script type="text/javascript">
 
-          // Response from messages to iframe
-          function receiveMessage(event) {
+        /*
+         This interval calls the function to request the updated states and scores of problems,
+         that way if the score or the states changed, then we can report those changes to the server.
+          */
+        var updateStatesInterval = setInterval(updateStatesFromProblems, 10000);
+
+        // Load the iframes for the problems of the assignment
+        function loadProblems() {
+            $.ajax({
+                url: '@services.routes.DataProvider.getProblems(assignmentID)',
+                method: 'GET',
+                success: function (problems) {
+                    for (var i = 0; i < problems.length; i++) {
+                        @if(isInstructor) {
+                            var highestScoreEl = document.createElement('div');
+                            highestScoreEl.id = "highestScore-" + problems[i].problemId;
+                            highestScoreEl.className = "highestScore message";
+
+                            document.body.appendChild(highestScoreEl);
+                        }
+
+                        var problemIframe = document.createElement('iframe');
+                        problemIframe.id = problems[i].problemId;
+                        problemIframe.className = 'exercice-iframe';
+                        problemIframe.src = problems[i].problemUrl;
+
+                        document.body.appendChild(problemIframe);
+                    }
+
+                    Promise
+                            .all(Array.from(document.querySelectorAll('iframe'))
+                            .map(element => new Promise(resolve => {
+                        element.onload = () => {
+                        resolve();
+                    }
+                    })))
+                    .then(() => { console.log('yayy'); })
+                },
+                error: function(XMLHttpRequest) {
+                    prompt("Error", "Error getting problems: " + JSON.stringify(XMLHttpRequest) + "\n" +
+                            "Given Assignment ID: @assignmentID" + "\n" +
+                            "Given User ID: @userID");
+                }
+            });
+        }
+
+        // Delete the iframes of the problems in the assignment
+        function deleteProblems() {
+            var problemIframes = document.getElementsByClassName('exercise-iframe');
+
+            for (var i = 0; i < problemIframes.length; i++)
+                problemIframes[i].remove();
+        }
+
+        // Response from messages to iframe
+        function receiveMessage(event) {
             if (event.data.request) { // It's a response
-              if (event.data.request.query === 'docHeight') {
-                const newHeight = event.data.docHeight + 200;
-                $('#' + event.data.request.id).height(newHeight)
-              }
-              else if (event.data.request.query === 'getContent') {
-                const problemId = event.data.request.problemId;
-                const score = event.data.score;
-                const state = event.data.state;
-                sendScoreAndStateEditScriptToServer(problemId, score, state);
-              }
+                if (event.data.request.query === 'docHeight') {
+                    const newHeight = event.data.docHeight + 200;
+                    $('#' + event.data.request.id).height(newHeight)
+                }
+                else if (event.data.request.query === 'getContent') {
+                    const problemId = event.data.request.problemId;
+                    const score = event.data.score;
+                    const state = event.data.state;
+                    sendScoreAndStateEditScriptToServer(problemId, score, state);
+                }
             }
-          }
+        }
 
-          window.addEventListener("message", receiveMessage, false);
+        window.addEventListener("message", receiveMessage, false);
 
-          // Fix heights of iframes 
-          $(document).ready(function() {
-            $('iframe').each(function(i, e) {
-              $(e).on('load', function() {
-                e.contentWindow.postMessage({query: 'docHeight', id: $(e).attr('id')}, '*')
-             })
-           })
+        // Fix heights of iframes
+        $(document).ready(function() {
+        $('iframe').each(function(i, e) {
+          $(e).on('load', function() {
+            e.contentWindow.postMessage({query: 'docHeight', id: $(e).attr('id')}, '*')
          })
+        })
+        })
 
     </script>
         
@@ -85,7 +139,7 @@
 
                                 // Find the state edit scripts and highest score
                                 var stateEditScriptsStack = [];
-                                var lastSubmission = submissions[submissions.length - 1]
+                                var lastSubmission = submissions[submissions.length - 1];
                                 var bestSubmission = lastSubmission;
                                 var previousSubmission = lastSubmission.previous;
                                 while (submissions.length > 0) {
@@ -140,7 +194,7 @@
                                     previousSubmissionId: lastSubmission.previous,
                                     score: {
                                         correct: bestSubmission.correct,
-                                        maxscore: bestSubmission.maxscore,
+                                        maxscore: bestSubmission.maxscore
                                     },
                                     state: state};
 
@@ -161,8 +215,6 @@
 
                 }
 
-
-                setInterval(updateStatesFromProblems, 10000);
                 // document.getElementById("saveMyWorkButton").disabled = false;
             }
 
@@ -268,7 +320,7 @@
             }
 
 
-            window.onload = restoreStatesOfProblems;
+            window.onload = loadProblems;
         </script>
     }
             
@@ -309,14 +361,16 @@
                 // Time is up, submit assignment
                 if (timeLeftObj.getTime() <= 0) {
                     submitGrades();
+
                 }
 
                 /*
                 All hours and days will be put into minutes
                 i.e. two hours and 30 minutes will turn into 150 minutes
+                If seconds is less than 10, then we add a 0 in front
                  */
                 const timeLeftMin = Math.floor((timeLeftObj.getTime() / 1000) / 60);
-                const timeLeftSec = timeLeftObj.getSeconds();
+                const timeLeftSec = ((timeLeftObj.getSeconds() < 10) ? "0" : "") + timeLeftObj.getSeconds();
 
                 var timerEl = document.getElementById('timer');
 
@@ -338,15 +392,6 @@
             <a href="@routes.HomeController.getSubmissionViewer(assignmentID)">View Submissions</a>
         </p>
     }
-    @* Code to generate the iframes for problems *@
-    @for(problem <- problems) {
-        @if(!isInstructor) {
-            <div class="highestScore message" id="highestScore-@problem.problemId">
-            </div>
-        }
-
-        <iframe class='exercise-iframe' frameBorder='0' id='@problem.problemId' src='@problem.getProblemUrl().trim()'></iframe>
-    }
 
     @if(!isInstructor) {
         <p>
@@ -355,4 +400,5 @@
 
         <button onclick="submitGrades()">Record my score</button> <span class="message" id='response'></span>
     }
+
 </body>

@@ -59,3 +59,6 @@ GET     /get-submissions/:problemId/:userId     services.DataProvider.getSubmiss
 
 # To determine the time left for the student on a timed assignment
 GET     /get-start-time/:assignmentId/:userId   services.DataProvider.getStartTimeInMilliseconds(assignmentId: Long, userId: String)
+
+# Get the problems of an assignment to display
+GET     /get-problems/:assignmentId             services.DataProvider.getProblems(assignmentId: Long)
