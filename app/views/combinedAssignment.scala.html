@@ -146,7 +146,7 @@
                                      If a submission's previous property is not a number, then automatically accept it
                                       */
                                     if (!submission.previous || isNaN(submission.previous) ||
-                                            (submission.submissionId === previousSubmissionId)) {
+                                            (submission.submissionId == previousSubmissionId)) {
                                         stateEditScriptsStack.push(submission.content);
                                         previousSubmissionId = submission.previous;
 
