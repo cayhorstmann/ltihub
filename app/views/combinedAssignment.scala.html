@@ -129,7 +129,7 @@
                         method: 'GET',
                         success: function (msg) {
                             try {
-                                var submissions = msg;
+                                var submissions = msg.slice();
                                 if (submissions.length <= 0)
                                     return;
 

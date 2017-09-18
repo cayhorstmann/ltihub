@@ -39,7 +39,7 @@
 
             function loadSubmissionsForSelectedUser() {
                 const userIdSelectionEl = document.getElementById('userIdSelection');
-                
+
                 const userId = userIdSelectionEl.value;
                 if (!userId)
                     return;
@@ -58,7 +58,7 @@
                         method: 'GET',
                         success: function (msg) {
                             try {
-                                var submissions = msg;
+                                var submissions = msg.slice();
 
                                 // Find the state edit scripts
                                 var stateEditScriptsStack = [];
