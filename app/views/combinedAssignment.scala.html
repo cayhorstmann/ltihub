@@ -21,6 +21,7 @@
                 url: '@services.routes.DataProvider.getProblems(assignmentID)',
                 method: 'GET',
                 success: function (problems) {
+                    var onloadPromises = [];
                     for (var i = 0; i < problems.length; i++) {
                         @if(isInstructor) {
                             var highestScoreEl = document.createElement('div');
@@ -35,17 +36,17 @@
                         problemIframe.className = 'exercise-iframe';
                         problemIframe.src = problems[i].problemUrl;
 
+                        onloadPromises.push(new Promise(function(resolve, reject) {
+                            problemIframe.onload = function() {
+                                resolve();
+                        }));
+
                         document.body.appendChild(problemIframe);
                     }
 
-                    Promise
-                            .all(Array.from(document.querySelectorAll('iframe'))
-                            .map(element => new Promise(resolve => {
-                        element.onload = () => {
-                        resolve();
-                    }
-                    })))
-                    .then(() => { console.log('yayy'); })
+                    // When all of the iframes are loaded, restore the states from the student's preivous submissions
+                    Promise.all(onloadPromises)
+                            .then(restoreStatesOfProblems);
                 },
                 error: function(XMLHttpRequest) {
                     prompt("Error", "Error getting problems: " + JSON.stringify(XMLHttpRequest) + "\n" +
@@ -61,6 +62,8 @@
 
             for (var i = 0; i < problemIframes.length; i++)
                 problemIframes[i].remove();
+
+            clearInterval(updateStatesInterval);
         }
 
         // Response from messages to iframe
