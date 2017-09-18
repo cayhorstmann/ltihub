@@ -59,7 +59,12 @@
 
         // Delete the iframes of the problems in the assignment
         function deleteProblems() {
-            var problemIframes = document.getElementsByClassName('exercise-iframe');
+            Array.from(document.getElementsByClassName('highestScore')).forEach(e => e.remove())
+            var highestScoreEls = Array.from(document.getElementsByClassName('highestScore'));
+            var problemIframes = Array.from(document.getElementsByClassName('exercise-iframe'));
+
+            for (var i = 0; i < highestScoreEls.length; i++)
+                highestScoreEls[i].remove();
 
             for (var i = 0; i < problemIframes.length; i++)
                 problemIframes[i].remove();
