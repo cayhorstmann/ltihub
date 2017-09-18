@@ -41,7 +41,14 @@
 
                     // When all of the iframes are loaded, restore the states from the student's preivous submissions
                     Promise.all(onloadPromises)
-                            .then(restoreStatesOfProblems);
+                            .then(restoreStatesOfProblems)
+                            .then(function() {
+                                $('iframe').each(function(i, e) {
+                                    $(e).on('load', function() {
+                                        e.contentWindow.postMessage({query: 'docHeight', id: $(e).attr('id')}, '*')
+                                    })
+                                })
+                            });
                 },
                 error: function(XMLHttpRequest) {
                     prompt("Error", "Error getting problems: " + JSON.stringify(XMLHttpRequest) + "\n" +
@@ -69,14 +76,11 @@
 
         window.addEventListener("message", receiveMessage, false);
 
+
+        window.onload = loadProblems;
+
         // Fix heights of iframes
-        $(document).ready(function() {
-        $('iframe').each(function(i, e) {
-          $(e).on('load', function() {
-            e.contentWindow.postMessage({query: 'docHeight', id: $(e).attr('id')}, '*')
-         })
-        })
-        })
+        $(document).ready()
 
     </script>
         
@@ -315,8 +319,6 @@
                 }, 1000)
             }
 
-
-            window.onload = loadProblems;
         </script>
     }
             
@@ -342,7 +344,7 @@
                         endTimeInMilliseconds = startTimeInMilliseconds + durationInMilliseconds;
 
                         updateTimeLeftDisplay();
-                        timeLeftInterval = (updateTimeLeftDisplay, 1000);
+                        timeLeftInterval = setInterval(updateTimeLeftDisplay, 1000);
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
                         prompt("Error:", "Error getting start time: " + JSON.stringify(XMLHttpRequest) + "\n" +
