@@ -358,17 +358,6 @@
                 var timeLeftObj = new Date();
                 timeLeftObj.setTime(endTimeInMilliseconds - timeLeftObj.getTime());
 
-                // Time is up, submit assignment
-                if (timeLeftObj.getTime() <= 0) {
-                    submitGrades();
-                    deleteProblems();
-
-                    if (timeLeftInterval)
-                        clearInterval(timeLeftInterval);
-
-                    alert("You ran out of time, your work has been saved, and your assignment has been graded");
-                }
-
                 /*
                 All hours and days will be put into minutes
                 i.e. two hours and 30 minutes will turn into 150 minutes
@@ -380,6 +369,18 @@
                 var timerEl = document.getElementById('timer');
 
                 timerEl.innerHTML = "Time Left: " + timeLeftMin + ":" + timeLeftSec;
+
+                // Time is up, submit assignment
+                if (timeLeftObj.getTime() <= 0) {
+                    submitGrades();
+                    deleteProblems();
+                    timerEl.remove();
+
+                    if (timeLeftInterval)
+                        clearInterval(timeLeftInterval);
+
+                    alert("You ran out of time, your work has been saved, and your assignment has been graded");
+                }
             }
 
             // Delete the iframes of the problems in the assignment
