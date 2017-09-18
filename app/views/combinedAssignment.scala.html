@@ -23,7 +23,7 @@
                 success: function (problems) {
                     var onloadPromises = [];
                     for (var i = 0; i < problems.length; i++) {
-                        @if(isInstructor) {
+                        @if(!isInstructor) {
                             var highestScoreEl = document.createElement('div');
                             highestScoreEl.id = "highestScore-" + problems[i].problemId;
                             highestScoreEl.className = "highestScore message";
@@ -39,6 +39,7 @@
                         onloadPromises.push(new Promise(function(resolve, reject) {
                             problemIframe.onload = function() {
                                 resolve();
+                            }
                         }));
 
                         document.body.appendChild(problemIframe);
