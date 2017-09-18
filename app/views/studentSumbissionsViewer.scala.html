@@ -38,12 +38,13 @@
             var problemIdToSubmissions = {};
 
             function loadSubmissionsForSelectedUser() {
+                const userIdSelectionEl = document.getElementById('userIdSelection');
+                
                 const userId = userIdSelectionEl.value;
                 if (!userId)
                     return;
 
                 // Lock userIdSelectionEl to prevent this function from being called twice
-                const userIdSelectionEl = document.getElementById('userIdSelection');
                 userIdSelectionEl.disabled = true;
 
                 @for(problem <- problems) {
