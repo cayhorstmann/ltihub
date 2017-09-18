@@ -10,7 +10,6 @@
             function populateUserIdSelection() {
                 const userIdSelectionEl = document.getElementById('userIdSelection');
 
-                var userIds;
                 $.ajax({
                     url: '@services.routes.DataProvider.getUserIdsForAssignment(assignmentId)',
                     method: 'GET',
