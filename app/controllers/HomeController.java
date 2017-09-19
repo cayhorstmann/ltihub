@@ -1,18 +1,10 @@
 package controllers;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
-import java.io.Writer;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
 import models.Assignment;
 import models.Problem;
@@ -22,69 +14,18 @@ import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.Security;
+import views.html.combinedAssignment;
+import views.html.create_exercise;
+import views.html.create_exercise_outside_LMS;
+import views.html.editAssignment;
+import views.html.showassignment;
+import views.html.showassignmentOutsideLMS;
+import views.html.studentSumbissionsViewer;
 
 import com.avaje.ebean.Ebean;
 
-import views.html.*;
-
 public class HomeController extends Controller {
-	private static String getParam(Map<String, String[]> params, String key) {
-		String[] values = params.get(key);
-		if (values == null || values.length == 0) return null;
-		else return values[0];
-	}
-	
-	private static boolean isInstructor(String role) {
-		return role != null && (role.contains("Faculty") || role.contains("TeachingAssistant") || role.contains("Instructor"));
-	}
-	
-	private static boolean isEmpty(String str) {
-		return str == null || str.trim().length() == 0 || str.trim().equals("null");		
-	}
-	
-	private static String httpPost(String urlString, Map<String, String> postData) {
-		StringBuilder result = new StringBuilder();
-		try {
-			URL url = new URL(urlString);
-			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-			connection.setDoOutput(true);
-			try (Writer out = new OutputStreamWriter(
-					connection.getOutputStream(), StandardCharsets.UTF_8)) {
-				boolean first = true;
-				for (Map.Entry<String, String> entry : postData.entrySet()) {
-					if (first) first = false;
-					else out.write("&");
-					out.write(URLEncoder.encode(entry.getKey(), "UTF-8"));
-					out.write("=");
-					out.write(URLEncoder.encode(entry.getValue(), "UTF-8"));
-				}
-			}
-			int response = connection.getResponseCode();
-			result.append(response);
-			result.append("\n");
-			try (Scanner in = new Scanner(connection.getInputStream(), "UTF-8")) {
-				while (in.hasNextLine()) {
-					result.append(in.nextLine());
-					result.append("\n");
-				}
-			}
-			catch (IOException e) {
-			    InputStream err = connection.getErrorStream();
-			    if (err == null) throw e;
-			    try (Scanner in = new Scanner(err, "UTF-8")) {
-			        result.append(in.nextLine());
-			        result.append("\n");
-			    }
-			}			
-		} catch (Throwable ex) {
-			result.append(Util.getStackTrace(ex));
-		}
-		return result.toString();		
-	}
-
-
     public Result config() throws UnknownHostException {
-        Http.Request request = request();
         String host = request().host() + getPrefix();
         return ok(views.xml.lti_config.render(host)).as("application/xml");
     }     
@@ -98,19 +39,19 @@ public class HomeController extends Controller {
 	 	}	 	
 	 	
 
-    	String lisOutcomeServiceURL = getParam(postParams, "lis_outcome_service_url");
-    	String lisResultSourcedID = getParam(postParams, "lis_result_sourcedid");
+    	String lisOutcomeServiceURL = Util.getParam(postParams, "lis_outcome_service_url");
+    	String lisResultSourcedID = Util.getParam(postParams, "lis_result_sourcedid");
 
-    	String userID = getParam(postParams, "custom_canvas_user_id");  // TODO: Add server ID to user ID
-		if (userID == null) userID = getParam(postParams, "user_id");
-		if (isEmpty(userID)) return badRequest("No user id");
+    	String userID = Util.getParam(postParams, "custom_canvas_user_id");  // TODO: Add server ID to user ID
+		if (userID == null) userID = Util.getParam(postParams, "user_id");
+		if (Util.isEmpty(userID)) return badRequest("No user id");
 		session().put("user", userID);
 
-		String contextID = getParam(postParams, "context_id");
-		String resourceLinkID = getParam(postParams, "resource_link_id");
-		String toolConsumerInstanceGuID = getParam(postParams, "tool_consumer_instance_guid");
-		String role = getParam(postParams, "roles");
-		String launchPresentationReturnURL = getParam(postParams, "launch_presentation_return_url");
+		String contextID = Util.getParam(postParams, "context_id");
+		String resourceLinkID = Util.getParam(postParams, "resource_link_id");
+		String toolConsumerInstanceGuID = Util.getParam(postParams, "tool_consumer_instance_guid");
+		String role = Util.getParam(postParams, "roles");
+		String launchPresentationReturnURL = Util.getParam(postParams, "launch_presentation_return_url");
 	    String assignmentID = request().getQueryString("id");
 	    if (assignmentID == null) { 
 	    	List<Assignment> assignments = Ebean.find(Assignment.class)
@@ -121,7 +62,7 @@ public class HomeController extends Controller {
 	    	if (assignments.size() == 1) assignmentID = "" + assignments.get(0).getAssignmentId();
 	    }
 		
-	    boolean instructor = isInstructor(role); 
+	    boolean instructor = Util.isInstructor(role); 
 	    
 		if (assignmentID == null) {
 			if (instructor)		
@@ -133,9 +74,9 @@ public class HomeController extends Controller {
 			}
 		}
 		
-		if (isEmpty(lisOutcomeServiceURL)) {
+		if (Util.isEmpty(lisOutcomeServiceURL)) {
           	return badRequest("lis_outcome_service_url missing.");
-		} else if (!instructor && isEmpty(lisResultSourcedID)) {
+		} else if (!instructor && Util.isEmpty(lisResultSourcedID)) {
 			return badRequest("lis_result_sourcedid missing.");
 		}  else { // TODO: Eliminate 
 			response().setCookie(new Http.Cookie("lis_outcome_service_url", lisOutcomeServiceURL,
@@ -151,14 +92,14 @@ public class HomeController extends Controller {
 	public Result addAssignment() {
 		Map<String, String[]> postParams = request().body().asFormUrlEncoded();
 	 	
-		String problemlist = getParam(postParams, "url");
+		String problemlist = Util.getParam(postParams, "url");
        
 		Assignment assignment = new Assignment();
-		assignment.setContextId(getParam(postParams, "context_id"));
-		assignment.setResourceLinkId(getParam(postParams, "resource_link_id"));
-		assignment.setToolConsumerInstanceGuId(getParam(postParams, "tool_consumer_id"));
+		assignment.setContextId(Util.getParam(postParams, "context_id"));
+		assignment.setResourceLinkId(Util.getParam(postParams, "resource_link_id"));
+		assignment.setToolConsumerInstanceGuId(Util.getParam(postParams, "tool_consumer_id"));
        
-		String duration = getParam(postParams, "duration");
+		String duration = Util.getParam(postParams, "duration");
 		if(duration.equals(""))
     	   assignment.setDuration(0L);
 		else
@@ -167,7 +108,7 @@ public class HomeController extends Controller {
    
         addNewProblemsFromFormSubmission(problemlist, assignment);
 
-        String launchPresentationReturnURL = getParam(postParams, "launch_presentation_return_url");
+        String launchPresentationReturnURL = Util.getParam(postParams, "launch_presentation_return_url");
         List<Problem> problems = assignment.getProblems();
         String assignmentURL = "https://" + request().host() + getPrefix() + "/assignment?id=" + assignment.getAssignmentId();
         return ok(showassignment.render(launchPresentationReturnURL, 
@@ -180,10 +121,10 @@ public class HomeController extends Controller {
 		
 	public Result addAssignmentOutsideLMS() {        
 	    Map<String, String[]> postParams = request().body().asFormUrlEncoded();
-		String problemlist = getParam(postParams, "url");
-		String key = getParam(postParams, "key");
-		String secret = getParam(postParams, "secret");
-		String duration = getParam(postParams, "duration");
+		String problemlist = Util.getParam(postParams, "url");
+		String key = Util.getParam(postParams, "key");
+		String secret = Util.getParam(postParams, "secret");
+		String duration = Util.getParam(postParams, "duration");
 		if (duration == null) duration = "0";
 
 		if(key.equals("fred") && secret.equals("fred")){ // TODO
@@ -200,13 +141,11 @@ public class HomeController extends Controller {
 	}
 	
 	private Result getAssignment(String role, Long assignmentId, String userId, String lisOutcomeServiceURL, String lisResultSourcedID){
-		Map<String, String[]> postParams = request().body().asFormUrlEncoded();
-	 	
 		Assignment assignment = Ebean.find(Assignment.class, assignmentId);
         Long duration = assignment.getDuration();
         List<Problem> problems = assignment.getProblems();
 
-        return ok(combinedAssignment.render(getPrefix(), assignmentId, userId, duration, isInstructor(role),
+        return ok(combinedAssignment.render(getPrefix(), assignmentId, userId, duration, Util.isInstructor(role),
             problems, lisOutcomeServiceURL, lisResultSourcedID));
     }
 
@@ -248,7 +187,7 @@ public class HomeController extends Controller {
 	
     public Result saveEditedAssignment(Long assignmentId) {
 	    Map<String, String[]> postParams = request().body().asFormUrlEncoded();
-	 	String problemUrls = getParam(postParams, "url");
+	 	String problemUrls = Util.getParam(postParams, "url");
         Assignment assignment = Ebean.find(Assignment.class, assignmentId);
         addNewProblemsFromFormSubmission(problemUrls, assignment);
         List<Problem> problems = assignment.getProblems();
@@ -262,14 +201,14 @@ public class HomeController extends Controller {
 	public Result showEditPage(Long assignment) {
 		Assignment assignment1 = Ebean.find(Assignment.class, assignment);
 		
-        	List<Problem> problems = Ebean.find(Problem.class) // TODO: Doesn't the ORM do that?
-        			.fetch("assignment")
-        			.where()
-        			.eq("assignment.assignmentId",assignment1.assignmentId)
-        			.orderBy("problemId")
-        			.findList();
-        	
-        	return ok(editAssignment.render(assignment1, problems));    
+    	List<Problem> problems = Ebean.find(Problem.class) // TODO: Doesn't the ORM do that?
+    			.fetch("assignment")
+    			.where()
+    			.eq("assignment.assignmentId",assignment1.assignmentId)
+    			.orderBy("problemId")
+    			.findList();
+    	
+    	return ok(editAssignment.render(assignment1, problems));    
     }
 
 
@@ -296,6 +235,4 @@ public class HomeController extends Controller {
         assignment.getProblems().add(problem);
         problem.save();
     }
-
-
 }
