@@ -83,9 +83,15 @@ public class HomeController extends Controller {
 		                 null, null, null, false, false));
 			if (lisResultSourcedID != null) response().setCookie(new Http.Cookie("lis_result_sourcedid", URLEncoder.encode(lisResultSourcedID,"UTF-8"),
 		                 null, null, null, false, false));
-		} 
+		}
+		Long assignmentId = Long.parseLong(assignmentID); 
 
-		return getAssignment(role, Long.parseLong(assignmentID), userID, lisOutcomeServiceURL, lisResultSourcedID);
+		Assignment assignment = Ebean.find(Assignment.class, assignmentId);
+		Long duration = assignment.getDuration();
+		List<Problem> problems = assignment.getProblems();
+		
+		return ok(combinedAssignment.render(getPrefix(), assignmentId, userID, duration, Util.isInstructor(role),
+		    problems, lisOutcomeServiceURL, lisResultSourcedID));
  	}
 
 	// This method gets called when an assignment has been created with create_exercise.scala.html.
@@ -140,15 +146,6 @@ public class HomeController extends Controller {
 			return ok("Secret or key doesn't match.");
 	}
 	
-	private Result getAssignment(String role, Long assignmentId, String userId, String lisOutcomeServiceURL, String lisResultSourcedID){
-		Assignment assignment = Ebean.find(Assignment.class, assignmentId);
-        Long duration = assignment.getDuration();
-        List<Problem> problems = assignment.getProblems();
-
-        return ok(combinedAssignment.render(getPrefix(), assignmentId, userId, duration, Util.isInstructor(role),
-            problems, lisOutcomeServiceURL, lisResultSourcedID));
-    }
-
 	@Security.Authenticated(Secured.class)
 	public Result getSubmissionViewer(Long assignmentId) {
 
