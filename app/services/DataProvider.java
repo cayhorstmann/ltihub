@@ -36,7 +36,9 @@ public class DataProvider {
             return badRequest("Assignment not found. ID Given: " + assignmentId);
 
         List<JsonNode> problemsJsonList = new ArrayList<>();
-        for (Problem problem: assignment.getProblems()) {
+        List<Problem> problems = new ArrayList<>(assignment.getProblems()); // TODO: Query with orderby
+        problems.sort((p, q) -> Long.compare(p.getProblemId(), q.getProblemId()));
+        for (Problem problem: problems) {
             Map<String, Object> problemValues = new HashMap<>();
             problemValues.put("problemId", problem.getProblemId());
             problemValues.put("problemUrl", problem.getProblemUrl());
