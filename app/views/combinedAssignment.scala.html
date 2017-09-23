@@ -188,10 +188,7 @@
                                 // Updates the previous version of the problem content so that we will know what changed
                                 problemIdToContent["@problem.getProblemId()"] = {
                                     submissionId: lastSubmission.submissionId,
-                                    score: {
-                                        correct: bestSubmission.correct,
-                                        maxscore: bestSubmission.maxscore
-                                    },
+                                    score: (bestSubmission.correct / bestSubmission.maxscore) * 100.0,
                                     state: state};
 
                                 // Post message to iframe to populate the problem
