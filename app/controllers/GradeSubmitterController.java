@@ -64,6 +64,7 @@ public class GradeSubmitterController extends Controller {
 		   .eq("assignmentId", assignmentID)
 		   .eq("studentId", userID)
 		   .findList();
+	    Logger.info("submissionsForAssignment=" + submissionsForAssignment);
 		
 	    Map<Long, Double> maxScores = new HashMap<Long, Double>();
 		for (Submission s : submissionsForAssignment) {
