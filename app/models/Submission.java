@@ -130,6 +130,14 @@ public class Submission extends Model {
 	public void setContent(String content){
 		this.content = content;
 	}
+	
+	public String toString() {
+		return getClass().getName() + "[submissionId=" + submissionId 
+				+ ",studentId=" + studentId + ",assignmentId=" + assignmentId
+				+ ",correct=" + correct + ",maxscore=" + maxscore + ",activity=" + activity
+				+ ",submittedAt=" + submittedAt + ",content=" + content + ",previous=" + previous 
+				+ ",problem.problemId=" + problem.problemId;
+	}
 }
 
 
