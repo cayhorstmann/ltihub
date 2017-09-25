@@ -314,10 +314,9 @@
     @if(duration != null && duration > 0L) {
         <script type="text/javascript">
             const durationInMilliseconds = @duration * 60 * 1000;
-
             var endTimeInMilliseconds;
-
             var timeLeftInterval;
+            var alertedTimeIsUp = false;
 
             function initializeTimer() {
                 var timerEl = document.createElement('div');
@@ -350,28 +349,28 @@
 
                 // Time is up, submit assignment
                 if (timeLeftObj.getTime() <= 0) {
-                    submitGrades();
-                    deleteProblems();
-                    if (timerEl) 
-                    	timerEl.remove();
+                    if (!alertedTimeIsUp) {
+                        alertedTimeIsUp = true;
+                        submitGrades();
+                        deleteProblems();
+                        if (timerEl) 
+                            timerEl.remove();
 
-                    if (timeLeftInterval)
-                        clearInterval(timeLeftInterval);
-
-                    alert("You used up your time, your work has been saved, and your assignment has been graded");
-                    return;
+                        if (timeLeftInterval)
+                            clearInterval(timeLeftInterval);
+                        alert("You used up your time, your work has been saved, and your assignment has been graded");
+                    }
+                } else {
+	                /*
+	                All hours and days will be put into minutes
+	                i.e. two hours and 30 minutes will turn into 150 minutes
+	                If seconds is less than 10, then we add a 0 in front
+	                 */
+	                const timeLeftMin = Math.floor((timeLeftObj.getTime() / 1000) / 60);
+	                const timeLeftSec = ((timeLeftObj.getSeconds() < 10) ? "0" : "") + timeLeftObj.getSeconds();
+	
+	                timerEl.innerHTML = "Time Left: " + timeLeftMin + ":" + timeLeftSec;
                 }
-
-
-                /*
-                All hours and days will be put into minutes
-                i.e. two hours and 30 minutes will turn into 150 minutes
-                If seconds is less than 10, then we add a 0 in front
-                 */
-                const timeLeftMin = Math.floor((timeLeftObj.getTime() / 1000) / 60);
-                const timeLeftSec = ((timeLeftObj.getSeconds() < 10) ? "0" : "") + timeLeftObj.getSeconds();
-
-                timerEl.innerHTML = "Time Left: " + timeLeftMin + ":" + timeLeftSec;
             }
 
             // Delete the iframes of the problems in the assignment
