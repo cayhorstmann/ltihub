@@ -344,8 +344,24 @@
             }
 
             function updateTimeLeftDisplay() {
+                var timerEl = document.getElementById('timer');
                 var timeLeftObj = new Date();
                 timeLeftObj.setTime(endTimeInMilliseconds - timeLeftObj.getTime());
+
+                // Time is up, submit assignment
+                if (timeLeftObj.getTime() <= 0) {
+                    submitGrades();
+                    deleteProblems();
+                    if (timerEl) 
+                    	timerEl.remove();
+
+                    if (timeLeftInterval)
+                        clearInterval(timeLeftInterval);
+
+                    alert("You used up your time, your work has been saved, and your assignment has been graded");
+                    return;
+                }
+
 
                 /*
                 All hours and days will be put into minutes
@@ -355,21 +371,7 @@
                 const timeLeftMin = Math.floor((timeLeftObj.getTime() / 1000) / 60);
                 const timeLeftSec = ((timeLeftObj.getSeconds() < 10) ? "0" : "") + timeLeftObj.getSeconds();
 
-                var timerEl = document.getElementById('timer');
-
                 timerEl.innerHTML = "Time Left: " + timeLeftMin + ":" + timeLeftSec;
-
-                // Time is up, submit assignment
-                if (timeLeftObj.getTime() <= 0) {
-                    submitGrades();
-                    deleteProblems();
-                    timerEl.remove();
-
-                    if (timeLeftInterval)
-                        clearInterval(timeLeftInterval);
-
-                    alert("You used up your time, your work has been saved, and your assignment has been graded");
-                }
             }
 
             // Delete the iframes of the problems in the assignment
