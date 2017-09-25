@@ -10,12 +10,14 @@ import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import models.Assignment;
 import models.Submission;
 import models.Util;
 import oauth.signpost.basic.DefaultOAuthConsumer;
@@ -32,7 +34,6 @@ import com.avaje.ebean.Ebean;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class GradeSubmitterController extends Controller {
-
 	public Result submitGradeToLMS() throws UnsupportedEncodingException {
         JsonNode params = request().body().asJson();
         if (params == null) {
@@ -55,53 +56,38 @@ public class GradeSubmitterController extends Controller {
         }
 	
 		double score = 0.0;
-	
+			
 		// TODO: Allow the instructor to assign a weight for each problem
 	    List<Submission> submissionsForAssignment = Ebean.find(Submission.class)
-		   .select("correct, maxscore")
+		   .select("correct, maxscore, submittedAt")
 		   .fetch("problem", "problemId")
 		   .where()
 		   .eq("assignmentId", assignmentID)
 		   .eq("studentId", userID)
 		   .findList();
 	    Logger.info("submissionsForAssignment=" + submissionsForAssignment);
+	
+	    Assignment assignment = Ebean.find(Assignment.class, assignmentID);
+		long duration = assignment.duration != null && assignment.duration > 0 ? assignment.duration : 0L;
+		Date endTime = null;
+		if (duration > 0) {
+			Date startTime = null;
+			for (Submission s : submissionsForAssignment) 
+				if (startTime == null || s.getSubmittedAt().compareTo(startTime) < 0)
+					startTime = s.getSubmittedAt();
+			endTime = Date.from(startTime.toInstant().plusSeconds(duration * 60));
+		}
 		
 	    Map<Long, Double> maxScores = new HashMap<Long, Double>();
 		for (Submission s : submissionsForAssignment) {
 			long problemId = s.getProblem().getProblemId();
 			double maxScore = s.getMaxScore();
-			if (maxScore > 0)
+			if (maxScore > 0 && (endTime == null || s.getSubmittedAt().compareTo(endTime) <= 0))
 				maxScores.put(problemId, Math.max(s.getCorrect() / maxScore,
 						maxScores.getOrDefault(problemId, 0.0)));
 		}
 		for (double s : maxScores.values()) score += s;
 		if (maxScores.size() > 0) score /= maxScores.size();
-		
-		/*
-		List<Problem> problems = Ebean.find(Problem.class)
-				.where()
-				.eq("assignment.assignmentId",assignmentID)
-				.findList();
-	    for (Problem problem: problems) {
-		   List<Submission> submissions = Ebean.find(Submission.class)
-				   .where()
-				   .eq("problem.problemId",problem.problemId)
-				   .eq("assignmentId",assignmentID)
-				   .eq("studentId",userID)
-				   .findList();
-	
-		   double maxscoreForThisProblem = 0.0;
-		   for (Submission s: submissions) {
-			   double maxScore = (s.getMaxScore()).intValue();
-			   if (maxScore > 0)
-				   maxscoreForThisProblem = Math.max(maxscoreForThisProblem, 
-						   (s.getCorrect()).intValue() / maxScore);        
-		   }
-		   score += maxscoreForThisProblem;
-	    }
-	    if (problems.size() > 0)
-	       score = score / problems.size();
-	    */			
 		
         try {
     		String xmlString1 = "<?xml version = \"1.0\" encoding = \"UTF-8\"?> <imsx_POXEnvelopeRequest xmlns = \"http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0\"> <imsx_POXHeader> <imsx_POXRequestHeaderInfo> <imsx_version>V1.0</imsx_version> <imsx_messageIdentifier>12341234</imsx_messageIdentifier> </imsx_POXRequestHeaderInfo> </imsx_POXHeader> <imsx_POXBody> <replaceResultRequest> <resultRecord> <sourcedGUID> <sourcedId>";

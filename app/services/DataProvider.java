@@ -1,9 +1,16 @@
 package services;
 
 
-import com.avaje.ebean.Ebean;
-import com.avaje.ebean.Query;
-import com.fasterxml.jackson.databind.JsonNode;
+import static play.mvc.Results.badRequest;
+import static play.mvc.Results.ok;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import models.Assignment;
 import models.Problem;
@@ -11,10 +18,8 @@ import models.Submission;
 import play.libs.Json;
 import play.mvc.Result;
 
-import java.util.*;
-
-import static play.mvc.Results.badRequest;
-import static play.mvc.Results.ok;
+import com.avaje.ebean.Ebean;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Has methods meant to provide data to pages that request it
@@ -119,18 +124,17 @@ public class DataProvider {
      * by the student with the given student ID
      */
     public Result getStartTimeInMilliseconds(Long assignmentId, String studentId) {
-        Submission firstSubmission = Ebean.find(Submission.class)
-                .select("submittedAt")
-                .where()
-                .eq("assignmentId", assignmentId)
-                .eq("studentId", studentId)
-                .orderBy("submissionId")
-                .setMaxRows(1)
-                .findUnique();
+    	String query = "select min(submitted_at) as starttime from submission where student_id = :sid and assignment_id = :aid";
+    	Date startTime = Ebean.createSqlQuery(query)
+    			.setParameter("aid", assignmentId)
+    			.setParameter("sid", studentId)
+    			.findUnique()
+    			.getDate("starttime");
 
-        if (firstSubmission != null)
-            return ok(Json.toJson(firstSubmission.getSubmittedAt().getTime()));
-        else
-            return ok(Json.toJson((new Date()).getTime()));
+        if (startTime == null) {
+        	startTime = new Date();
+            // TODO: Save start time? 
+        }
+        return ok(Json.toJson(startTime.getTime()));
     }
 }
