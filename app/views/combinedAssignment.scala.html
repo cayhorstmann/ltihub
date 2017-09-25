@@ -281,6 +281,7 @@
                 updateStatesFromProblems();
                 // setTimeout(location.href = "@preFix/send-score/@assignmentID/@userID", 1000);
                 setTimeout(function () {
+                    response.hide();
                     const data = {
                         assignment: @assignmentID,
                         user: "@userID",
@@ -296,9 +297,6 @@
                             var response = $("#response");
                             response.html(msg);
                             response.show();
-                            setTimeout(function () {
-                                response.hide();
-                            }, 20000);
                         },
                         error: function(XMLHttpRequest, textStatus, errorThrown) {
                             prompt("Error:", "Error submitting grades: " + JSON.stringify(XMLHttpRequest) + "\n" +
@@ -326,13 +324,14 @@
                 timerEl.id = 'timer';
                 timerEl.className = 'rightSidebar';
                 document.body.appendChild(timerEl);
-
+                var currentTimeOnClient = new Date().getTime();
                 $.ajax({
                     url: '@services.routes.DataProvider.getStartTimeInMilliseconds(assignmentID, userID)',
                     method: 'GET',
-                    success: function (startTimeInMilliseconds) {
-                        endTimeInMilliseconds = startTimeInMilliseconds + durationInMilliseconds;
-
+                    success: function (result) {
+                    	var timeSpent = result.current - result.start
+                    	var timeLeft = durationInMilliseconds - timeSpent
+                        endTimeInMilliseconds = currentTimeOnClient + timeLeft;
                         updateTimeLeftDisplay();
                         timeLeftInterval = setInterval(updateTimeLeftDisplay, 1000);
                     },

@@ -20,6 +20,7 @@ import play.mvc.Result;
 
 import com.avaje.ebean.Ebean;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Has methods meant to provide data to pages that request it
@@ -131,10 +132,14 @@ public class DataProvider {
     			.findUnique()
     			.getDate("starttime");
 
+    	Date now = new Date();
         if (startTime == null) {
-        	startTime = new Date();
+        	startTime = now;
             // TODO: Save start time? 
         }
-        return ok(Json.toJson(startTime.getTime()));
+        ObjectNode result = Json.newObject();
+        result.put("start", startTime.getTime());
+        result.put("current", now.getTime());
+        return ok(Json.toJson(result));
     }
 }

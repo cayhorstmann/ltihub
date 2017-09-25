@@ -75,7 +75,7 @@ public class GradeSubmitterController extends Controller {
 			for (Submission s : submissionsForAssignment) 
 				if (startTime == null || s.getSubmittedAt().compareTo(startTime) < 0)
 					startTime = s.getSubmittedAt();
-			endTime = Date.from(startTime.toInstant().plusSeconds(duration * 60));
+			endTime = Date.from(startTime.toInstant().plusSeconds(duration * 60 + 30)); // 30 second fudge
 		}
 		
 	    Map<Long, Double> maxScores = new HashMap<Long, Double>();
