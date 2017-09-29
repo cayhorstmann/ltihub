@@ -17,6 +17,8 @@ import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import org.imsglobal.pox.IMSPOXRequest;
+
 import models.Assignment;
 import models.Submission;
 import models.Util;
@@ -97,8 +99,10 @@ public class GradeSubmitterController extends Controller {
     				xmlString1 + sourcedId + xmlString2 + score + xmlString3;        	
     		// xmlString = xml.replace("&quot;","\"");
     			
-            passbackGradeToLMS(outcomeServiceUrl, xmlString,
-                    "fred", "fred"); // TODO
+            // passbackGradeToLMS(outcomeServiceUrl, xmlString, "fred", "fred"); // TODO
+    		
+    		IMSPOXRequest.sendReplaceResult(outcomeServiceUrl, "fred", "fred", sourcedId, "" + score);
+
         } catch (Exception e) {
     		Logger.info("score: " + score);        
             Logger.info(Util.getStackTrace(e));
