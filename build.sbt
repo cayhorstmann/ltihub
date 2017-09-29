@@ -10,5 +10,6 @@ libraryDependencies ++= Seq(
   javaJdbc,
   "net.oauth.core" % "oauth-provider" % "20100527",
   "oauth.signpost" % "signpost-core" % "1.2.1.2",
+  "org.imsglobal" % "basiclti-util" % "1.1.2", 
   "org.postgresql" % "postgresql" % "42.1.4"
 )
