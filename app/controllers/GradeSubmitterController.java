@@ -99,9 +99,9 @@ public class GradeSubmitterController extends Controller {
     				xmlString1 + sourcedId + xmlString2 + score + xmlString3;        	
     		// xmlString = xml.replace("&quot;","\"");
     			
-            // passbackGradeToLMS(outcomeServiceUrl, xmlString, "fred", "fred"); // TODO
+            passbackGradeToLMS(outcomeServiceUrl, xmlString, "fred", "fred"); // TODO
     		
-    		IMSPOXRequest.sendReplaceResult(outcomeServiceUrl, "fred", "fred", sourcedId, "" + score);
+    		// IMSPOXRequest.sendReplaceResult(outcomeServiceUrl, "fred", "fred", sourcedId, "" + score);
 
         } catch (Exception e) {
     		Logger.info("score: " + score);        
