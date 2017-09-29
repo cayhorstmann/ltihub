@@ -17,6 +17,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.AbstractMap;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -68,6 +69,42 @@ public class Util {
 	}
     
     public static boolean validate(Http.Request request) {
+    	final String OAUTH_KEY_PARAMETER = "oauth_consumer_key";
+    	
+    	Map<String, String[]> postParams = request.body().asFormUrlEncoded();
+    	if (postParams == null) return false;
+    	Set<Map.Entry<String, String>> entries = new HashSet<>();
+	 	for (Map.Entry<String, String[]> entry : postParams.entrySet()) 
+	 		for (String s : entry.getValue())
+	 			entries.add(new AbstractMap.SimpleEntry<>(entry.getKey(), s));
+	 	String url = "https://" + request.host() + request.uri();
+	 	String key = getParam(postParams, OAUTH_KEY_PARAMETER);
+	 	
+	 	/*
+	 	for (Map.Entry<String, String> entry : getParams(url).entrySet())
+	 		entries.add(entry);
+	 	int n = url.lastIndexOf("?"); if (n >= 0) url = url.substring(0, n);
+	 	*/ 
+	 	OAuthMessage oam = new OAuthMessage("POST", url, entries);
+        OAuthConsumer cons = new OAuthConsumer(null, key, "fred", null); // TODO
+        OAuthValidator oav = new SimpleOAuthValidator();
+        OAuthAccessor acc = new OAuthAccessor(cons);
+        
+        Logger.info("validate: entries=" + entries + ", url=" + url);
+        
+	    try {
+	      oav.validateMessage(oam, acc);
+          return true;
+        } catch (Exception e) {
+        	Logger.info("Did not validate: " + e.getLocalizedMessage());
+    	 	Logger.info("url: " + url);
+  	 	    Logger.info("entries: " + entries);
+            return false;
+        }
+    }
+    
+    /*
+    public static boolean validate(Http.Request request) {
     	// Useful background: https://dev.twitter.com/oauth/overview/creating-signatures
     	// Fixes broken code http://grepcode.com/file/repo1.maven.org/maven2/org.imsglobal/basiclti-util/1.1.1/org/imsglobal/lti/launch/LtiOauthVerifier.java?av=f
 	 	// For JSON payload, would need to check the body hash 
@@ -100,6 +137,7 @@ public class Util {
             return false;
         }
     }
+    */
     
 	/**
 	 * Yields a map of query parameters in a HTTP URI
