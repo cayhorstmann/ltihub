@@ -3,6 +3,7 @@ package controllers;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -20,7 +21,7 @@ import views.html.create_exercise_outside_LMS;
 import views.html.editAssignment;
 import views.html.showassignment;
 import views.html.showassignmentOutsideLMS;
-import views.html.studentSumbissionsViewer;
+import views.html.studentSubmissionsViewer;
 
 import com.avaje.ebean.Ebean;
 
@@ -38,7 +39,6 @@ public class HomeController extends Controller {
 	 		return badRequest("Failed OAuth validation");
 	 	}	 	
 	 	
-
     	String lisOutcomeServiceURL = Util.getParam(postParams, "lis_outcome_service_url");
     	String lisResultSourcedID = Util.getParam(postParams, "lis_result_sourcedid");
 
@@ -88,10 +88,8 @@ public class HomeController extends Controller {
 
 		Assignment assignment = Ebean.find(Assignment.class, assignmentId);
 		Long duration = assignment.getDuration();
-		List<Problem> problems = assignment.getProblems();
-		
 		return ok(combinedAssignment.render(getPrefix(), assignmentId, userID, duration, Util.isInstructor(role),
-		    problems, lisOutcomeServiceURL, lisResultSourcedID));
+		    lisOutcomeServiceURL, lisResultSourcedID));
  	}
 
 	// This method gets called when an assignment has been created with create_exercise.scala.html.
@@ -152,8 +150,9 @@ public class HomeController extends Controller {
 		Assignment assignment = Ebean.find(Assignment.class, assignmentId);
 		List<Problem> problems = assignment.getProblems();
 
-		return ok(studentSumbissionsViewer.render(assignmentId, problems));
+		return ok(studentSubmissionsViewer.render(assignmentId, problems));
 		//TODO: Make it viewable by student
+		//TODO: This is getting more complicated because different students have different problems
 	}
 
 	/**
@@ -208,28 +207,19 @@ public class HomeController extends Controller {
     	return ok(editAssignment.render(assignment1, problems));    
     }
 
-
     private void addNewProblemsFromFormSubmission(String newProblemFormSubmission, Assignment assignment) {
         if(newProblemFormSubmission != null && !newProblemFormSubmission.trim().isEmpty()) {
-            String[] newProblemUrls = newProblemFormSubmission.split("\\s+");
-            for(String newProblemUrl: newProblemUrls) {
-                if(!newProblemUrl.trim().isEmpty()) {
-                    addNewProblem(newProblemUrl.trim(), assignment);
-                }
-            }
+        	String[] groups = newProblemFormSubmission.split("\\s+-{3,}\\s+");
+        	for (int problemGroup = 0; problemGroup < groups.length; problemGroup++) {
+	            String[] newProblemUrls = groups[problemGroup].split("\\s+");
+	            for(String problemUrl: newProblemUrls) {
+	                if(!problemUrl.trim().isEmpty()) {
+	                	Problem problem = new Problem(assignment, problemUrl, problemGroup);
+	                    assignment.getProblems().add(problem);
+	                    problem.save();
+	                }
+	            }
+        	}
         }
-}
-
-    /**
-     * Adds a new problem to the database with the given problemUrl on the given assignment.
-     * @param problemUrl the URL that links to the problem
-     * @param assignment the assignment where this problem belongs
-     */
-    private void addNewProblem(String problemUrl, Assignment assignment) {
-        Problem problem = new Problem();
-        problem.setProblemUrl(problemUrl);
-        problem.setAssignment(assignment);
-        assignment.getProblems().add(problem);
-        problem.save();
     }
 }
