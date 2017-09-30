@@ -130,62 +130,65 @@
                         method: 'GET',
                         success: function (msg) {
                             try {
-                                var submissions = msg.slice();
-                                if (submissions.length <= 0)
-                                    return;
-
-                                // Find the state edit scripts and highest score
-                                var stateEditScriptsStack = [];
-                                var lastSubmission = submissions[submissions.length - 1];
-                                var bestSubmission = lastSubmission;
-                                var previousSubmissionId = lastSubmission.submissionId;
-                                while (submissions.length > 0) {
-                                    var submission = submissions.pop();
-
-                                    /*
-                                     The newer submissions should have a number as the previous property
-                                     If a submission's previous property is not a number, then automatically accept it
-                                      */
-                                    if (!submission.previous || isNaN(submission.previous) ||
-                                            (submission.submissionId == previousSubmissionId)) {
-                                        stateEditScriptsStack.push(submission.content);
-                                        previousSubmissionId = submission.previous;
-
-                                        var scorePercent = (submission.correct / submission.maxscore) * 100.0;
-                                        var highestScorePercent = bestSubmission ?
-                                                (bestSubmission.correct / bestSubmission.maxscore) * 100.0 : 0.0;
-                                        if (scorePercent >= highestScorePercent) {
-                                            bestSubmission = submission;
-                                        }
-                                    }
-                                }
-
-                                updateHighestScoreDisplay(problem.problemId, bestSubmission);
-
-                                // Build the state from the edit scripts and store each version in the map
                                 var state = "";
-                                while (stateEditScriptsStack.length > 0) {
-                                    var editScript = stateEditScriptsStack.pop();
+                                var score = 0.0;
+                                var submissionId = 0;
+                                var submissions = msg.slice();
+                                if (submissions.length > 0) {
+	                                // Find the state edit scripts and highest score
+	                                var stateEditScriptsStack = [];
+	                                var lastSubmission = submissions[submissions.length - 1];
+	                                submissionId = lastSubmission.submissionId
+	                                var previousSubmissionId = submissionId;
+                                    var bestSubmission = lastSubmission;
+	                                while (submissions.length > 0) {
+	                                    var submission = submissions.pop();
+	
+	                                    /*
+	                                     The newer submissions should have a number as the previous property
+	                                     If a submission's previous property is not a number, then automatically accept it
+	                                      */
+	                                    if (!submission.previous || isNaN(submission.previous) ||
+	                                            (submission.submissionId == previousSubmissionId)) {
+	                                        stateEditScriptsStack.push(submission.content);
+	                                        previousSubmissionId = submission.previous;
+	
+	                                        var scorePercent = (submission.correct / submission.maxscore) * 100.0;
+	                                        var highestScorePercent = bestSubmission ?
+	                                                (bestSubmission.correct / bestSubmission.maxscore) * 100.0 : 0.0;
+	                                        if (scorePercent >= highestScorePercent) {
+	                                            bestSubmission = submission;
+	                                        }
+	                                    }
+	                                }
+	
+	                                updateHighestScoreDisplay(problem.problemId, bestSubmission);
+	                                score = (bestSubmission.correct / bestSubmission.maxscore) * 100.0;	
 
-                                    // Don't apply edit script if state didn't change
-                                    if (!editScript)
-                                        continue;
-
-                                    try {
-                                        state = applyEditScript(state, editScript);
-                                    } catch (e) {
-                                        prompt("Error", "State is corrupted: " + e + "\n" +
-                                                "Problem ID: " + problem.problemId + "\n" +
-                                                "User ID: @userID" + "\n" +
-                                                "State: " + state + "\n" +
-                                                "Edit script that caused corruption: " + editScript);
-                                    }
+	                                // Build the state from the edit scripts and store each version in the map
+	                                while (stateEditScriptsStack.length > 0) {
+	                                    var editScript = stateEditScriptsStack.pop();
+	
+	                                    // Don't apply edit script if state didn't change
+	                                    if (!editScript)
+	                                        continue;
+	
+	                                    try {
+	                                        state = applyEditScript(state, editScript);
+	                                    } catch (e) {
+	                                        prompt("Error", "State is corrupted: " + e + "\n" +
+	                                                "Problem ID: " + problem.problemId + "\n" +
+	                                                "User ID: @userID" + "\n" +
+	                                                "State: " + state + "\n" +
+	                                                "Edit script that caused corruption: " + editScript);
+	                                    }
+	                                }
                                 }
 
                                 // Initializes the problem content
                                 problemIdToContent[problem.problemId] = {
-                                    submissionId: lastSubmission.submissionId,
-                                    score: (bestSubmission.correct / bestSubmission.maxscore) * 100.0,
+                                    submissionId: submissionId,
+                                    score: score,
                                     state: state};
                                 Console.log('Received problem content. Problem ID: ' + problem.problemId + ", content=" + JSON.stringify(problemIdToContent[problem.problemId]))
                                 
