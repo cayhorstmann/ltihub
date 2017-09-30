@@ -5,6 +5,7 @@ import static play.mvc.Results.badRequest;
 import static play.mvc.Results.ok;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.TreeSet;
 import models.Assignment;
 import models.Problem;
 import models.Submission;
+import models.Util;
 import play.libs.Json;
 import play.mvc.Result;
 
@@ -36,25 +38,30 @@ public class DataProvider {
      *     problemId, problemUrl
      * </code>
      */
-    public Result getProblems(Long assignmentId, String userId) {
+    public Result getProblems(Long assignmentId, String userId, String role) {
         Assignment assignment = Ebean.find(Assignment.class, assignmentId);
         if (assignment == null)
             return badRequest("Assignment not found. ID Given: " + assignmentId);
 
         List<JsonNode> problemsJsonList = new ArrayList<>();
         List<Problem> problems = new ArrayList<>(); // TODO: Query with orderby
-		int ngroups = 0;
-		for (Problem p : assignment.getProblems())
-			ngroups = Math.max(ngroups, p.getProblemGroup());
-		ngroups++;
-		int group = userId.hashCode() % ngroups;
-		for (Problem p : assignment.getProblems())
-			if (p.getProblemGroup() == group) problems.add(p);        
-        problems.sort((p, q) -> Long.compare(p.getProblemId(), q.getProblemId()));
+        if (Util.isInstructor(role)) 
+        	problems.addAll(assignment.getProblems());
+    	else {
+			int ngroups = 0;
+			for (Problem p : assignment.getProblems())
+				ngroups = Math.max(ngroups, p.getProblemGroup());
+			ngroups++;
+			int group = userId.hashCode() % ngroups;
+			for (Problem p : assignment.getProblems())
+				if (p.getProblemGroup() == group) problems.add(p);
+    	}
+        problems.sort(Comparator.comparing(Problem::getProblemGroup).thenComparing(Problem::getProblemId));
         for (Problem problem: problems) {
             Map<String, Object> problemValues = new HashMap<>();
             problemValues.put("problemId", problem.getProblemId());
             problemValues.put("problemUrl", problem.getProblemUrl());
+            problemValues.put("problemGroup", problem.getProblemGroup());
 
             problemsJsonList.add(Json.toJson(problemValues));
         }

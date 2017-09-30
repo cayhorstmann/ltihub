@@ -61,4 +61,4 @@ GET     /get-submissions/:problemId/:userId     services.DataProvider.getSubmiss
 GET     /get-start-time/:assignmentId/:userId   services.DataProvider.getStartTimeInMilliseconds(assignmentId: Long, userId: String)
 
 # Get the problems of an assignment to display
-GET     /get-problems/:assignmentId/:userId       services.DataProvider.getProblems(assignmentId: Long, userId: String)
+GET     /get-problems/:assignmentId/:userId/:role       services.DataProvider.getProblems(assignmentId: Long, userId: String, role: String)
