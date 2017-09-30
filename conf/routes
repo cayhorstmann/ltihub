@@ -29,7 +29,7 @@ POST    /assignment/saveAssignment  controllers.HomeController.saveEditedAssignm
 GET     /submissionViewer/:assignmentId  controllers.HomeController.getSubmissionViewer(assignmentId: Long)
 
 # Score update from combinedAssignment.scala.html
-POST	/submissions/:assignmentId/:userId		controllers.SubmissionController.addSubmission(assignmentId: Long, userId: String)
+POST	/submissions		controllers.SubmissionController.addSubmission()
 
 # When the record grade button is pushed in combinedAssignment.scala.html 
 POST    /sendScore   controllers.GradeSubmitterController.submitGradeToLMS()
