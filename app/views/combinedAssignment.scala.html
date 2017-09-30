@@ -190,7 +190,7 @@
                                     submissionId: submissionId,
                                     score: score,
                                     state: state};
-                                Console.log('Received problem content. Problem ID: ' + problem.problemId + ", content=" + JSON.stringify(problemIdToContent[problem.problemId]))
+                                console.log('Received problem content. Problem ID: ' + problem.problemId + ", content=" + JSON.stringify(problemIdToContent[problem.problemId]))
                                 
                                 if (state) { // If the state was empty, then don't try to restore it
                                     // Post message to iframe to populate the problem
