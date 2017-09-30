@@ -47,7 +47,6 @@ public class SubmissionController extends Controller {
             String previousId = previousIdNode == null ? "" : Long.toString(previousIdNode.longValue());
             //TODO: Shouldn't be a string
             Problem problem = Ebean.find(Problem.class, params.get("problemId").asLong(0L));
-            JsonNode score = params.get("score");
 
             Submission submission = new Submission();
 
@@ -56,8 +55,8 @@ public class SubmissionController extends Controller {
             submission.setContent(stateEditScript);
             submission.setPrevious(previousId);
             submission.setProblem(problem);
-            submission.setCorrect(score.get("correct").asLong(0L));
-            submission.setMaxScore(score.get("maxscore").asLong(0L));
+            submission.setCorrect(params.get("correct").asLong(0L));
+            submission.setMaxScore(params.get("maxscore").asLong(0L));
 
             submission.save();
             problem.getSubmissions().add(submission);
@@ -76,9 +75,7 @@ public class SubmissionController extends Controller {
             Map<String, Object> responseMap = new HashMap<>();
             responseMap.put("submissionId", submission.getSubmissionId());
             responseMap.put("submittedAt", submission.getSubmittedAt());
-            responseMap.put("correct", highestScore);
-            responseMap.put("maxscore", 1.0);
-            responseMap.put("content", submission.getContent());
+            responseMap.put("highestScore", highestScore);
             //TODO: shouldn't be a string
             String previousString = submission.getPrevious();
             Long previous = null;

@@ -131,7 +131,7 @@
                         success: function (msg) {
                             try {
                                 var state = "";
-                                var score = 0.0;
+                                var highestScore = 0.0;
                                 var submissionId = 0;
                                 var submissions = msg.slice();
                                 if (submissions.length > 0) {
@@ -139,31 +139,25 @@
 	                                var stateEditScriptsStack = [];
 	                                var lastSubmission = submissions[submissions.length - 1];
 	                                submissionId = lastSubmission.submissionId
-	                                var previousSubmissionId = submissionId;
-                                    var bestSubmission = lastSubmission;
+	                                var previousSubmissionId = submissionId; // Want to pick up the last one
 	                                while (submissions.length > 0) {
 	                                    var submission = submissions.pop();
 	
 	                                    /*
 	                                     The newer submissions should have a number as the previous property
-	                                     If a submission's previous property is not a number, then automatically accept it
-	                                      */
+	                                     If a submission's previous property is not a number, then accept it
+	                                     TODO: Legacy--eliminate nonexistent previous properties
+	                                    */
 	                                    if (!submission.previous || isNaN(submission.previous) ||
 	                                            (submission.submissionId == previousSubmissionId)) {
 	                                        stateEditScriptsStack.push(submission.content);
 	                                        previousSubmissionId = submission.previous;
 	
-	                                        var scorePercent = (submission.correct / submission.maxscore) * 100.0;
-	                                        var highestScorePercent = bestSubmission ?
-	                                                (bestSubmission.correct / bestSubmission.maxscore) * 100.0 : 0.0;
-	                                        if (scorePercent >= highestScorePercent) {
-	                                            bestSubmission = submission;
-	                                        }
+	                                        highestScore = Math.max(highestScore, submission.correct / submission.maxscore);
 	                                    }
 	                                }
 	
-	                                updateHighestScoreDisplay(problem.problemId, bestSubmission);
-	                                score = (bestSubmission.correct / bestSubmission.maxscore) * 100.0;	
+	                                updateHighestScoreDisplay(problem.problemId, lastSubmission.submittedAt, highestScore);
 
 	                                // Build the state from the edit scripts and store each version in the map
 	                                while (stateEditScriptsStack.length > 0) {
@@ -188,7 +182,7 @@
                                 // Initializes the problem content
                                 problemIdToContent[problem.problemId] = {
                                     submissionId: submissionId,
-                                    score: score,
+                                    score: highestScore,
                                     state: state};
                                 console.log('Received problem content. Problem ID: ' + problem.problemId + ", content=" + JSON.stringify(problemIdToContent[problem.problemId]))
                                 
@@ -218,30 +212,27 @@
                     iframe.contentWindow.postMessage({query: 'getContent', problemId: iframe.id}, '*');
                 });
             }
-
+            
             // If the state or the score changed since the last submission, then send the new state and score to the server
             function sendScoreAndStateEditScriptToServer(problemId, score, state) {            	
                 if (!problemIdToContent.hasOwnProperty(problemId)) // Haven't yet received first state
                     return;
 
-                const previousScorePercent = problemIdToContent[problemId].score ?
-                        problemIdToContent[problemId].score : 0.0;
-                const currentScorePercent = score && score.correct && score.maxscore ?
-                        (Math.max(score.correct - score.errors, 0) / score.maxscore) * 100.0 : 0.0;
+                const previousScore = problemIdToContent[problemId].score;
+                const currentCorrect = score.errors ? Math.max(score.correct - score.errors, 0) : score.correct;
+                const currentScore = score && score.correct && score.maxscore ?
+                        currentCorrect / score.maxscore : 0.0;
 
-                const previousStateString = problemIdToContent[problemId].state ?
-                        problemIdToContent[problemId].state : "";
+                const previousStateString = problemIdToContent[problemId].state;
                 const currentStateString = state ? JSON.stringify(state) : "";
 
-                const previousSubmissionId = problemIdToContent[problemId].submissionId ?
-                        problemIdToContent[problemId].submissionId : null;
-
-                if (currentScorePercent > previousScorePercent || previousStateString !== currentStateString) {
+                if (currentScore !== previousScore || previousStateString !== currentStateString) {
                     const data = {
                         problemId: problemId,
-                        score: score,
+                        correct: currentCorrect,
+                        maxscore: score.maxscore
                         stateEditScript: shortestEditScript(previousStateString, currentStateString),
-                        previousSubmissionId: previousSubmissionId,
+                        previousSubmissionId: problemIdToContent[problemId].submissionId,
                         assignmentId: @assignmentID,
                         userId: "@userID"
                     };
@@ -251,14 +242,14 @@
                         method: 'POST',
                         contentType: 'application/json',
                         data: JSON.stringify(data),
-                        success: function (submission) {
+                        success: function (result) {
                             problemIdToContent[problemId] = {
-                                submissionId: submission.submissionId,
+                                submissionId: result.submissionId,
                                 score: currentScorePercent,
                                 state: currentStateString
                             };
 
-                            updateHighestScoreDisplay(problemId, submission);
+                            updateHighestScoreDisplay(problemId, result.submittedAt, result.highestScore);
                         },
                         error: function(XMLHttpRequest, textStatus, errorThrown) {
                             prompt("Error", "Error saving work: " + JSON.stringify(XMLHttpRequest) + "\n" +
@@ -273,10 +264,10 @@
             }
 
             // Update the highest score element to display the score from the given submission
-            function updateHighestScoreDisplay(problemId, submission) {
+            function updateHighestScoreDisplay(problemId, submittedAt, highestScore) {
                 var highestScoreEl = document.getElementById('highestScore-' + problemId);
-                highestScoreEl.innerHTML = "<p>Submission saved at: " + new Date(submission.submittedAt) +
-                        " | Highest recorded score: <b>" + ((submission.correct / submission.maxscore) * 100.0) + "%</b></p>"
+                highestScoreEl.innerHTML = "<p>Submission saved at: " + new Date(submittedAt) +
+                        " | Highest recorded score: <b>" + (highestScore * 100.0) + "%</b></p>"
             }
 
             // Save work and report score
