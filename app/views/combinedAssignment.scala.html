@@ -1,6 +1,6 @@
 @import scala.collection.mutable.ListBuffer
-@(preFix: String, assignmentID: Long, userID: String, duration: Long, isInstructor: Boolean,
-        problems: List[Problem], lisOutcomeServiceURL: String, lisResultSourcedID: String)
+@(prefix: String, assignmentID: Long, userID: String, duration: Long, isInstructor: Boolean,
+        lisOutcomeServiceURL: String, lisResultSourcedID: String)
 
 <head>
     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/main.css")">
@@ -8,13 +8,14 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
     <script type="text/javascript">
-
+        var problems = null;
         // Load the iframes for the problems of the assignment
         function loadProblems() {
             $.ajax({
-                url: '@services.routes.DataProvider.getProblems(assignmentID)',
+                url: '@services.routes.DataProvider.getProblems(assignmentID, userID)',
                 method: 'GET',
-                success: function (problems) {
+                success: function (probs) {
+                	problems = probs;                	
                     var onloadPromises = [];
                     for (var i = 0; i < problems.length; i++) {
                         @if(!isInstructor) {
@@ -101,9 +102,9 @@
 
             // Sends the states of the problems that were previously submitted to the problems to be restored
             function restoreStatesOfProblems() {
-                // TODO: change twirlapi for loop to an ajax request
-                @for(problem <- problems) {
-                    problemIdToContent["@problem.getProblemId()"] = {};
+                for (var i = 0; i < problems.length; i++) {
+                    var problem = problems[i]
+                    problemIdToContent[problem.problemId] = {};
 
                     /*
                      Get student's submissions from server.
@@ -125,7 +126,7 @@
                             state.
                       */
                     $.ajax({
-                        url: '@services.routes.DataProvider.getSubmissions(problem.getProblemId(), userID)',
+                        url: '@prefix/get-submissions/' + problem.problemId + '/@userID',
                         method: 'GET',
                         success: function (msg) {
                             try {
@@ -159,7 +160,7 @@
                                     }
                                 }
 
-                                updateHighestScoreDisplay(@problem.getProblemId(), bestSubmission);
+                                updateHighestScoreDisplay(problem.problemId, bestSubmission);
 
                                 // Build the state from the edit scripts and store each version in the map
                                 var state = "";
@@ -174,7 +175,7 @@
                                         state = applyEditScript(state, editScript);
                                     } catch (e) {
                                         prompt("Error:", "State is corrupted: " + e + "\n" +
-                                                "Problem ID was: @problem.getProblemId()" + "\n" +
+                                                "Problem ID was: " + problem.problemId + "\n" +
                                                 "User ID was: @userID" + "\n" +
                                                 "State was: " + state + "\n" +
                                                 "Edit script that caused corruption was: " + editScript);
@@ -186,17 +187,17 @@
                                     return;
 
                                 // Updates the previous version of the problem content so that we will know what changed
-                                problemIdToContent["@problem.getProblemId()"] = {
+                                problemIdToContent[problem.problemId] = {
                                     submissionId: lastSubmission.submissionId,
                                     score: (bestSubmission.correct / bestSubmission.maxscore) * 100.0,
                                     state: state};
 
                                 // Post message to iframe to populate the problem
-                                var iframe = document.getElementById('@problem.getProblemId()');
+                                var iframe = document.getElementById('' + problem.problemId);
                                 iframe.contentWindow.postMessage({query: 'restoreState', state: JSON.parse(state)}, '*');
                             } catch (e) {
                                 prompt("Error", "Error getting problem contents: " + e + "\n" +
-                                        "Problem ID was: @problem.getProblemId()" + "\n" +
+                                        "Problem ID was: " + problem.problemId + "\n" +
                                         "User ID was: @userID" + "\n" +
                                         "Submissions were: " + JSON.stringify(msg));
                             }
@@ -244,7 +245,7 @@
                     };
 
                     $.ajax({
-                        url: '@preFix/submissions/@assignmentID/@userID',
+                        url: '@prefix/submissions/@assignmentID/@userID',
                         method: 'POST',
                         contentType: 'application/json',
                         data: JSON.stringify(data),
@@ -279,7 +280,7 @@
             // Save work and report score
             function submitGrades() {
                 updateStatesFromProblems();
-                // setTimeout(location.href = "@preFix/send-score/@assignmentID/@userID", 1000);
+                // setTimeout(location.href = "@prefix/send-score/@assignmentID/@userID", 1000);
                 setTimeout(function () {
                 	$("#response").hide();
                     const data = {
@@ -289,7 +290,7 @@
                         lis_result_sourcedid: "@lisResultSourcedID"
                     };
                     $.ajax({
-                        url: '@preFix/sendScore',
+                        url: '@prefix/sendScore',
                         method: 'POST',
                         contentType: 'application/json',
                         data: JSON.stringify(data),

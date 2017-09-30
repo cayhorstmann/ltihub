@@ -36,13 +36,20 @@ public class DataProvider {
      *     problemId, problemUrl
      * </code>
      */
-    public Result getProblems(Long assignmentId) {
+    public Result getProblems(Long assignmentId, String userId) {
         Assignment assignment = Ebean.find(Assignment.class, assignmentId);
         if (assignment == null)
             return badRequest("Assignment not found. ID Given: " + assignmentId);
 
         List<JsonNode> problemsJsonList = new ArrayList<>();
-        List<Problem> problems = new ArrayList<>(assignment.getProblems()); // TODO: Query with orderby
+        List<Problem> problems = new ArrayList<>(); // TODO: Query with orderby
+		int ngroups = 0;
+		for (Problem p : assignment.getProblems())
+			ngroups = Math.max(ngroups, p.getProblemGroup());
+		ngroups++;
+		int group = userId.hashCode() % ngroups;
+		for (Problem p : assignment.getProblems())
+			if (p.getProblemGroup() == group) problems.add(p);        
         problems.sort((p, q) -> Long.compare(p.getProblemId(), q.getProblemId()));
         for (Problem problem: problems) {
             Map<String, Object> problemValues = new HashMap<>();

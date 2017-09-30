@@ -1,10 +1,16 @@
 package models;
 
-import java.util.*;
-import javax.persistence.*;
-import play.db.ebean.*;
-import play.data.format.*;
-import play.data.validation.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+
+import play.data.validation.Constraints;
+
 import com.avaje.ebean.Model;
 
 // TODO: Add position for ordering
@@ -21,17 +27,22 @@ public class Problem extends Model {
     public String url;
 
     @ManyToOne
-    Assignment assignment;
+    public Assignment assignment;
+    
+    @Column
+    @Constraints.Required
+    public int problemGroup;
 
     @OneToMany(mappedBy="problem")
     public List<Submission> submissions = new ArrayList<Submission>();
 
-	public Problem(){
-		}
+	public Problem() {
+	}
 		
-	public Problem(Assignment assignment, String url){
+	public Problem(Assignment assignment, String url, int problemGroup) {
 		this.assignment = assignment;
 		this.url = url;
+		this.problemGroup = problemGroup;
 	}
 		
 	public Long getProblemId() {
@@ -64,5 +75,13 @@ public class Problem extends Model {
 
 	public void setSubmission(List<Submission> submissions){
 		this.submissions = submissions;
+	}
+	
+	public int getProblemGroup() {
+		return problemGroup;
+	}
+	
+	public void setProblemGroup(int problemGroup) {
+		this.problemGroup = problemGroup;
 	}
 }

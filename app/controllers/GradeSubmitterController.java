@@ -17,8 +17,6 @@ import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 
-import org.imsglobal.pox.IMSPOXRequest;
-
 import models.Assignment;
 import models.Submission;
 import models.Util;
@@ -92,16 +90,15 @@ public class GradeSubmitterController extends Controller {
 		if (maxScores.size() > 0) score /= maxScores.size();
 		
         try {
-    		String xmlString1 = "<?xml version = \"1.0\" encoding = \"UTF-8\"?> <imsx_POXEnvelopeRequest xmlns = \"http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0\"> <imsx_POXHeader> <imsx_POXRequestHeaderInfo> <imsx_version>V1.0</imsx_version> </imsx_POXRequestHeaderInfo> </imsx_POXHeader> <imsx_POXBody> <replaceResultRequest> <resultRecord> <sourcedGUID> <sourcedId>";
-    		String xmlString2 = "</sourcedId> </sourcedGUID> <result> <resultScore> <textString>";
+    		String xmlString1 = "<?xml version = \"1.0\" encoding = \"UTF-8\"?> <imsx_POXEnvelopeRequest xmlns = \"http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0\"> <imsx_POXHeader> <imsx_POXRequestHeaderInfo> <imsx_version>V1.0</imsx_version> <imsx_messageIdentifier>" 
+                + System.currentTimeMillis() + "</imsx_messageIdentifier> </imsx_POXRequestHeaderInfo> </imsx_POXHeader> <imsx_POXBody> <replaceResultRequest> <resultRecord> <sourcedGUID> <sourcedId>";
+    		String xmlString2 = "</sourcedId> </sourcedGUID> <result> <resultScore> <language>en</language> <textString>";
     		String xmlString3 = "</textString> </resultScore> </result> </resultRecord> </replaceResultRequest> </imsx_POXBody> </imsx_POXEnvelopeRequest>";        	
-    		String xmlString = // views.xml.scorepassback.render(sourcedId, score).toString()
-    				xmlString1 + sourcedId + xmlString2 + score + xmlString3;        	
-    		// xmlString = xml.replace("&quot;","\"");
+    		String xmlString = xmlString1 + sourcedId + xmlString2 + score + xmlString3;        	
     			
             passbackGradeToLMS(outcomeServiceUrl, xmlString, "fred", "fred"); // TODO
     		
-    		// IMSPOXRequest.sendReplaceResult(outcomeServiceUrl, "fred", "fred", sourcedId, "" + score);
+    		// org.imsglobal.pox.IMSPOXRequest.sendReplaceResult(outcomeServiceUrl, "fred", "fred", sourcedId, "" + score);
 
         } catch (Exception e) {
     		Logger.info("score: " + score);        
