@@ -114,13 +114,8 @@ public class DataProvider {
             Map<String, Object> submissionValues = new HashMap<>();
             submissionValues.put("submissionId", submission.getSubmissionId());
             submissionValues.put("submittedAt", submission.getSubmittedAt());
-            submissionValues.put("correct", submission.getCorrect());
-            submissionValues.put("maxscore", submission.getMaxScore());
-            String previousString =  submission.getPrevious(); // TODO: Should not be a string
-            if (previousString == null)
-            	submissionValues.put("previous", null);
-            else
-            	submissionValues.put("previous", Long.parseLong(previousString.trim()));
+            submissionValues.put("score", submission.getCorrect() / Math.max(submission.getMaxScore(), 1));
+          	submissionValues.put("previous", submission.getPrevious());
 
             // Some values are stringifed strings, but the client is expecting just the strings themselves
             submissionValues.put("content",

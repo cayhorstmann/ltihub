@@ -108,7 +108,7 @@
 
                     /*
                      Get student's submissions from server.
-                     Each submission has the properties: submissionId, submittedAt, correct, maxscore, content, and previous
+                     Each submission has the properties: submissionId, submittedAt, score, content, and previous
                      Content contains edit scripts that are used to build the state that the student had the problem in.
                      Previous contains the submissionId of the previous submissionId to chain the edit scripts together
                      in the correct order
@@ -129,16 +129,18 @@
                         url: '@prefix/get-submissions/' + problem.problemId + '/@userID',
                         method: 'GET',
                         success: function (msg) {
+                            var submissionId = 0;
+                            var state = "";
+                            var score = 0.0;
                             try {
-                                var state = "";
-                                var highestScore = 0.0;
-                                var submissionId = 0;
                                 var submissions = msg.slice();
                                 if (submissions.length > 0) {
 	                                // Find the state edit scripts and highest score
 	                                var stateEditScriptsStack = [];
+	                                var highestScore = 0.0;
 	                                var lastSubmission = submissions[submissions.length - 1];
 	                                submissionId = lastSubmission.submissionId
+	                                score = lastSubmission.score
 	                                var previousSubmissionId = submissionId; // Want to pick up the last one
 	                                while (submissions.length > 0) {
 	                                    var submission = submissions.pop();
@@ -153,7 +155,7 @@
 	                                        stateEditScriptsStack.push(submission.content);
 	                                        previousSubmissionId = submission.previous;
 	
-	                                        highestScore = Math.max(highestScore, submission.correct / submission.maxscore);
+	                                        highestScore = Math.max(highestScore, submission.score);
 	                                    }
 	                                }
 	
@@ -179,24 +181,26 @@
 	                                }
                                 }
 
-                                // Initializes the problem content
-                                problemIdToContent[problem.problemId] = {
-                                    submissionId: submissionId,
-                                    score: highestScore,
-                                    state: state};
-                                console.log('Received problem content. Problem ID: ' + problem.problemId + ", content=" + JSON.stringify(problemIdToContent[problem.problemId]))
-                                
                                 if (state) { // If the state was empty, then don't try to restore it
-                                    // Post message to iframe to populate the problem
                                     var iframe = document.getElementById('' + problem.problemId);
                                     iframe.contentWindow.postMessage({query: 'restoreState', state: JSON.parse(state)}, '*');
                                 }
+
                             } catch (e) {
                                 prompt("Error", "Error getting problem contents: " + e + "\n" +
                                         "Problem ID: " + problem.problemId + "\n" +
                                         "User ID: @userID" + "\n" +
                                         "Submissions: " + JSON.stringify(msg));
+                                submissionId = 0;
+                                score = 0.0;
+                                state = ""; 
                             }
+                            // Initializes the problem content so that it can be saved
+                            problemIdToContent[problem.problemId] = {
+                                submissionId: submissionId,
+                                score: score,
+                                state: state
+                            };                                
                         },
                         error: function(XMLHttpRequest, textStatus, errorThrown) {
                             alert("Error getting problem contents: " + JSON.stringify(XMLHttpRequest));
@@ -232,7 +236,7 @@
                         correct: currentCorrect,
                         maxscore: score.maxscore,
                         stateEditScript: shortestEditScript(previousStateString, currentStateString),
-                        previousSubmissionId: problemIdToContent[problemId].submissionId,
+                        previous: problemIdToContent[problemId].submissionId,
                         assignmentId: @assignmentID,
                         userId: "@userID"
                     };
