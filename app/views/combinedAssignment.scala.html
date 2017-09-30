@@ -53,8 +53,8 @@
                 },
                 error: function(XMLHttpRequest) {
                     prompt("Error", "Error getting problems: " + JSON.stringify(XMLHttpRequest) + "\n" +
-                            "Given Assignment ID: @assignmentID" + "\n" +
-                            "Given User ID: @userID");
+                            "Assignment ID: @assignmentID" + "\n" +
+                            "User ID: @userID");
                 }
             });
         }
@@ -104,7 +104,7 @@
             function restoreStatesOfProblems() {
                 for (var i = 0; i < problems.length; i++) {
                     var problem = problems[i]
-                    problemIdToContent[problem.problemId] = {};
+                    
 
                     /*
                      Get student's submissions from server.
@@ -174,32 +174,31 @@
                                     try {
                                         state = applyEditScript(state, editScript);
                                     } catch (e) {
-                                        prompt("Error:", "State is corrupted: " + e + "\n" +
-                                                "Problem ID was: " + problem.problemId + "\n" +
-                                                "User ID was: @userID" + "\n" +
-                                                "State was: " + state + "\n" +
-                                                "Edit script that caused corruption was: " + editScript);
+                                        prompt("Error", "State is corrupted: " + e + "\n" +
+                                                "Problem ID: " + problem.problemId + "\n" +
+                                                "User ID: @userID" + "\n" +
+                                                "State: " + state + "\n" +
+                                                "Edit script that caused corruption: " + editScript);
                                     }
                                 }
 
-                                // If the state was empty, then don't try to restore it
-                                if (!state)
-                                    return;
-
-                                // Updates the previous version of the problem content so that we will know what changed
+                                // Initializes the problem content
                                 problemIdToContent[problem.problemId] = {
                                     submissionId: lastSubmission.submissionId,
                                     score: (bestSubmission.correct / bestSubmission.maxscore) * 100.0,
                                     state: state};
-
-                                // Post message to iframe to populate the problem
-                                var iframe = document.getElementById('' + problem.problemId);
-                                iframe.contentWindow.postMessage({query: 'restoreState', state: JSON.parse(state)}, '*');
+                                Console.log('Received problem content. Problem ID: ' + problem.problemId + ", content=" + JSON.stringify(problemIdToContent[problem.problemId]))
+                                
+                                if (state) { // If the state was empty, then don't try to restore it
+                                    // Post message to iframe to populate the problem
+                                    var iframe = document.getElementById('' + problem.problemId);
+                                    iframe.contentWindow.postMessage({query: 'restoreState', state: JSON.parse(state)}, '*');
+                                }
                             } catch (e) {
                                 prompt("Error", "Error getting problem contents: " + e + "\n" +
-                                        "Problem ID was: " + problem.problemId + "\n" +
-                                        "User ID was: @userID" + "\n" +
-                                        "Submissions were: " + JSON.stringify(msg));
+                                        "Problem ID: " + problem.problemId + "\n" +
+                                        "User ID: @userID" + "\n" +
+                                        "Submissions: " + JSON.stringify(msg));
                             }
                         },
                         error: function(XMLHttpRequest, textStatus, errorThrown) {
@@ -208,8 +207,6 @@
                     });
 
                 }
-
-                // document.getElementById("saveMyWorkButton").disabled = false;
             }
 
             // Tell the iframes to report their state back.
@@ -220,8 +217,8 @@
             }
 
             // If the state or the score changed since the last submission, then send the new state and score to the server
-            function sendScoreAndStateEditScriptToServer(problemId, score, state) {
-                if (!problemIdToContent.hasOwnProperty(problemId))
+            function sendScoreAndStateEditScriptToServer(problemId, score, state) {            	
+                if (!problemIdToContent.hasOwnProperty(problemId)) // Haven't yet received first state
                     return;
 
                 const previousScorePercent = problemIdToContent[problemId].score ?
@@ -241,11 +238,13 @@
                         problemId: problemId,
                         score: score,
                         stateEditScript: shortestEditScript(previousStateString, currentStateString),
-                        previousSubmissionId: previousSubmissionId
+                        previousSubmissionId: previousSubmissionId,
+                        assignmentId: @assignmentID,
+                        userId: @userID
                     };
 
                     $.ajax({
-                        url: '@prefix/submissions/@assignmentID/@userID',
+                        url: '@prefix/submissions',
                         method: 'POST',
                         contentType: 'application/json',
                         data: JSON.stringify(data),
@@ -259,12 +258,12 @@
                             updateHighestScoreDisplay(problemId, submission);
                         },
                         error: function(XMLHttpRequest, textStatus, errorThrown) {
-                            prompt("Error:", "Error saving work: " + JSON.stringify(XMLHttpRequest) + "\n" +
-                            "Problem ID was: " + problemId + "\n" +
-                            "User ID was: @userID" + "\n" +
-                            "Score was: " + JSON.stringify(score) + "\n" +
-                            "Previous state was: " + previousStateString + "\n" +
-                            "Current state was: " + currentStateString + "\n");
+                            prompt("Error", "Error saving work: " + JSON.stringify(XMLHttpRequest) + "\n" +
+                            "Problem ID: " + problemId + "\n" +
+                            "User ID: @userID" + "\n" +
+                            "Score: " + JSON.stringify(score) + "\n" +
+                            "Previous state: " + previousStateString + "\n" +
+                            "Current state: " + currentStateString + "\n");
                         }
                     });
                 }
@@ -300,9 +299,9 @@
                             response.show();
                         },
                         error: function(XMLHttpRequest, textStatus, errorThrown) {
-                            prompt("Error:", "Error submitting grades: " + JSON.stringify(XMLHttpRequest) + "\n" +
-                            "Assignment ID was: " + @assignmentID + "\n" +
-                            "User ID was: " + @userID);
+                            prompt("Error", "Error submitting grades: " + JSON.stringify(XMLHttpRequest) + "\n" +
+                            "Assignment ID: " + @assignmentID + "\n" +
+                            "User ID: " + @userID);
                         }
                     });
                 }, 1000)
@@ -336,9 +335,9 @@
                         timeLeftInterval = setInterval(updateTimeLeftDisplay, 1000);
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
-                        prompt("Error:", "Error getting start time: " + JSON.stringify(XMLHttpRequest) + "\n" +
-                                "AssignmentID:" + @assignmentID + "\n" +
-                                "UserID:" + @userID);
+                        prompt("Error", "Error getting start time: " + JSON.stringify(XMLHttpRequest) + "\n" +
+                                "Assignment ID: " + @assignmentID + "\n" +
+                                "User ID: " + @userID);
                     }
                 });
             }

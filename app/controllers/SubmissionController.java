@@ -19,14 +19,12 @@ public class SubmissionController extends Controller {
 
     // Method to save problem submission that is sent back from codecheck server
 	// TODO: add params to JSON
-    public Result addSubmission(Long assignmentID, String userID) {
-        Logger.info("SubmissionController.addSubmission AssignmentID: " + assignmentID + " UserID: " + userID);
+    public Result addSubmission() {
+        JsonNode params = request().body().asJson();
+        if (params == null)
+            return badRequest("SubmissionController.addSubmission: Expected Json data, received " + request());
 
-        JsonNode problemContent = request().body().asJson();
-        if (problemContent == null)
-            return badRequest("Expected Json data. Received: " + request());
-
-        Logger.info("params: " + Json.stringify(problemContent));
+        Logger.info("SubmissionController.addSubmission: params=" + Json.stringify(params));
 
         try {
 
@@ -42,12 +40,14 @@ public class SubmissionController extends Controller {
              For example: to change "Hello world!" to "Hi world, I am a computer.":
                 "11,1|1,4| 1,1,i8,18,, I am a computer."
               */
-            String stateEditScript = problemContent.get("stateEditScript").textValue();
-            JsonNode previousIdNode = problemContent.get("previousSubmissionId");
+        	Long assignmentID = params.get("assignmentId").asLong(0L); //TODO: Why needed? 
+        	String userID = params.get("userId").textValue();
+        	String stateEditScript = params.get("stateEditScript").textValue();
+            JsonNode previousIdNode = params.get("previousSubmissionId");
             String previousId = previousIdNode == null ? "" : Long.toString(previousIdNode.longValue());
-
-            Problem problem = Ebean.find(Problem.class, problemContent.get("problemId").asLong(-1L));
-            JsonNode score = problemContent.get("score");
+            //TODO: Shouldn't be a string
+            Problem problem = Ebean.find(Problem.class, params.get("problemId").asLong(0L));
+            JsonNode score = params.get("score");
 
             Submission submission = new Submission();
 
@@ -79,13 +79,17 @@ public class SubmissionController extends Controller {
             responseMap.put("correct", highestScore);
             responseMap.put("maxscore", 1.0);
             responseMap.put("content", submission.getContent());
-            responseMap.put("previous", submission.getPrevious());
+            //TODO: shouldn't be a string
+            String previousString = submission.getPrevious();
+            Long previous = null;
+            if (previousString != null) previous = Long.parseLong(previousString.trim());
+            responseMap.put("previous", previous);
 
             Logger.info("Saved submission: " + responseMap.toString());
             return ok(Json.toJson(responseMap));
         } catch (Exception ex) {
             Logger.info(Util.getStackTrace(ex));
-            return badRequest("Received problem content: " + Json.stringify(problemContent) + "\n" +
+            return badRequest("Received problem content: " + Json.stringify(params) + "\n" +
                     "Exception message: " + ex.getMessage());
         }
     }

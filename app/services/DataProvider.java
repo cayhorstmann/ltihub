@@ -116,7 +116,11 @@ public class DataProvider {
             submissionValues.put("submittedAt", submission.getSubmittedAt());
             submissionValues.put("correct", submission.getCorrect());
             submissionValues.put("maxscore", submission.getMaxScore());
-            submissionValues.put("previous", submission.getPrevious());
+            String previousString =  submission.getPrevious(); // TODO: Should not be a string
+            if (previousString == null)
+            	submissionValues.put("previous", null);
+            else
+            	submissionValues.put("previous", Long.parseLong(previousString.trim()));
 
             // Some values are stringifed strings, but the client is expecting just the strings themselves
             submissionValues.put("content",
