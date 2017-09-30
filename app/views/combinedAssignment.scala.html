@@ -243,7 +243,7 @@
                         stateEditScript: shortestEditScript(previousStateString, currentStateString),
                         previousSubmissionId: previousSubmissionId,
                         assignmentId: @assignmentID,
-                        userId: @userID
+                        userId: "@userID"
                     };
 
                     $.ajax({
@@ -282,7 +282,6 @@
             // Save work and report score
             function submitGrades() {
                 updateStatesFromProblems();
-                // setTimeout(location.href = "@prefix/send-score/@assignmentID/@userID", 1000);
                 setTimeout(function () {
                 	$("#response").hide();
                     const data = {
