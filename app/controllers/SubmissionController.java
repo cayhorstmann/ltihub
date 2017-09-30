@@ -43,9 +43,6 @@ public class SubmissionController extends Controller {
         	Long assignmentID = params.get("assignmentId").asLong(0L); //TODO: Why needed? 
         	String userID = params.get("userId").textValue();
         	String stateEditScript = params.get("stateEditScript").textValue();
-            JsonNode previousIdNode = params.get("previousSubmissionId");
-            String previousId = previousIdNode == null ? "" : Long.toString(previousIdNode.longValue());
-            //TODO: Shouldn't be a string
             Problem problem = Ebean.find(Problem.class, params.get("problemId").asLong(0L));
 
             Submission submission = new Submission();
@@ -53,7 +50,7 @@ public class SubmissionController extends Controller {
             submission.setAssignmentId(assignmentID);
             submission.setStudentId(userID);
             submission.setContent(stateEditScript);
-            submission.setPrevious(previousId);
+            submission.setPrevious(params.get("previous").longValue());
             submission.setProblem(problem);
             submission.setCorrect(params.get("correct").asLong(0L));
             submission.setMaxScore(params.get("maxscore").asLong(0L));
@@ -76,11 +73,6 @@ public class SubmissionController extends Controller {
             responseMap.put("submissionId", submission.getSubmissionId());
             responseMap.put("submittedAt", submission.getSubmittedAt());
             responseMap.put("highestScore", highestScore);
-            //TODO: shouldn't be a string
-            String previousString = submission.getPrevious();
-            Long previous = null;
-            if (previousString != null) previous = Long.parseLong(previousString.trim());
-            responseMap.put("previous", previous);
 
             Logger.info("Saved submission: " + responseMap.toString());
             return ok(Json.toJson(responseMap));

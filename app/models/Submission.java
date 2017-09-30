@@ -39,7 +39,7 @@ public class Submission extends Model {
     public String content;
     
     @Column
-    public String previous;
+    public long previous;
     
     @ManyToOne
     public Problem problem;
@@ -100,11 +100,11 @@ public class Submission extends Model {
 		this.activity = activity;
 	}
 	
-	public String getPrevious() {
+	public long getPrevious() {
 		return previous;
 	}
 	
-	public void setPrevious(String previous) {
+	public void setPrevious(long previous) {
 		this.previous = previous;
 	}
 

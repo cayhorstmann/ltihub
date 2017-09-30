@@ -29,7 +29,7 @@ create table submission (
   activity                  varchar(255),
   submitted_at              timestamp,
   content                   varchar(255),
-  previous                  varchar(255),
+  previous                  bigint not null,
   problem_problem_id        bigint,
   constraint pk_submission primary key (submission_id))
 ;
