@@ -12,7 +12,7 @@
         // Load the iframes for the problems of the assignment
         function loadProblems() {
             $.ajax({
-                url: '@services.routes.DataProvider.getProblems(assignmentID, userID)',
+                url: '@services.routes.DataProvider.getProblems(assignmentID, userID, if (isInstructor) "Instructor" else "Student" )',
                 method: 'GET',
                 success: function (probs) {
                 	problems = probs;                	
@@ -227,7 +227,7 @@
                 const previousScorePercent = problemIdToContent[problemId].score ?
                         problemIdToContent[problemId].score : 0.0;
                 const currentScorePercent = score && score.correct && score.maxscore ?
-                        (score.correct / score.maxscore) * 100.0 : 0.0;
+                        (Math.max(score.correct - score.errors, 0) / score.maxscore) * 100.0 : 0.0;
 
                 const previousStateString = problemIdToContent[problemId].state ?
                         problemIdToContent[problemId].state : "";
