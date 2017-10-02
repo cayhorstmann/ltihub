@@ -79,20 +79,18 @@ public class Util {
 	 			entries.add(new AbstractMap.SimpleEntry<>(entry.getKey(), s));
 	 	String url = "https://" + request.host() + request.uri();
 	 	String key = getParam(postParams, OAUTH_KEY_PARAMETER);
-	 	
-	 	
+	 	/*	 	
 	 	for (Map.Entry<String, String> entry : getParams(url).entrySet())
 	 		entries.add(entry);
-	 	int n = url.lastIndexOf("?"); if (n >= 0) url = url.substring(0, n);
-	 	 
+	 	int n = url.lastIndexOf("?"); 
+	 	if (n >= 0) url = url.substring(0, n);
+	 	*/ 
 	 	OAuthMessage oam = new OAuthMessage("POST", url, entries);
         OAuthConsumer cons = new OAuthConsumer(null, key, "fred", null); // TODO
         OAuthValidator oav = new SimpleOAuthValidator();
         OAuthAccessor acc = new OAuthAccessor(cons);
         
-        Logger.info("validate: entries=" + entries + ", url=" + url);
-        
-	    try {
+        try {
 	      oav.validateMessage(oam, acc);
           return true;
         } catch (Exception e) {

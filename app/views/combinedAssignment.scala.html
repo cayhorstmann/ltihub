@@ -115,7 +115,7 @@
                         i.e.
                             Suppose A, B, C, and D are submissionIds
                             Submissions could be received like this:
-                                submissionId: A, previous: null,
+                                submissionId: A, previous: 0,
                                 submissionId: B, previous: A,
                                 submissionId: C, previous: A,
                                 submissionId: D, prevoius: B
@@ -141,13 +141,13 @@
 	                                var lastSubmission = submissions[submissions.length - 1];
 	                                submissionId = lastSubmission.submissionId
 	                                score = lastSubmission.score
-	                                var previousSubmissionId = submissionId; // Want to pick up the last one
+	                                var previous = submissionId; // Want to pick up the last one
 	                                while (submissions.length > 0) {
 	                                    var submission = submissions.pop();
                                         highestScore = Math.max(highestScore, submission.score);
-	                                    if (submission.submissionId == previousSubmissionId) {
+	                                    if (previous == -1 || previous == submission.submissionId) { // TODO: Legacy
 	                                        stateEditScriptsStack.push(submission.content);
-	                                        previousSubmissionId = submission.previous;	
+	                                        previous = submission.previous;	
 	                                    }
 	                                }
 	

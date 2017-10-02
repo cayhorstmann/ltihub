@@ -16,11 +16,11 @@ public class Submission extends Model {
 	
     @Column
     @Constraints.Required
-    public String studentId;
+    public String studentId; 
 
     @Column
     @Constraints.Required
-    public Long assignmentId;
+    public Long assignmentId; // TODO: Why?
 
     @Column
     @Constraints.Required
@@ -39,7 +39,7 @@ public class Submission extends Model {
     public String content;
     
     @Column
-    public long previous;
+    public String previous; // TODO: Fix
     
     @ManyToOne
     public Problem problem;
@@ -101,11 +101,15 @@ public class Submission extends Model {
 	}
 	
 	public long getPrevious() {
-		return previous;
+		try {
+			return Long.parseLong(previous.trim()); // TODO: Fix
+		} catch (Exception ex) {
+			return -1;
+		}
 	}
 	
 	public void setPrevious(long previous) {
-		this.previous = previous;
+		this.previous = "" + previous; // TODO: Fix
 	}
 
 	@Override
