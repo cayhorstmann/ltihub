@@ -84,11 +84,12 @@ public class Util {
 	 		entries.add(entry);
 	 	int n = url.lastIndexOf("?"); 
 	 	if (n >= 0) url = url.substring(0, n);
-	 	*/ 
+	 	*/ 	
 	 	OAuthMessage oam = new OAuthMessage("POST", url, entries);
         OAuthConsumer cons = new OAuthConsumer(null, key, "fred", null); // TODO
         OAuthValidator oav = new SimpleOAuthValidator();
         OAuthAccessor acc = new OAuthAccessor(cons);
+ 	    Logger.info("entries: " + entries);
         
         try {
 	      oav.validateMessage(oam, acc);
@@ -96,7 +97,6 @@ public class Util {
         } catch (Exception e) {
         	Logger.info("Did not validate: " + e.getLocalizedMessage());
     	 	Logger.info("url: " + url);
-  	 	    Logger.info("entries: " + entries);
             return false;
         }
     }
