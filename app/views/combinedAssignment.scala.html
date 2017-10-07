@@ -37,9 +37,9 @@
                         problemIframe.className = 'exercise-iframe';
                         problemIframe.src = problems[i].url;
 
-                        if (problem.duration > 0) {
+                        if (problems[i].duration > 0) {
                     		let timedDiv = $('<div id="timed-' + problems[i].id + '">This is a timed exercise. Once you start it, you must finish it in ' + 
-                    	    		problem.duration + ' minutes. <br/><button id=start-"' + problem.id + '">Start</button></div>');
+                    	    		problems[i].duration + ' minutes. <br/><button id=start-"' + problems[i].id + '">Start</button></div>');
                     		$('body').append(timedDiv);
                     	    $('#start-' + problems[i].id).click(function() {
                     	    	   $('#timed-' + problems[i].id).replaceWith(problemIframe);    	
