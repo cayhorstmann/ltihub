@@ -39,7 +39,8 @@
                     	    $('#start-' + problems[i].id).click(function() {
                     	    	   $('#timed-' + problems[i].id).replaceWith(problemIframe);    	
                     	    	   $(problemIframe).on('load', function() {
-                                       problemIframe.contentWindow.postMessage({query: 'docHeight', id: problems[i].id }, '*');
+                    	    		   var message = {query: 'docHeight', id: problems[i].id };
+                                       problemIframe.contentWindow.postMessage(message, '*');
                                        restoreStateOfProblem(problems[i]);
                                    })
                                    //TODO: Why not for all instead of doing this after state restore                   
@@ -64,7 +65,9 @@
                             .then(function() {
                                 $('iframe').each(function(i, e) {
                                     $(e).on('load', function() {
-                                        e.contentWindow.postMessage({query: 'docHeight', id: $(e).attr('id')}, '*')
+                                    	var message = {query: 'docHeight', id: $(e).attr('id')}
+                                    	console.log("sending " + message)
+                                        e.contentWindow.postMessage(message, '*')
                                     })
                                 })
                             });
@@ -80,8 +83,8 @@
         // Response from messages to iframe
         function receiveMessage(event) {
             if (event.data.request) { // It's a response
-            	console.log('received ' + JSON.stringify(event.data));
                 if (event.data.request.query === 'docHeight') {                	
+                    console.log('received ' + JSON.stringify(event.data));
                     const newHeight = event.data.docHeight + 200;
                     $('#' + event.data.request.id).height(newHeight)
                 }
