@@ -53,17 +53,18 @@
                                 restoreStateOfProblem(problems[i]);
                             })
 
-	
+	   /*
 	                        onloadPromises.push(new Promise(function(resolve, reject) {
 	                            problemIframe.onload = function() {
 	                                resolve();
 	                            }
 	                        }));
+       */                            
 
 	                        document.body.appendChild(problemIframe);
                     	}
                     }
-
+        /*                    
                     // When all of the iframes are loaded, restore the states from the student's previous submissions
                     Promise.all(onloadPromises)
                             .then(restoreStatesOfProblems)
@@ -76,6 +77,7 @@
                                     })
                                 })
                             });
+        */
                 },
                 error: function(XMLHttpRequest) {
                     prompt("Error", "Error getting problems: " + JSON.stringify(XMLHttpRequest) + "\n" +
