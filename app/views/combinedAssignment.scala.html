@@ -27,7 +27,7 @@
 
                         document.body.appendChild(highestScoreEl);
                     	
-                        var problemIframe = document.createElement('iframe');
+                        let problemIframe = document.createElement('iframe');
                         problemIframe.id = problems[i].id;
                         problemIframe.className = 'exercise-iframe';
                         problemIframe.src = problems[i].url;
@@ -80,7 +80,8 @@
         // Response from messages to iframe
         function receiveMessage(event) {
             if (event.data.request) { // It's a response
-                if (event.data.request.query === 'docHeight') {
+            	console.log('received ' + JSON.stringify(event.data));
+                if (event.data.request.query === 'docHeight') {                	
                     const newHeight = event.data.docHeight + 200;
                     $('#' + event.data.request.id).height(newHeight)
                 }
