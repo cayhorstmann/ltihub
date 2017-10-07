@@ -47,6 +47,11 @@
                     	    })
                     	    
                     	} else {
+                            $(problemIframe).on('load', function() {
+                                var message = {query: 'docHeight', id: problems[i].id };
+                                problemIframe.contentWindow.postMessage(message, '*');
+                                restoreStateOfProblem(problems[i]);
+                            })
 
 	
 	                        onloadPromises.push(new Promise(function(resolve, reject) {
