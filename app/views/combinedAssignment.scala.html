@@ -21,13 +21,11 @@
                     	// TODO: Maybe put everything into a div?
                         // TODO: For instructors, show the group
                     	
-                        @if(!isInstructor) {
-                            var highestScoreEl = document.createElement('div');
-                            highestScoreEl.id = "highestScore-" + problems[i].id;
-                            highestScoreEl.className = "highestScore message";
+                        var highestScoreEl = document.createElement('div');
+                        highestScoreEl.id = "highestScore-" + problems[i].id;
+                        highestScoreEl.className = "highestScore message";
 
-                            document.body.appendChild(highestScoreEl);
-                        }
+                        document.body.appendChild(highestScoreEl);
                     	
                         var problemIframe = document.createElement('iframe');
                         problemIframe.id = problems[i].id;
