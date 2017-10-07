@@ -20,9 +20,6 @@
                     for (let i = 0; i < problems.length; i++) {
                     	// TODO: Maybe put everything into a div?
                         // TODO: For instructors, show the group
-                    	const numberDiv = document.createElement('div');                       
-                    	numberDiv.appendChild(document.createTextNode((i + 1) + ". "))                    	
-                    	document.body.appendChild(numberDiv)
                     	
                         @if(!isInstructor) {
                             var highestScoreEl = document.createElement('div');
@@ -39,7 +36,7 @@
 
                         if (problems[i].duration > 0) {
                     		let timedDiv = $('<div id="timed-' + problems[i].id + '">This is a timed exercise. Once you start it, you must finish it in ' + 
-                    	    		problems[i].duration + ' minutes. <br/><button id=start-"' + problems[i].id + '">Start</button></div>');
+                    	    		problems[i].duration + ' minutes. <br/><button id="start-' + problems[i].id + '">Start</button></div>');
                     		$('body').append(timedDiv);
                     	    $('#start-' + problems[i].id).click(function() {
                     	    	   $('#timed-' + problems[i].id).replaceWith(problemIframe);    	

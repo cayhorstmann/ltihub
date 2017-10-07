@@ -37,3 +37,12 @@
     display: block;
     margin: auto auto 10pt;
 }
+
+body {
+  counter-reset: problem;
+}
+
+.highestScore::before {
+	counter-increment: problem;
+	content: counter(problem) ". "
+}
