@@ -16,7 +16,9 @@ create table problem (
   problem_id                bigserial not null,
   url                       varchar(255),
   assignment_assignment_id  bigint,
-  problem_group             integer not null
+  problem_group             integer not null,
+  weight                    decimal(7,6),
+  duration                  integer,
   constraint pk_problem primary key (problem_id))
 ;
 

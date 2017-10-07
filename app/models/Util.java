@@ -77,7 +77,6 @@ public class Util {
 	 	for (Map.Entry<String, String[]> entry : postParams.entrySet()) 
 	 		for (String s : entry.getValue())
 	 			entries.add(new AbstractMap.SimpleEntry<>(entry.getKey(), s));
- 	    Logger.info("entries: " + entries);
 	 	String url = "https://" + request.host() + request.uri();
 	 	String key = getParam(postParams, OAUTH_KEY_PARAMETER);
 	 	for (Map.Entry<String, String> entry : getParams(url).entrySet())
@@ -93,8 +92,7 @@ public class Util {
 	      oav.validateMessage(oam, acc);
           return true;
         } catch (Exception e) {
-        	Logger.info("Did not validate: " + e.getLocalizedMessage());
-    	 	Logger.info("url: " + url);
+        	Logger.info("Did not validate: " + e.getLocalizedMessage() + "\nurl: " + url + "\nentries: " + entries);
             return false;
         }
     }

@@ -17,30 +17,53 @@
                 success: function (probs) {
                 	problems = probs;                	
                     var onloadPromises = [];
-                    for (var i = 0; i < problems.length; i++) {
+                    for (let i = 0; i < problems.length; i++) {
+                    	// TODO: Maybe put everything into a div?
+                        // TODO: For instructors, show the group
+                    	const numberDiv = document.createElement('div');                       
+                    	numberDiv.appendChild(document.createTextNode((i + 1) + ". "))                    	
+                    	document.body.appendChild(numberDiv)
+                    	
                         @if(!isInstructor) {
                             var highestScoreEl = document.createElement('div');
-                            highestScoreEl.id = "highestScore-" + problems[i].problemId;
+                            highestScoreEl.id = "highestScore-" + problems[i].id;
                             highestScoreEl.className = "highestScore message";
 
                             document.body.appendChild(highestScoreEl);
                         }
-
+                    	
                         var problemIframe = document.createElement('iframe');
-                        problemIframe.id = problems[i].problemId;
+                        problemIframe.id = problems[i].id;
                         problemIframe.className = 'exercise-iframe';
-                        problemIframe.src = problems[i].problemUrl;
+                        problemIframe.src = problems[i].url;
 
-                        onloadPromises.push(new Promise(function(resolve, reject) {
-                            problemIframe.onload = function() {
-                                resolve();
-                            }
-                        }));
+                        if (problem.duration > 0) {
+                    		let timedDiv = $('<div id="timed-' + problems[i].id + '">This is a timed exercise. Once you start it, you must finish it in ' + 
+                    	    		problem.duration + ' minutes. <br/><button id=start-"' + problem.id + '">Start</button></div>');
+                    		$('body').append(timedDiv);
+                    	    $('#start-' + problems[i].id).click(function() {
+                    	    	   $('#timed-' + problems[i].id).replaceWith(problemIframe);    	
+                    	    	   $(problemIframe).on('load', function() {
+                                       problemIframe.contentWindow.postMessage({query: 'docHeight', id: problems[i].id }, '*');
+                                       restoreStateOfProblem(problems[i]);
+                                   })
+                                   //TODO: Why not for all instead of doing this after state restore                   
+                    	    })
+                    	    
+                    	} else {
 
-                        document.body.appendChild(problemIframe);
+	
+	                        onloadPromises.push(new Promise(function(resolve, reject) {
+	                            problemIframe.onload = function() {
+	                                resolve();
+	                            }
+	                        }));
+
+	                        document.body.appendChild(problemIframe);
+                    	}
                     }
 
-                    // When all of the iframes are loaded, restore the states from the student's preivous submissions
+                    // When all of the iframes are loaded, restore the states from the student's previous submissions
                     Promise.all(onloadPromises)
                             .then(restoreStatesOfProblems)
                             .then(function() {
@@ -81,6 +104,13 @@
         window.onload = loadProblems;
     </script>
         
+    @if(isInstructor) {
+    <script type="text/javascript">
+        function restoreStatesOfProblems() {}
+        function restoreStateOfProblem(problem) {}
+    </script>
+    }               
+        
     @if(!isInstructor) {        
         <script src="@routes.Assets.at("javascripts/shortest-edit-script.js")"></script>
 
@@ -103,104 +133,112 @@
             // Sends the states of the problems that were previously submitted to the problems to be restored
             function restoreStatesOfProblems() {
                 for (var i = 0; i < problems.length; i++) {
-                    let problem = problems[i]
-                    
-
-                    /*
-                     Get student's submissions from server.
-                     Each submission has the properties: submissionId, submittedAt, score, content, and previous
-                     Content contains edit scripts that are used to build the state that the student had the problem in.
-                     Previous contains the submissionId of the previous submissionId to chain the edit scripts together
-                     in the correct order
-                        i.e.
-                            Suppose A, B, C, and D are submissionIds
-                            Submissions could be received like this:
-                                submissionId: A, previous: 0,
-                                submissionId: B, previous: A,
-                                submissionId: C, previous: A,
-                                submissionId: D, prevoius: B
-
-                            This could happen if the student has two tabs open, and we want their latest changes,
-                            so we keep track of both chains of submissions, and take the latest submission and work
-                            backwards (D->B->A) to find the edit scripts, and then apply them (A->B->D) to rebuild the
-                            state.
-                      */
-                    $.ajax({
-                        url: '@prefix/get-submissions/' + problem.problemId + '/@userID',
-                        method: 'GET',
-                        success: function (msg) {
-                            var submissionId = 0;
-                            var state = "";
-                            var score = 0.0;
-                            try {
-                                var submissions = msg.slice();
-                                if (submissions.length > 0) {
-	                                // Find the state edit scripts and highest score
-	                                var stateEditScriptsStack = [];
-	                                var highestScore = 0.0;
-	                                var lastSubmission = submissions[submissions.length - 1];
-	                                submissionId = lastSubmission.submissionId
-	                                score = lastSubmission.score
-	                                var previous = submissionId; // Want to pick up the last one
-	                                while (submissions.length > 0) {
-	                                    var submission = submissions.pop();
-                                        highestScore = Math.max(highestScore, submission.score);
-	                                    if (previous == -1 || previous == submission.submissionId) { // TODO: Legacy
-	                                        stateEditScriptsStack.push(submission.content);
-	                                        previous = submission.previous;	
-	                                    }
-	                                }
-	
-	                                updateHighestScoreDisplay(problem.problemId, lastSubmission.submittedAt, highestScore);
-
-	                                // Build the state from the edit scripts and store each version in the map
-	                                while (stateEditScriptsStack.length > 0) {
-	                                    var editScript = stateEditScriptsStack.pop();
-	
-	                                    // Don't apply edit script if state didn't change
-	                                    if (!editScript)
-	                                        continue;
-	
-	                                    try {
-	                                        state = applyEditScript(state, editScript);
-	                                    } catch (e) {
-	                                        prompt("Error", "State is corrupted: " + e + "\n" +
-	                                                "Problem ID: " + problem.problemId + "\n" +
-	                                                "User ID: @userID" + "\n" +
-	                                                "State: " + state + "\n" +
-	                                                "Edit script that caused corruption: " + editScript);
-	                                    }
-	                                }
-                                }
-
-                                if (state) { // If the state was empty, then don't try to restore it
-                                    var iframe = document.getElementById('' + problem.problemId);
-                                    iframe.contentWindow.postMessage({query: 'restoreState', state: JSON.parse(state)}, '*');
-                                }
-
-                            } catch (e) {
-                                prompt("Error", "Error getting problem contents: " + e + "\n" +
-                                        "Problem ID: " + problem.problemId + "\n" +
-                                        "User ID: @userID" + "\n" +
-                                        "Submissions: " + JSON.stringify(msg));
-                                submissionId = 0;
-                                score = 0.0;
-                                state = ""; 
-                            }
-                            // Initializes the problem content so that it can be saved
-                            problemIdToContent[problem.problemId] = {
-                                submissionId: submissionId,
-                                score: score,
-                                state: state
-                            };                                
-                        },
-                        error: function(XMLHttpRequest, textStatus, errorThrown) {
-                            alert("Error getting problem contents: " + JSON.stringify(XMLHttpRequest));
-                        }
-                    });
-
+                	if (problems[i].duration == 0)
+                		   restoreStateOfProblem(problems[i])
                 }
             }
+            
+            function restoreStateOfProblem(problem) {
+                /*
+                 Get student's submissions from server.
+                 Each submission has the properties: submissionId, submittedAt, score, content, and previous
+                 Content contains edit scripts that are used to build the state that the student had the problem in.
+                 Previous contains the submissionId of the previous submissionId to chain the edit scripts together
+                 in the correct order
+                    i.e.
+                        Suppose A, B, C, and D are submissionIds
+                        Submissions could be received like this:
+                            submissionId: A, previous: 0,
+                            submissionId: B, previous: A,
+                            submissionId: C, previous: A,
+                            submissionId: D, prevoius: B
+
+                        This could happen if the student has two tabs open, and we want their latest changes,
+                        so we keep track of both chains of submissions, and take the latest submission and work
+                        backwards (D->B->A) to find the edit scripts, and then apply them (A->B->D) to rebuild the
+                        state.
+                  */
+                $.ajax({
+                    url: '@prefix/get-submissions/' + problem.id + '/@userID',
+                    method: 'GET',
+                    success: function (msg) {
+                        var submissionId = 0;
+                        var state = "";
+                        var score = 0.0;
+                        try {
+                            var submissions = msg.slice();
+                            if (submissions.length > 0) {
+                             // Find the state edit scripts and highest score
+                             var stateEditScriptsStack = [];
+                             var highestScore = 0.0;
+                             var lastSubmission = submissions[submissions.length - 1];
+                             submissionId = lastSubmission.submissionId
+                             score = lastSubmission.score
+                             var previous = submissionId; // Want to pick up the last one
+                             while (submissions.length > 0) {
+                                 var submission = submissions.pop();
+                                    highestScore = Math.max(highestScore, submission.score);
+                                 if (previous == -1 || previous == submission.submissionId) { // TODO: Legacy
+                                     stateEditScriptsStack.push(submission.content);
+                                     previous = submission.previous;	
+                                 }
+                             }
+
+                             updateHighestScoreDisplay(problem.id, lastSubmission.submittedAt, highestScore);
+
+                             // Build the state from the edit scripts and store each version in the map
+                             while (stateEditScriptsStack.length > 0) {
+                                 var editScript = stateEditScriptsStack.pop();
+
+                                 // Don't apply edit script if state didn't change
+                                 if (!editScript)
+                                     continue;
+
+                                 try {
+                                     state = applyEditScript(state, editScript);
+                                 } catch (e) {
+                                     prompt("Error", "State is corrupted: " + e + "\n" +
+                                             "Problem ID: " + problem.id + "\n" +
+                                             "User ID: @userID" + "\n" +
+                                             "State: " + state + "\n" +
+                                             "Edit script that caused corruption: " + editScript);
+                                 }
+                             }
+                            }
+
+                            if (state) { // If the state was empty, then don't try to restore it
+                                var iframe = document.getElementById('' + problem.id);
+                                iframe.contentWindow.postMessage({query: 'restoreState', state: JSON.parse(state)}, '*');
+                            }
+
+                        } catch (e) {
+                            prompt("Error", "Error getting problem contents: " + e + "\n" +
+                                    "Problem ID: " + problem.id + "\n" +
+                                    "User ID: @userID" + "\n" +
+                                    "Submissions: " + JSON.stringify(msg));
+                            submissionId = 0;
+                            score = 0.0;
+                            state = ""; 
+                        }
+                        // Initializes the problem content so that it can be saved
+                        problemIdToContent[problem.id] = {
+                            submissionId: submissionId,
+                            score: score,
+                            state: state
+                        };                                
+                    },
+                    error: function(XMLHttpRequest, textStatus, errorThrown) {
+                        alert("Error getting problem contents: " + JSON.stringify(XMLHttpRequest));
+                        // Initializes the problem content so that it can be saved
+                        problemIdToContent[problem.id] = {
+                            submissionId: submissionId,
+                            score: 0.0,
+                            state: ""
+                        };                                
+                    }
+                });
+            }
+         
 
             // Tell the iframes to report their state back.
             function updateStatesFromProblems() {

@@ -32,6 +32,12 @@ public class Problem extends Model {
     @Column
     @Constraints.Required
     public int problemGroup;
+    
+    @Column
+    public Double weight;
+    
+    @Column
+    public Integer duration;
 
     @OneToMany(mappedBy="problem")
     public List<Submission> submissions = new ArrayList<Submission>();
@@ -39,10 +45,12 @@ public class Problem extends Model {
 	public Problem() {
 	}
 		
-	public Problem(Assignment assignment, String url, int problemGroup) {
+	public Problem(Assignment assignment, String url, int problemGroup, Double weight, Integer duration) {
 		this.assignment = assignment;
 		this.url = url;
 		this.problemGroup = problemGroup;
+		this.weight = weight;
+		this.duration = duration;
 	}
 		
 	public Long getProblemId() {
@@ -84,4 +92,44 @@ public class Problem extends Model {
 	public void setProblemGroup(int problemGroup) {
 		this.problemGroup = problemGroup;
 	}
+	
+	public Double getWeight() {
+		return weight;
+	}
+	
+	public void setWeight(Double weight) {
+		this.weight = weight;
+	}
+	
+	public int getDuration() {
+		return duration == null ? 0 : duration;
+	}
+	
+	public void setDuration(Integer duration) {
+		this.duration = duration;
+	}		
+	
+	public static double[] getWeights(List<Problem> problems) {
+		int unweighted = 0;
+        double weightSum = 0;
+        double[] weights = new double[problems.size()];
+        int i = 0;
+        for (Problem problem : problems) {
+        	if (problem.getWeight() ==  null) {
+        		unweighted++;
+        		weights[i] = -1;
+        	}
+        	else {
+        		weights[i] = problem.getWeight();
+        		weightSum += weights[i];
+        	}
+        	i++;
+        }
+        if (unweighted > 0) {
+        	double defaultWeight = (1 - weightSum) / unweighted; 
+        	for (i = 0; i < weights.length; i++)
+        		if (weights[i] == -1) weights[i] = defaultWeight;
+        }
+        return weights;
+	}	
 }
