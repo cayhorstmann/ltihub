@@ -207,17 +207,34 @@ public class HomeController extends Controller {
     	return ok(editAssignment.render(assignment1, problems));    
     }
 
+	/*
+	 * Format for problems:
+	 * https://... [x%] [ym]
+	 * ...
+	 * ---
+	 * https://... [x%] [ym]
+	 * ...
+	 */
+	
     private void addNewProblemsFromFormSubmission(String newProblemFormSubmission, Assignment assignment) {
         if(newProblemFormSubmission != null && !newProblemFormSubmission.trim().isEmpty()) {
         	String[] groups = newProblemFormSubmission.split("\\s+-{3,}\\s+");
         	for (int problemGroup = 0; problemGroup < groups.length; problemGroup++) {
-	            String[] newProblemUrls = groups[problemGroup].split("\\s+");
-	            for(String problemUrl: newProblemUrls) {
-	                if(!problemUrl.trim().isEmpty()) {
-	                	Problem problem = new Problem(assignment, problemUrl, problemGroup);
-	                    assignment.getProblems().add(problem);
-	                    problem.save();
-	                }
+	            String[] lines = groups[problemGroup].split("\\n+");
+	            for(String line: lines) {
+	            	String problemUrl = null;
+	            	Double weight = null;
+	            	Integer duration = null;
+	            	//TODO: Error checking/reporting
+	            	for (String token: line.split("\\s+")) {
+	            		if (token.startsWith("https")) problemUrl = token;
+	            		else if (token.endsWith("%")) weight = 0.01 * Double.parseDouble(token.substring(0, token.length() - 1));
+	            		else if (token.endsWith("m")) duration = Integer.parseInt(token.substring(0, token.length() - 1));
+	            		else throw new IllegalArgumentException("Bad token: " + token);
+	            	}	            	
+	            	Problem problem = new Problem(assignment, problemUrl, problemGroup, weight, duration);
+	                assignment.getProblems().add(problem);
+	                problem.save();
 	            }
         	}
         }

@@ -57,13 +57,19 @@ public class DataProvider {
 				if (p.getProblemGroup() == group) problems.add(p);
     	}
         problems.sort(Comparator.comparing(Problem::getProblemGroup).thenComparing(Problem::getProblemId));
+        double[] weights = Problem.getWeights(problems);
+        
+        int i = 0;
         for (Problem problem: problems) {
             Map<String, Object> problemValues = new HashMap<>();
-            problemValues.put("problemId", problem.getProblemId());
-            problemValues.put("problemUrl", problem.getProblemUrl());
-            problemValues.put("problemGroup", problem.getProblemGroup());
-
+            problemValues.put("id", problem.getProblemId());
+            problemValues.put("url", problem.getProblemUrl());
+            problemValues.put("group", problem.getProblemGroup());
+            problemValues.put("weight", weights[i]);            
+            problemValues.put("duration", problem.getDuration());
+            
             problemsJsonList.add(Json.toJson(problemValues));
+            i++;
         }
 
         return ok(Json.toJson(problemsJsonList));
