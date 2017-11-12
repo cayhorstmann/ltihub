@@ -32,8 +32,6 @@
                         problemIframe.className = 'exercise-iframe';
                         problemIframe.src = problems[i].url;
 
-                        /* TODO: If submittable, restore state should put up time remaining */
-
                         if (problems[i].duration > 0 && !problems[i].start) { // If never submitted, put up start button
                     		let timedDiv = $('<div id="timed-' + problems[i].id + '">This is a timed exercise. Once you start it, you must finish it in ' + 
                     	    		problems[i].duration + ' minutes. <br/><button id="start-' + problems[i].id + '">Start</button></div>');
@@ -48,7 +46,7 @@
                                    //TODO: Why not for all instead of doing this after state restore                   
                     	    })
                     	    
-                    	} else {
+                    	} else { // TODO: Have server send time remaining instead
                     		if (problems[i].duration > 0 && problems[i].start && 
                     				problems[i].start + problems[i].duration * 1000 * 60 > problems[i].current) {
                     			$('body').append('<div>This is a timed exercise whose time has elapsed.</div>')
@@ -176,7 +174,7 @@
                                  }
                              }
 
-                             updateHighestScoreDisplay(problem.id, lastSubmission.submittedAt, highestScore);
+                             updateHighestScoreDisplay(problem.id, lastSubmission.submittedAt, highestScore, -1); // TODO: Actual remaining time
 
                              // Build the state from the edit scripts and store each version in the map
                              while (stateEditScriptsStack.length > 0) {
@@ -279,7 +277,7 @@
                                 state: currentStateString
                             };
 
-                            updateHighestScoreDisplay(problemId, result.submittedAt, result.highestScore);
+                            updateHighestScoreDisplay(problemId, result.submittedAt, result.highestScore, result.timeRemaining);
                         },
                         error: function(XMLHttpRequest, textStatus, errorThrown) {
                             prompt("Error", "Error saving work: " + JSON.stringify(XMLHttpRequest) + "\n" +
@@ -293,12 +291,20 @@
                 }
             }
 
-            // Update the highest score element to display the score from the given submission
-            function updateHighestScoreDisplay(problemId, submittedAt, highestScore) {
-                var highestScoreEl = document.getElementById('highestScore-' + problemId);
-                highestScoreEl.innerHTML = "<p>Submission saved at: " + new Date(submittedAt) +
-                        " | Highest recorded score: <b>" + (highestScore * 100.0) + "%</b></p>"
+            function formatTime(time) {
+            	if (time <= 0) return "0 seconds";
+            	else if (time >= 60 * 1000) return ((time + 30 * 1000) / 60 * 1000) + " minutes";            	
+            	else return ((time + 500) / 1000) + " seconds";  
             }
+            
+            // Update the highest score element to display the score from the given submission
+            function updateHighestScoreDisplay(problemId, submittedAt, highestScore, timeRemaining) {
+                var highestScoreEl = document.getElementById('highestScore-' + problemId);
+                highestScoreEl.innerHTML = "<p>Submission saved at: " + new Date(submittedAt) + 
+                        "</p><p>Highest recorded score: <b>" + (highestScore * 100.0) + "%</b></p>" + 
+                        (timeRemaining >= 0 ? "<p>Time remaining: " + formatTime(timeRemaining) + "</p>" : "")
+            }
+                       
 
             // Save work and report score
             function submitGrades() {
@@ -336,7 +342,7 @@
     @* Timed assignment specific code *@
     @if(duration != null && duration > 0L) {
         <script type="text/javascript">
-            const durationInMilliseconds = @duration * 60 * 1000;
+            const durationInMilliseconds = @duration * 60 * 1000; // TODO: Combine with timed problem code
             var endTimeInMilliseconds;
             var timeLeftInterval;
             var alertedTimeIsUp = false;
