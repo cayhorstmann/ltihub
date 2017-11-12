@@ -32,7 +32,9 @@
                         problemIframe.className = 'exercise-iframe';
                         problemIframe.src = problems[i].url;
 
-                        if (problems[i].duration > 0) {
+                        /* TODO: If submittable, restore state should put up time remaining */
+
+                        if (problems[i].duration > 0 && !problems[i].start) { // If never submitted, put up start button
                     		let timedDiv = $('<div id="timed-' + problems[i].id + '">This is a timed exercise. Once you start it, you must finish it in ' + 
                     	    		problems[i].duration + ' minutes. <br/><button id="start-' + problems[i].id + '">Start</button></div>');
                     		$('body').append(timedDiv);
@@ -47,37 +49,21 @@
                     	    })
                     	    
                     	} else {
-                            $(problemIframe).on('load', function() {
+                    		if (problems[i].duration > 0 && problems[i].start && 
+                    				problems[i].start + problems[i].duration * 1000 * 60 > problems[i].current) {
+                    			$('body').append('<div>This is a timed exercise whose time has elapsed.</div>')
+                    			problems[i].done = true
+                    		}
+                    		
+                    		document.body.appendChild(problemIframe);
+                    		
+                    		$(problemIframe).on('load', function() {
                                 var message = {query: 'docHeight', id: problems[i].id };
                                 problemIframe.contentWindow.postMessage(message, '*');
                                 restoreStateOfProblem(problems[i]);
                             })
-
-	   /*
-	                        onloadPromises.push(new Promise(function(resolve, reject) {
-	                            problemIframe.onload = function() {
-	                                resolve();
-	                            }
-	                        }));
-       */                            
-
-	                        document.body.appendChild(problemIframe);
                     	}
-                    }
-        /*                    
-                    // When all of the iframes are loaded, restore the states from the student's previous submissions
-                    Promise.all(onloadPromises)
-                            .then(restoreStatesOfProblems)
-                            .then(function() {
-                                $('iframe').each(function(i, e) {
-                                    $(e).on('load', function() {
-                                    	var message = {query: 'docHeight', id: $(e).attr('id')}
-                                    	console.log("sending " + message)
-                                        e.contentWindow.postMessage(message, '*')
-                                    })
-                                })
-                            });
-        */
+                    }      
                 },
                 error: function(XMLHttpRequest) {
                     prompt("Error", "Error getting problems: " + JSON.stringify(XMLHttpRequest) + "\n" +
@@ -266,6 +252,8 @@
                 const previousStateString = problemIdToContent[problemId].state;
                 const currentStateString = state ? JSON.stringify(state) : "";
 
+                /* TODO: Or if it is a timed problem that has not yet elapsed */
+                
                 if (currentScore !== previousScore || previousStateString !== currentStateString) {
                     const data = {
                         problemId: problemId,
@@ -276,6 +264,8 @@
                         assignmentId: @assignmentID,
                         userId: "@userID"
                     };
+                    
+                    /* TODO: Get the time remaining for timed problem from server and display it as well */
 
                     $.ajax({
                         url: '@prefix/submissions',
@@ -437,11 +427,13 @@
     }
 
     @if(!isInstructor) {
+        <div id="record-score">
         <p>
             If you are done with all questions, click on "Record my score" to save your score in the gradebook.
         </p>
 
         <button onclick="submitGrades()">Record my score</button> <span style='display:none' class='message' id='response'></span>
+        </div>
     }
 
 </body>

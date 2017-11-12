@@ -1,5 +1,6 @@
 package controllers;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -7,6 +8,7 @@ import java.util.Map;
 import com.avaje.ebean.Ebean;
 import com.fasterxml.jackson.databind.JsonNode;
 
+import models.Assignment;
 import models.Problem;
 import models.Submission;
 import models.Util;
@@ -40,10 +42,10 @@ public class SubmissionController extends Controller {
              For example: to change "Hello world!" to "Hi world, I am a computer.":
                 "11,1|1,4| 1,1,i8,18,, I am a computer."
               */
-        	Long assignmentID = params.get("assignmentId").asLong(0L); //TODO: Why needed? 
+        	Long assignmentID = params.get("assignmentId").asLong(0L); 
+            Problem problem = Ebean.find(Problem.class, params.get("problemId").asLong(0L));
         	String userID = params.get("userId").textValue();
         	String stateEditScript = params.get("stateEditScript").textValue();
-            Problem problem = Ebean.find(Problem.class, params.get("problemId").asLong(0L));
 
             Submission submission = new Submission();
 
@@ -57,22 +59,27 @@ public class SubmissionController extends Controller {
 
             submission.save();
             problem.getSubmissions().add(submission);
-            
+            long endTime = getEndTime(problem, userID);            
             List<Submission> submissions = Ebean.find(Submission.class)
-        		.select("correct, maxscore")
+        		.select("correct, maxscore, submittedAt")
         		.where()
         		.eq("problem.problemId", problem.getProblemId())
         		.eq("studentId", userID)
         		.findList();
             double highestScore = 0;
             for (Submission s : submissions) {
-            	if (s.maxscore > 0) highestScore = Math.max(highestScore,  s.correct * 1.0 / s.maxscore);
+            	long submittedAt = s.getSubmittedAt().getTime();
+            	if (submittedAt < endTime && s.maxscore > 0) highestScore = Math.max(highestScore,  s.correct * 1.0 / s.maxscore);
             }
+            
+            long now = System.currentTimeMillis();
+            long timeRemaining = endTime == Long.MAX_VALUE ? -1 : now < endTime ? endTime - now : 0;  
 
             Map<String, Object> responseMap = new HashMap<>();
             responseMap.put("submissionId", submission.getSubmissionId());
             responseMap.put("submittedAt", submission.getSubmittedAt());
             responseMap.put("highestScore", highestScore);
+            responseMap.put("timeRemaining", timeRemaining);
 
             Logger.info("Saved submission: " + responseMap.toString());
             return ok(Json.toJson(responseMap));
@@ -82,5 +89,32 @@ public class SubmissionController extends Controller {
                     "Exception message: " + ex.getMessage());
         }
     }
+        
+    public static long getEndTime(Problem p, String studentId) {
+    	Long assignmentDuration = p.getAssignment().getDuration();    
+    	long assignmentStartTime = -1;
+    	long assignmentEndTime = Long.MAX_VALUE;
+    	long problemStartTime = -1;
+    	long problemEndTime = Long.MAX_VALUE;
+    	if (assignmentDuration != null & assignmentDuration > 0) {
+    		String query = "select min(submitted_at) as starttime from submission where student_id = :sid and assignment_id = :aid";
+        	assignmentStartTime = Ebean.createSqlQuery(query)
+        			.setParameter("aid", p.getAssignment().getAssignmentId())
+        			.setParameter("sid", studentId)
+        			.findUnique()
+        			.getDate("starttime").getTime();
+        	assignmentEndTime = assignmentStartTime + assignmentDuration * 60 * 1000; 
+    	}
+    	if (p.getDuration() > 0) {
+        	String query = "select min(submitted_at) as starttime from submission where student_id = :sid and problem_problem_id = :pid";
+        	problemStartTime = Ebean.createSqlQuery(query)
+        			.setParameter("pid", p.getProblemId())
+        			.setParameter("sid", studentId)
+        			.findUnique()
+        			.getDate("starttime").getTime();
+        	problemEndTime = problemStartTime + p.getDuration() * 60 * 1000;     		
+    	}
+    	return Math.min(assignmentEndTime, problemEndTime);
+    }    
 }
 

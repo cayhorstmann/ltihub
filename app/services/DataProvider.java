@@ -52,7 +52,7 @@ public class DataProvider {
 			for (Problem p : assignment.getProblems())
 				ngroups = Math.max(ngroups, p.getProblemGroup());
 			ngroups++;
-			int group = userId.hashCode() % ngroups;
+			int group = Math.abs(userId.hashCode()) % ngroups;
 			for (Problem p : assignment.getProblems())
 				if (p.getProblemGroup() == group) problems.add(p);
     	}
@@ -67,6 +67,14 @@ public class DataProvider {
             problemValues.put("group", problem.getProblemGroup());
             problemValues.put("weight", weights[i]);            
             problemValues.put("duration", problem.getDuration());
+            if (problem.getDuration() > 0) {
+            	Date startDate = getProblemStartTime(problem.getProblemId(), userId);
+            	if (startDate != null) {
+            		problemValues.put("start", startDate.getTime());
+                    problemValues.put("current", new Date().getTime());
+            	}
+            }
+            
             
             problemsJsonList.add(Json.toJson(problemValues));
             i++;
@@ -160,5 +168,14 @@ public class DataProvider {
         result.put("start", startTime.getTime());
         result.put("current", now.getTime());
         return ok(Json.toJson(result));
+    }
+    
+    public Date getProblemStartTime(long problemId, String studentId) {
+    	String query = "select min(submitted_at) as starttime from submission where student_id = :sid and problem_problem_id = :pid";
+    	return Ebean.createSqlQuery(query)
+    			.setParameter("pid", problemId)
+    			.setParameter("sid", studentId)
+    			.findUnique()
+    			.getDate("starttime");
     }
 }
