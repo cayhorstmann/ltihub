@@ -53,7 +53,13 @@ public class HomeController extends Controller {
 		String role = Util.getParam(postParams, "roles");
 		String launchPresentationReturnURL = Util.getParam(postParams, "launch_presentation_return_url");
 	    String assignmentID = request().getQueryString("id");
-	    if (assignmentID == null) { 
+	    
+	    /*
+	     * For Canvas, the context_id and resource_link_id are all the same!
+	     * Canvas uses a launch presentation return URL
+	     */
+	    
+	    if (assignmentID == null && launchPresentationReturnURL == null) {  
 	    	List<Assignment> assignments = Ebean.find(Assignment.class)
 	    			.where()
 	    			.eq("context_id", contextID)

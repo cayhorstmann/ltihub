@@ -10,14 +10,13 @@ import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 
-import models.Assignment;
+import models.Problem;
 import models.Submission;
 import models.Util;
 import oauth.signpost.basic.DefaultOAuthConsumer;
@@ -65,29 +64,46 @@ public class GradeSubmitterController extends Controller {
 		   .eq("assignmentId", assignmentID)
 		   .eq("studentId", userID)
 		   .findList();
-	    Logger.info("submissionsForAssignment=" + submissionsForAssignment);
+	    // Logger.info("submissionsForAssignment=" + submissionsForAssignment);
 	
-	    Assignment assignment = Ebean.find(Assignment.class, assignmentID);
-		long duration = assignment.duration != null && assignment.duration > 0 ? assignment.duration : 0L;
-		Date endTime = null;
-		if (duration > 0) {
-			Date startTime = null;
-			for (Submission s : submissionsForAssignment) 
-				if (startTime == null || s.getSubmittedAt().compareTo(startTime) < 0)
-					startTime = s.getSubmittedAt();
-			endTime = Date.from(startTime.toInstant().plusSeconds(duration * 60 + 30)); // 30 second fudge
+	    Map<Long, Long> endTimes = new HashMap<>();
+	    Map<Long, Double> weights = new HashMap<>();
+	    double weightSum = 0;
+	    int weightCount = 0;
+		for (Submission s : submissionsForAssignment) {
+			Problem p = s.getProblem();
+			long pid = p.getProblemId();
+			if (!endTimes.containsKey(pid)) {
+				endTimes.put(pid, SubmissionController.getEndTime(p, userID));
+				Double weight = p.getWeight();				
+				if (weight != null) { 
+					weights.put(pid, weight); 
+					weightSum += weight; 
+					weightCount++; 
+				}
+			}
 		}
-		
-	    Map<Long, Double> maxScores = new HashMap<Long, Double>();
+		if (weightCount < endTimes.size()) { // Assume existing weights mean percent
+			double defaultWeight = (1 - weightSum) / (endTimes.size() - weightCount);
+			for (long pid : endTimes.keySet()) {
+				if (!weights.containsKey(pid))
+					weights.put(pid, defaultWeight);
+			}
+			weightSum = 1;
+		}
+				
+		Map<Long, Double> maxScores = new HashMap<Long, Double>();
 		for (Submission s : submissionsForAssignment) {
 			long problemId = s.getProblem().getProblemId();
 			double maxScore = s.getMaxScore();
-			if (maxScore > 0 && (endTime == null || s.getSubmittedAt().compareTo(endTime) <= 0))
+			
+			if (s.getSubmittedAt().getTime() < endTimes.get(problemId) && maxScore > 0)
 				maxScores.put(problemId, Math.max(s.getCorrect() / maxScore,
 						maxScores.getOrDefault(problemId, 0.0)));
 		}
-		for (double s : maxScores.values()) score += s;
-		if (maxScores.size() > 0) score /= maxScores.size();
+		for (long pid : maxScores.keySet()) {
+			score += maxScores.get(pid) * weights.get(pid) / weightSum;
+		}
 		
         try {
     		String xmlString1 = "<?xml version = \"1.0\" encoding = \"UTF-8\"?> <imsx_POXEnvelopeRequest xmlns = \"http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0\"> <imsx_POXHeader> <imsx_POXRequestHeaderInfo> <imsx_version>V1.0</imsx_version> <imsx_messageIdentifier>" 
