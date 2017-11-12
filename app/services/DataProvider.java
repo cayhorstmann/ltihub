@@ -24,6 +24,8 @@ import com.avaje.ebean.Ebean;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import controllers.SubmissionController;
+
 /**
  * Has methods meant to provide data to pages that request it
  */
@@ -67,14 +69,14 @@ public class DataProvider {
             problemValues.put("group", problem.getProblemGroup());
             problemValues.put("weight", weights[i]);            
             problemValues.put("duration", problem.getDuration());
-            if (problem.getDuration() > 0) {
-            	Date startDate = getProblemStartTime(problem.getProblemId(), userId);
-            	if (startDate != null) {
-            		problemValues.put("start", startDate.getTime());
-                    problemValues.put("current", new Date().getTime());
-            	}
-            }
-            
+    		long timeRemaining = SubmissionController.getEndTime(problem, userId); 
+    		if (timeRemaining == Long.MAX_VALUE) timeRemaining = -1;
+    		else {
+    			Date startDate = getProblemStartTime(problem.getProblemId(), userId);
+    			if (startDate != null) 
+    				problemValues.put("start", startDate.getTime());
+    		}
+            problemValues.put("timeRemaining", timeRemaining);
             
             problemsJsonList.add(Json.toJson(problemValues));
             i++;

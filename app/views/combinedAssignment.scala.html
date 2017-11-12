@@ -32,35 +32,25 @@
                         problemIframe.className = 'exercise-iframe';
                         problemIframe.src = problems[i].url;
 
-                        if (problems[i].duration > 0 && !problems[i].start) { // If never submitted, put up start button
+                        if (problems[i].timeRemaining > 0 && !problems[i].start) { // If never submitted, put up start button
                     		let timedDiv = $('<div id="timed-' + problems[i].id + '">This is a timed exercise. Once you start it, you must finish it in ' + 
                     	    		problems[i].duration + ' minutes. <br/><button id="start-' + problems[i].id + '">Start</button></div>');
                     		$('body').append(timedDiv);
                     	    $('#start-' + problems[i].id).click(function() {
                     	    	   $('#timed-' + problems[i].id).replaceWith(problemIframe);    	
-                    	    	   $(problemIframe).on('load', function() {
-                    	    		   var message = {query: 'docHeight', id: problems[i].id };
-                                       problemIframe.contentWindow.postMessage(message, '*');
-                                       restoreStateOfProblem(problems[i]);
-                                   })
-                                   //TODO: Why not for all instead of doing this after state restore                   
                     	    })
                     	    
-                    	} else { // TODO: Have server send time remaining instead
-                    		if (problems[i].duration > 0 && problems[i].start && 
-                    				problems[i].start + problems[i].duration * 1000 * 60 > problems[i].current) {
-                    			$('body').append('<div>This is a timed exercise whose time has elapsed.</div>')
-                    			problems[i].done = true
-                    		}
-                    		
-                    		document.body.appendChild(problemIframe);
-                    		
-                    		$(problemIframe).on('load', function() {
-                                var message = {query: 'docHeight', id: problems[i].id };
-                                problemIframe.contentWindow.postMessage(message, '*');
-                                restoreStateOfProblem(problems[i]);
-                            })
-                    	}
+                    	} else if (problems[i].timeRemaining == 0) {
+                   			$('body').append('<div>This is a timed exercise whose time has elapsed.</div>')
+                   		} else {                    		
+                   			document.body.appendChild(problemIframe);
+                   		}
+                        
+                        $(problemIframe).on('load', function() {
+                            var message = {query: 'docHeight', id: problems[i].id };
+                            problemIframe.contentWindow.postMessage(message, '*');
+                            restoreStateOfProblem(problems[i]);
+                        })
                     }      
                 },
                 error: function(XMLHttpRequest) {
@@ -96,7 +86,6 @@
         
     @if(isInstructor) {
     <script type="text/javascript">
-        function restoreStatesOfProblems() {}
         function restoreStateOfProblem(problem) {}
     </script>
     }               
@@ -120,14 +109,6 @@
              */
             var problemIdToContent = {};
 
-            // Sends the states of the problems that were previously submitted to the problems to be restored
-            function restoreStatesOfProblems() {
-                for (var i = 0; i < problems.length; i++) {
-                	if (problems[i].duration == 0)
-                		   restoreStateOfProblem(problems[i])
-                }
-            }
-            
             function restoreStateOfProblem(problem) {
                 /*
                  Get student's submissions from server.
@@ -293,8 +274,8 @@
 
             function formatTime(time) {
             	if (time <= 0) return "0 seconds";
-            	else if (time >= 60 * 1000) return ((time + 30 * 1000) / 60 * 1000) + " minutes";            	
-            	else return ((time + 500) / 1000) + " seconds";  
+            	else if (time >= 60 * 1000) return (int) ((time + 30 * 1000) / (60 * 1000)) + " minutes";            	
+            	else return (int) ((time + 500) / 1000) + " seconds";  
             }
             
             // Update the highest score element to display the score from the given submission
