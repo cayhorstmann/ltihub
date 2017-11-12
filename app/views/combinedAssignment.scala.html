@@ -16,7 +16,6 @@
                 method: 'GET',
                 success: function (probs) {
                 	problems = probs;                	
-                    var onloadPromises = [];
                     for (let i = 0; i < problems.length; i++) {
                     	// TODO: Maybe put everything into a div?
                         // TODO: For instructors, show the group
@@ -37,12 +36,12 @@
                     	    		problems[i].duration + ' minutes. <br/><button id="start-' + problems[i].id + '">Start</button></div>');
                     		$('body').append(timedDiv);
                     	    $('#start-' + problems[i].id).click(function() {
-                    	    	   $('#timed-' + problems[i].id).replaceWith(problemIframe);    	
+                    	    	   $('#timed-' + problems[i].id).replaceWith(problemIframe);
                     	    })
                     	    
                     	} else if (problems[i].timeRemaining == 0) {
                    			$('body').append('<div>This is a timed exercise whose time has elapsed.</div>')
-                   		} else {                    		
+                   		} else {
                    			document.body.appendChild(problemIframe);
                    		}
                         
@@ -50,7 +49,7 @@
                             var message = {query: 'docHeight', id: problems[i].id };
                             problemIframe.contentWindow.postMessage(message, '*');
                             restoreStateOfProblem(problems[i]);
-                        })
+                        })                        
                     }      
                 },
                 error: function(XMLHttpRequest) {
@@ -195,7 +194,8 @@
                         problemIdToContent[problem.id] = {
                             submissionId: submissionId,
                             score: score,
-                            state: state
+                            state: state,
+                            timeRemaining: problem.timeRemaining
                         };                                
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
@@ -204,7 +204,8 @@
                         problemIdToContent[problem.id] = {
                             submissionId: submissionId,
                             score: 0.0,
-                            state: ""
+                            state: "",
+                            timeRemaining: -1
                         };                                
                     }
                 });
@@ -218,7 +219,7 @@
                 });
             }
             
-            // If the state or the score changed since the last submission or if it is a timed problem, then send the new state and score to the server
+            // If the state or the score changed since the last submission or this is a timed problem, then send the new state and score to the server
             function sendScoreAndStateEditScriptToServer(problemId, score, state) {            	
                 if (!problemIdToContent.hasOwnProperty(problemId)) // Haven't yet received first state
                     return;
