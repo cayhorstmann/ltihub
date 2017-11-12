@@ -218,7 +218,7 @@
                 });
             }
             
-            // If the state or the score changed since the last submission, then send the new state and score to the server
+            // If the state or the score changed since the last submission or if it is a timed problem, then send the new state and score to the server
             function sendScoreAndStateEditScriptToServer(problemId, score, state) {            	
                 if (!problemIdToContent.hasOwnProperty(problemId)) // Haven't yet received first state
                     return;
@@ -230,10 +230,9 @@
 
                 const previousStateString = problemIdToContent[problemId].state;
                 const currentStateString = state ? JSON.stringify(state) : "";
-
-                /* TODO: Or if it is a timed problem that has not yet elapsed */
+                const timeRemaining = problemIdToContent[problemId].timeRemaining;
                 
-                if (currentScore !== previousScore || previousStateString !== currentStateString) {
+                if (currentScore !== previousScore || previousStateString !== currentStateString || timeRemaining > 0) {
                     const data = {
                         problemId: problemId,
                         correct: currentCorrect,
