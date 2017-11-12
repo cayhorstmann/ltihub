@@ -74,7 +74,9 @@ public class GradeSubmitterController extends Controller {
 			Problem p = s.getProblem();
 			long pid = p.getProblemId();
 			if (!endTimes.containsKey(pid)) {
-				endTimes.put(pid, SubmissionController.getEndTime(p, userID));
+				long endTime = SubmissionController.getEndTime(p, userID);
+				if (endTime < Long.MAX_VALUE) endTime += 30 * 1000; // 30 second grace period
+				endTimes.put(pid, endTime);
 				Double weight = p.getWeight();				
 				if (weight != null) { 
 					weights.put(pid, weight); 
