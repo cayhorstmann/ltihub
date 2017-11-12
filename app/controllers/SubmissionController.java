@@ -92,27 +92,27 @@ public class SubmissionController extends Controller {
         
     public static long getEndTime(Problem p, String studentId) {
     	Long assignmentDuration = p.getAssignment().getDuration();    
-    	long assignmentStartTime = -1;
     	long assignmentEndTime = Long.MAX_VALUE;
-    	long problemStartTime = -1;
     	long problemEndTime = Long.MAX_VALUE;
     	if (assignmentDuration != null & assignmentDuration > 0) {
     		String query = "select min(submitted_at) as starttime from submission where student_id = :sid and assignment_id = :aid";
-        	assignmentStartTime = Ebean.createSqlQuery(query)
+        	Date assignmentStartDate = Ebean.createSqlQuery(query)
         			.setParameter("aid", p.getAssignment().getAssignmentId())
         			.setParameter("sid", studentId)
         			.findUnique()
-        			.getDate("starttime").getTime();
-        	assignmentEndTime = assignmentStartTime + assignmentDuration * 60 * 1000; 
+        			.getDate("starttime");
+    		assignmentEndTime = (assignmentStartDate == null ? System.currentTimeMillis() : assignmentStartDate.getTime())  
+    				+ assignmentDuration * 60 * 1000;
     	}
     	if (p.getDuration() > 0) {
         	String query = "select min(submitted_at) as starttime from submission where student_id = :sid and problem_problem_id = :pid";
-        	problemStartTime = Ebean.createSqlQuery(query)
+        	Date problemStartDate = Ebean.createSqlQuery(query)
         			.setParameter("pid", p.getProblemId())
         			.setParameter("sid", studentId)
         			.findUnique()
-        			.getDate("starttime").getTime();
-        	problemEndTime = problemStartTime + p.getDuration() * 60 * 1000;     		
+        			.getDate("starttime");
+        	problemEndTime = (problemStartDate == null ? System.currentTimeMillis() : problemStartDate.getTime()) 
+        			+ p.getDuration() * 60 * 1000;     		
     	}
     	return Math.min(assignmentEndTime, problemEndTime);
     }    
