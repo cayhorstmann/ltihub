@@ -17,7 +17,6 @@
                 success: function (probs) {
                 	problems = probs;                	
                     for (let i = 0; i < problems.length; i++) {
-                    	// TODO: Maybe put everything into a div?
                         // TODO: For instructors, show the group
                     	
                         var highestScoreEl = document.createElement('div');
@@ -153,8 +152,8 @@
                                      previous = submission.previous;	
                                  }
                              }
-
-                             updateHighestScoreDisplay(problem.id, lastSubmission.submittedAt, highestScore, -1); // TODO: Actual remaining time
+                             //TODO: Who updates problem.timeRemaining???
+                             updateHighestScoreDisplay(problem.id, lastSubmission.submittedAt, highestScore, problem.timeRemaining);
 
                              // Build the state from the edit scripts and store each version in the map
                              while (stateEditScriptsStack.length > 0) {
@@ -255,7 +254,7 @@
                             problemIdToContent[problemId] = {
                                 submissionId: result.submissionId,
                                 score: currentScore,
-                                state: currentStateString
+                                state: currentStateString,
                             };
 
                             updateHighestScoreDisplay(problemId, result.submittedAt, result.highestScore, result.timeRemaining);

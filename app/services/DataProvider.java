@@ -69,14 +69,10 @@ public class DataProvider {
             problemValues.put("group", problem.getProblemGroup());
             problemValues.put("weight", weights[i]);            
             problemValues.put("duration", problem.getDuration());
-    		long timeRemaining = SubmissionController.getEndTime(problem, userId); 
-    		if (timeRemaining == Long.MAX_VALUE) timeRemaining = -1;
-    		else {
-    			Date startDate = getProblemStartTime(problem.getProblemId(), userId);
-    			if (startDate != null) 
-    				problemValues.put("start", startDate.getTime());
-    		}
-            problemValues.put("timeRemaining", timeRemaining);
+    		long endTime = SubmissionController.getEndTime(problem, userId);
+    		problemValues.put("timeRemaining", 
+    			endTime == Long.MAX_VALUE ? -1 :
+    			Math.max(0, endTime - System.currentTimeMillis()));
             
             problemsJsonList.add(Json.toJson(problemValues));
             i++;
