@@ -98,7 +98,7 @@
              This interval calls the function to request the updated states and scores of problems,
              that way if the score or the states changed, then we can report those changes to the server.
              */
-            var updateStatesInterval = setInterval(updateStatesFromProblems, 10000);
+            var updateStatesInterval = setInterval(updateStatesFromProblems, 60 * 1000);
 
             /*
              The states that the server currently has stored.
@@ -255,6 +255,7 @@
                                 submissionId: result.submissionId,
                                 score: currentScore,
                                 state: currentStateString,
+                                timeRemaining: result.timeRemaining
                             };
 
                             updateHighestScoreDisplay(problemId, result.submittedAt, result.highestScore, result.timeRemaining);
