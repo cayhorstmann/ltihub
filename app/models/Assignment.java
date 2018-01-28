@@ -1,31 +1,35 @@
 package models;
 
-import java.util.*;
-import javax.persistence.*;
-import play.db.ebean.*;
-import play.data.format.*;
-import play.data.validation.*;
-import com.avaje.ebean.Model;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+
+import io.ebean.Model;
 
 @Entity
 public class Assignment extends Model {
+	@Id	public long id;
 
-	@Id
-	public Long assignmentId;
+	/*
+	 * The context ID and resource link ID are ONLY for finding the assignment
+	 * in Moodle. The toolConsumerId is required because those other IDs 
+	 * might not be unique.
+	 * 
+	 * The assignment stays valid outside the context. (We want to
+	 * be able to copy courses from one semester to the next.) 
+	 */
+	
+	@Column	public String contextId;
+	@Column	public String resourceLinkId;
+	@Column	public String toolConsumerId;
 
-	@Column
-	public String contextId;
+	@Column	public int duration;
 
-	@Column
-	public String resourceLinkId;
-
-	@Column
-	public String toolConsumerInstanceGuId;
-
-	@Column
-	public Long duration;
-
-	@OneToMany(mappedBy="assignment")
+	@OneToMany(mappedBy = "assignment")
 	public List<Problem> problems = new ArrayList<Problem>();
 
 	public Assignment() {
@@ -36,34 +40,31 @@ public class Assignment extends Model {
 		this.problems = problems;
 	}
 
-	public Long getAssignmentId() {
-		return this.assignmentId;
+	public long getId() {
+		return this.id;
 	}
 
-	public void setAssignmentId(Long assignmentId) {
-		this.assignmentId = assignmentId;
+	public List<Problem> getProblems() {
+		return this.problems;
 	}
 
-	public List<Problem> getProblems(){
-			return this.problems;
-	}
-
-	public void setDuration(Long duration){
+	public void setDuration(int duration) {
 		this.duration = duration;
 	}
 
-	public Long getDuration(){
+	public int getDuration() {
 		return this.duration;
 	}
+
 	public void setProblems(List<Problem> problems) {
 		this.problems = problems;
 	}
 
-	public String getResourceLinkId(){
+	public String getResourceLinkId() {
 		return this.resourceLinkId;
 	}
 
-	public void setResourceLinkId(String resourceLinkId){
+	public void setResourceLinkId(String resourceLinkId) {
 		this.resourceLinkId = resourceLinkId;
 	}
 
@@ -75,13 +76,11 @@ public class Assignment extends Model {
 		this.contextId = contextId;
 	}
 
-	public String getToolConsumerInstanceGuId() {
-		return this.toolConsumerInstanceGuId;
+	public String getToolConsumerId() {
+		return this.toolConsumerId;
 	}
 
-	public void setToolConsumerInstanceGuId(String toolConsumerInstanceGuId) {
-		this.toolConsumerInstanceGuId = toolConsumerInstanceGuId;
+	public void setToolConsumerId(String toolConsumerId) {
+		this.toolConsumerId = toolConsumerId;
 	}
-   }
-
-
+}

@@ -4,9 +4,10 @@ version := "1.0-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayJava,PlayEbean)
 
-scalaVersion := "2.11.7"
+scalaVersion := "2.12.4"
 
-libraryDependencies ++= Seq(  
+libraryDependencies ++= Seq(
+  guice,
   javaJdbc,
   "net.oauth.core" % "oauth-provider" % "20100527",
   "oauth.signpost" % "signpost-core" % "1.2.1.2",
