@@ -10,14 +10,15 @@ import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 
-import models.Problem;
-import models.Submission;
+import com.fasterxml.jackson.databind.JsonNode;
+
+import io.ebean.Ebean;
+import models.Oauth;
+import models.ProblemWork;
 import models.Util;
 import oauth.signpost.basic.DefaultOAuthConsumer;
 import oauth.signpost.exception.OAuthCommunicationException;
@@ -29,9 +30,6 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 
-import com.avaje.ebean.Ebean;
-import com.fasterxml.jackson.databind.JsonNode;
-
 public class GradeSubmitterController extends Controller {
 	public Result submitGradeToLMS() throws UnsupportedEncodingException {
         JsonNode params = request().body().asJson();
@@ -42,10 +40,13 @@ public class GradeSubmitterController extends Controller {
         }
 		Logger.info("GradeSubmitterController.submitGradeToLMS params: " + Json.stringify(params));
 
-        long assignmentID = params.get("assignment").asLong();
-        String userID = params.get("user").asText();
-        String outcomeServiceUrl = params.get("lis_outcome_service_url").asText();
-		String sourcedId = params.get("lis_result_sourcedid").asText();
+        long assignmentId = params.get("assignment").asLong();
+        String userId = params.get("user").asText();
+        String toolConsumerId = params.get("toolConsumerId").asText();
+        String contextId = params.get("contextId").asText();
+        String outcomeServiceUrl = params.get("lisOutcomeServiceUrl").asText();
+		String sourcedId = params.get("lisResultSourcedId").asText();
+		String oauthConsumerKey = params.get("oauthConsumerKey").asText();
 		
         if (outcomeServiceUrl == null || outcomeServiceUrl.equals("")
                 || sourcedId == null || sourcedId.equals("")) {
@@ -55,68 +56,28 @@ public class GradeSubmitterController extends Controller {
         }
 	
 		double score = 0.0;
-			
-		// TODO: Allow the instructor to assign a weight for each problem
-	    List<Submission> submissionsForAssignment = Ebean.find(Submission.class)
-		   .select("correct, maxscore, submittedAt")
-		   .fetch("problem", "problemId")
-		   .where()
-		   .eq("assignmentId", assignmentID)
-		   .eq("studentId", userID)
-		   .findList();
-	    // Logger.info("submissionsForAssignment=" + submissionsForAssignment);
-	
-	    Map<Long, Long> endTimes = new HashMap<>();
-	    Map<Long, Double> weights = new HashMap<>();
-	    double weightSum = 0;
-	    int weightCount = 0;
-		for (Submission s : submissionsForAssignment) {
-			Problem p = s.getProblem();
-			long pid = p.getProblemId();
-			if (!endTimes.containsKey(pid)) {
-				long endTime = SubmissionController.getEndTime(p, userID);
-				if (endTime < Long.MAX_VALUE) endTime += 30 * 1000; // 30 second grace period
-				endTimes.put(pid, endTime);
-				Double weight = p.getWeight();				
-				if (weight != null) { 
-					weights.put(pid, weight); 
-					weightSum += weight; 
-					weightCount++; 
-				}
-			}
-		}
-		if (weightCount < endTimes.size()) { // Assume existing weights mean percent
-			double defaultWeight = (1 - weightSum) / (endTimes.size() - weightCount);
-			for (long pid : endTimes.keySet()) {
-				if (!weights.containsKey(pid))
-					weights.put(pid, defaultWeight);
-			}
-			weightSum = 1;
-		}
-				
-		Map<Long, Double> maxScores = new HashMap<Long, Double>();
-		for (Submission s : submissionsForAssignment) {
-			long problemId = s.getProblem().getProblemId();
-			double maxScore = s.getMaxScore();
-			
-			if (s.getSubmittedAt().getTime() < endTimes.get(problemId) && maxScore > 0)
-				maxScores.put(problemId, Math.max(s.getCorrect() / maxScore,
-						maxScores.getOrDefault(problemId, 0.0)));
-		}
-		for (long pid : maxScores.keySet()) {
-			score += maxScores.get(pid) * weights.get(pid) / weightSum;
+		List<ProblemWork> queryResult = Ebean.find(ProblemWork.class)
+	            .where()
+	                .eq("problem.assignmentId", assignmentId)
+	                .eq("studentId", userId)
+	                .eq("toolConsumerId", toolConsumerId)
+	                .eq("contextId", contextId)
+	                .findList();
+		for (ProblemWork work : queryResult) {
+			score += work.highestScore * work.problem.weight;
 		}
 		
         try {
     		String xmlString1 = "<?xml version = \"1.0\" encoding = \"UTF-8\"?> <imsx_POXEnvelopeRequest xmlns = \"http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0\"> <imsx_POXHeader> <imsx_POXRequestHeaderInfo> <imsx_version>V1.0</imsx_version> <imsx_messageIdentifier>" 
-                + System.currentTimeMillis() + "</imsx_messageIdentifier> </imsx_POXRequestHeaderInfo> </imsx_POXHeader> <imsx_POXBody> <replaceResultRequest> <resultRecord> <sourcedGUID> <sourcedId>";
-    		String xmlString2 = "</sourcedId> </sourcedGUID> <result> <resultScore> <language>en</language> <textString>";
+                + System.currentTimeMillis() + "</imsx_messageIdentifier> </imsx_POXRequestHeaderInfo> </imsx_POXHeader> <imsx_POXBody> <replaceResultRequest> <resultRecord> <sourcedGUId> <sourcedId>";
+    		String xmlString2 = "</sourcedId> </sourcedGUId> <result> <resultScore> <language>en</language> <textString>";
     		String xmlString3 = "</textString> </resultScore> </result> </resultRecord> </replaceResultRequest> </imsx_POXBody> </imsx_POXEnvelopeRequest>";        	
     		String xmlString = xmlString1 + sourcedId + xmlString2 + score + xmlString3;        	
     			
-            passbackGradeToLMS(outcomeServiceUrl, xmlString, "fred", "fred"); // TODO
+            passbackGradeToLMS(outcomeServiceUrl, xmlString, oauthConsumerKey, 
+            		Util.getSharedSecret(oauthConsumerKey)); 
     		
-    		// org.imsglobal.pox.IMSPOXRequest.sendReplaceResult(outcomeServiceUrl, "fred", "fred", sourcedId, "" + score);
+    		// org.imsglobal.pox.IMSPOXRequest.sendReplaceResult(outcomeServiceUrl, oauthConsumerKey, getSharedSecret(oauthConsumerKey), sourcedId, "" + score);
 
         } catch (Exception e) {
     		Logger.info("score: " + score);        

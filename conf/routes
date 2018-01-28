@@ -16,49 +16,37 @@ POST    /assignment     controllers.HomeController.index
 # in controllers.HomeController.index
 POST	/addAssignment		controllers.HomeController.addAssignment
 
-# When clicking on the Edit Assignment button in instructor view
-GET	    /assignment/editAssignment	controllers.HomeController.showEditPage(id: Long)	
-
-# When saving an edited assignment in instructor view
-POST    /assignment/saveAssignment  controllers.HomeController.saveEditedAssignment(id: Long)
-
 # From app/views/timedAssignmentWelcomeView.scala.html
 # GET	/timedAssignment	controllers.HomeController.showTimedAssignment(assignmentId: Long, userId: String, duration: Long)
 
-# Submission viewer
-GET     /submissionViewer/:assignmentId  controllers.HomeController.getSubmissionViewer(assignmentId: Long)
-
-# Score update from combinedAssignment.scala.html
-POST	/submissions		controllers.SubmissionController.addSubmission()
+# Periodic score update from combinedAssignment.scala.html
+POST	/addSubmission		controllers.SubmissionController.addSubmission()
 
 # When the record grade button is pushed in combinedAssignment.scala.html 
 POST    /sendScore   controllers.GradeSubmitterController.submitGradeToLMS()
 
-# An example controller showing how to use dependency injection--used by health check. DO NOT REMOVE.
-GET     /count                      controllers.CountController.count
+# Used by health check. DO NOT REMOVE.
+GET     /count                      controllers.Application.health
 
-# For backwards compatibility
-# Canvas starts with call to createAssignment (presumably because of the XML config)
+# Canvas call to createAssignment (because of the XML config)
+# TODO: Does this have to be a distinct URL?
 POST    /createAssignment             controllers.HomeController.index
-
-# For creating an assignment outside an LMS
-GET	/createAssignment	      controllers.HomeController.createAssignmentOutsideLMS
-
-# Called from create_exercise_outside_LMS.scala.html
-POST	/addAssignmentOutsideLMS     controllers.HomeController.addAssignmentOutsideLMS
-
-# When clicking on a delete button when editing assignment
-POST	/assignment/deleteProblem     controllers.HomeController.deleteProblem(assignmentID: Long, problemID: Long)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
+# Submission viewer
+GET     /submissionViewer/:assignmentId  controllers.HomeController.getSubmissionViewer(assignmentId: Long)
+
 # Get data for student submission viewer
-GET     /userIds/:assignmentId                  services.DataProvider.getUserIdsForAssignment(assignmentId: Long)
-GET     /get-submissions/:problemId/:userId     services.DataProvider.getSubmissions(problemId: Long, userId: String)
+GET     /userIds/:assignmentId                  controllers.DataProvider.getUserIdsForAssignment(assignmentId: Long)
+GET     /getSubmissions/:problemId/:userId     controllers.DataProvider.getSubmissions(problemId: Long, userId: String)
 
 # To determine the time left for the student on a timed assignment
-GET     /get-start-time/:assignmentId/:userId   services.DataProvider.getStartTimeInMilliseconds(assignmentId: Long, userId: String)
+GET     /getStartTime/:assignmentId/:userId/:toolConsumerId/:contextId   controllers.DataProvider.getStartTimeInMilliseconds(assignmentId: Long, userId: String, toolConsumerId: String, contextId: String)
 
 # Get the problems of an assignment to display
-GET     /get-problems/:assignmentId/:userId/:role       services.DataProvider.getProblems(assignmentId: Long, userId: String, role: String)
+GET     /getProblems/:assignmentId/:userId/:toolConsumerId/:contextId/:role       controllers.DataProvider.getProblems(assignmentId: Long, userId: String, toolConsumerId: String, contextId: String, role: String)
+
+# Get the work of a problem to display
+GET     /getWork/:problemId/:userId/:toolConsumerId/:contextId       controllers.DataProvider.getWork(problemId: Long, userId: String, toolConsumerId: String, contextId: String)

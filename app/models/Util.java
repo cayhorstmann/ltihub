@@ -23,6 +23,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+
+import io.ebean.Ebean;
+
 import java.io.ByteArrayOutputStream;
 
 import net.oauth.OAuthAccessor;
@@ -84,7 +87,7 @@ public class Util {
 	 	int n = url.lastIndexOf("?"); 
 	 	if (n >= 0) url = url.substring(0, n);
 	 	OAuthMessage oam = new OAuthMessage("POST", url, entries);
-        OAuthConsumer cons = new OAuthConsumer(null, key, "fred", null); // TODO
+        OAuthConsumer cons = new OAuthConsumer(null, key, getSharedSecret(key), null); // TODO
         OAuthValidator oav = new SimpleOAuthValidator();
         OAuthAccessor acc = new OAuthAccessor(cons);
         
@@ -216,5 +219,11 @@ public class Util {
 			result.append(Util.getStackTrace(ex));
 		}
 		return result.toString();		
+	}
+	
+	public static String getSharedSecret(String oauthConsumerKey) {
+		Oauth oauth = Ebean.find(Oauth.class, oauthConsumerKey);
+		if (oauth == null) return "";
+		else return oauth.sharedSecret;
 	}
 }

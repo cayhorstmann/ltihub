@@ -11,7 +11,7 @@
                 const userIdSelectionEl = document.getElementById('userIdSelection');
 
                 $.ajax({
-                    url: '@services.routes.DataProvider.getUserIdsForAssignment(assignmentId)',
+                    url: '@controllers.routes.DataProvider.getUserIdsForAssignment(assignmentId)',
                     method: 'GET',
                     success: function (userIds) {
                         try {
@@ -49,12 +49,12 @@
 
                 @for(problem <- problems) {
                     // Lock the slider while the submissions corresponding to it are changed
-                    var stateSelectionEl = document.getElementById('stateSelection-@problem.getProblemId()');
+                    var stateSelectionEl = document.getElementById('stateSelection-@problem.getId()');
                     stateSelectionEl.disabled = true;
 
                     var stateEditScripts = [];
                     $.ajax({
-                        url: '@services.routes.DataProvider.getSubmissions(problem.getProblemId(), "")' + userId,
+                        url: '@controllers.routes.DataProvider.getSubmissions(problem.getId(), "")' + userId,
                         method: 'GET',
                         success: function (msg) {
                             try {
@@ -83,7 +83,7 @@
 
                                 // Build the state from the edit scripts and store each version in the map
                                 var state = "";
-                                problemIdToSubmissions['@problem.getProblemId()'] = [];
+                                problemIdToSubmissions['@problem.getId()'] = [];
                                 while(stateEditScriptsStack.length > 0) {
                                     var editScript = stateEditScriptsStack.pop();
                                     // Don't apply edit script if state didn't change
@@ -93,7 +93,7 @@
                                     try {
                                         state = applyEditScript(state, editScript);
 
-                                        problemIdToSubmissions['@problem.getProblemId()'].push(JSON.parse(state));
+                                        problemIdToSubmissions['@problem.getId()'].push(JSON.parse(state));
                                     } catch (e) {
                                         prompt("Error:", "State is corrupted: " + e + "\n" +
                                         "User ID was: " + userId + "\n" +
@@ -104,13 +104,13 @@
 
                                 // Reassign stateSelectionEl variable because it might have changed since the request
                                 // was sent
-                                stateSelectionEl = document.getElementById('stateSelection-@problem.getProblemId()');
+                                stateSelectionEl = document.getElementById('stateSelection-@problem.getId()');
 
                                 // Change the slider's max value to the number of submissions minus one
                                 stateSelectionEl.max =
-                                        problemIdToSubmissions['@problem.getProblemId()'].length - 1;
+                                        problemIdToSubmissions['@problem.getId()'].length - 1;
                                 stateSelectionEl.value = stateSelectionEl.max;
-                                updateProblemState('@problem.getProblemId()');
+                                updateProblemState('@problem.getId()');
 
                                 stateSelectionEl.disabled = false;
                             } catch (e) {
@@ -152,11 +152,11 @@
 
         @* Code to generate the iframes for problems *@
         @for(problem <- problems) {
-            <input type="range" class="stateSelection" id="stateSelection-@problem.getProblemId()"
-            oninput="updateProblemState('@problem.getProblemId()')" min="0" max="0">
+            <input type="range" class="stateSelection" id="stateSelection-@problem.getId()"
+            oninput="updateProblemState('@problem.getId()')" min="0" max="0">
 
             <iframe class='exercise-iframe'
-            id="problemIframe-@problem.getProblemId()" src=@problem.getProblemUrl().trim() ></iframe>
+            id="problemIframe-@problem.getId()" src=@problem.getProblemUrl().trim() ></iframe>
         }
     </body>
 </html>
