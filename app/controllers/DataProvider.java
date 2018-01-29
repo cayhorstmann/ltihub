@@ -75,15 +75,15 @@ public class DataProvider {
     		}
     		    		
 			for (Problem p : assignment.getProblems())
-				if (p.getProblemGroup() == work.problemGroup) problems.add(p);
+				if (p.problemGroup == work.problemGroup) problems.add(p);
     	}
         problems.sort(Comparator.comparing(Problem::getProblemGroup).thenComparing(Problem::getId));
         for (Problem problem: problems) {
             Map<String, Object> problemValues = new HashMap<>();
-            problemValues.put("id", problem.getId());
-            problemValues.put("url", problem.getProblemUrl());
-            problemValues.put("group", problem.getProblemGroup());
-            problemValues.put("weight", problem.getWeight());            
+            problemValues.put("id", problem.id);
+            problemValues.put("url", problem.url);
+            problemValues.put("group", problem.problemGroup);
+            problemValues.put("weight", problem.weight);            
             
             problemsJsonList.add(Json.toJson(problemValues));
         }
