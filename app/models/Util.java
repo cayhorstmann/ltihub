@@ -87,7 +87,7 @@ public class Util {
 	 	int n = url.lastIndexOf("?"); 
 	 	if (n >= 0) url = url.substring(0, n);
 	 	OAuthMessage oam = new OAuthMessage("POST", url, entries);
-        OAuthConsumer cons = new OAuthConsumer(null, key, getSharedSecret(key), null); // TODO
+        OAuthConsumer cons = new OAuthConsumer(null, key, getSharedSecret(key), null); 
         OAuthValidator oav = new SimpleOAuthValidator();
         OAuthAccessor acc = new OAuthAccessor(cons);
         
@@ -223,7 +223,9 @@ public class Util {
 	
 	public static String getSharedSecret(String oauthConsumerKey) {
 		Oauth oauth = Ebean.find(Oauth.class, oauthConsumerKey);
-		if (oauth == null) return "";
-		else return oauth.sharedSecret;
+		String sharedSecret = "";
+		if (oauth != null) sharedSecret = oauth.sharedSecret;
+		Logger.info("shared secret for " + oauthConsumerKey + " is " + sharedSecret);
+		return sharedSecret;
 	}
 }
