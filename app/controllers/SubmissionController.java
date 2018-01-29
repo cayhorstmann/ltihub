@@ -45,7 +45,7 @@ public class SubmissionController extends Controller {
             else {
 	    		AssignmentWork awork = Ebean.find(AssignmentWork.class)
 	    	            .where()
-	    	                .eq("problem.problemId", problem.id)
+	    	                .eq("problem.id", problem.id)
 	    	                .eq("studentId", userId)
 	    	                .eq("toolConsumerId", toolConsumerId)
 	    	                .eq("contextId", contextId)
@@ -57,7 +57,7 @@ public class SubmissionController extends Controller {
         	Ebean.execute(() -> {
         		ProblemWork work = Ebean.find(ProblemWork.class)
         	            .where()
-        	                .eq("problem.problemId", problem.id)
+        	                .eq("problem.id", problem.id)
         	                .eq("studentId", userId)
         	                .eq("toolConsumerId", toolConsumerId)
         	                .eq("contextId", contextId)

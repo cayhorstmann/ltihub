@@ -59,9 +59,9 @@ public class HomeController extends Controller {
 	    if (assignmentId == -1 && launchPresentationReturnURL == null) {  
 	    	List<Assignment> assignments = Ebean.find(Assignment.class)
 	    			.where()
-	    			.eq("tool_consumer_id", toolConsumerId)
-	    			.eq("context_id", contextId)
-	    			.eq("resource_link_id", resourceLinkId)
+	    			.eq("toolConsumerId", toolConsumerId)
+	    			.eq("contextId", contextId)
+	    			.eq("resourceLinkId", resourceLinkId)
 	    			.findList();
 	    	if (assignments.size() == 1) assignmentId = assignments.get(0).getId();
 	    }
