@@ -58,7 +58,7 @@ public class GradeSubmitterController extends Controller {
 		double score = 0.0;
 		List<ProblemWork> queryResult = Ebean.find(ProblemWork.class)
 	            .where()
-	                .eq("problem.assignmentId", assignmentId)
+	                .eq("problem.assignment.id", assignmentId)
 	                .eq("studentId", userId)
 	                .eq("toolConsumerId", toolConsumerId)
 	                .eq("contextId", contextId)
