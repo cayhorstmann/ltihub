@@ -63,7 +63,8 @@ public class SubmissionController extends Controller {
         	                .eq("contextId", contextId)
         	                .findOne();
         		if (work.clientStamp < clientStamp && now < endDate) {
-        			String script = Meyer.shortestEditScript(work.state, state);
+        			String previousState = work.state == null ? "" : work.state;
+        			String script = Meyer.shortestEditScript(previousState, state);
         			work.state = state;
         			work.highestScore = Math.max(work.highestScore, score);
         			work.clientStamp = clientStamp;
