@@ -52,7 +52,7 @@ public class DataProvider {
     		// Is this the first attempt of this assignment?
     		List<AssignmentWork> queryResult = Ebean.find(AssignmentWork.class)
                     .where()
-                    .eq("assignment.assignmentId", assignmentId)
+                    .eq("assignment.id", assignmentId)
                     .eq("studentId", userId)
                     .eq("toolConsumerId", toolConsumerId)
                     .eq("contextId", contextId)
@@ -106,7 +106,7 @@ public class DataProvider {
         Set<String> userIds = new TreeSet<>();
         List<AssignmentWork> queryResult = Ebean.find(AssignmentWork.class)
                 .where()
-                .eq("assignment.assignmentId", assignmentId)
+                .eq("assignment.id", assignmentId)
                 .findList();      
         
         for (AssignmentWork work : queryResult) {
@@ -127,9 +127,8 @@ public class DataProvider {
      */
     public Result getSubmissions(Long problemId, String studentId) {
         List<Submission> submissions = Ebean.find(Submission.class)
-                .select("submissionId, submittedAt, correct, maxscore, content, previous")
                 .where()
-                .eq("problem.problemId", problemId)
+                .eq("problem.id", problemId)
                 .eq("studentId", studentId)
                 .orderBy("submissionId")
                 .findList();
@@ -162,7 +161,7 @@ public class DataProvider {
 
 		List<ProblemWork> queryResult = Ebean.find(ProblemWork.class)
             .where()
-                .eq("problem.problemId", problemId)
+                .eq("problem.id", problemId)
                 .eq("studentId", studentId)
                 .eq("toolConsumerId", toolConsumerId)
                 .eq("contextId", contextId)
@@ -196,7 +195,7 @@ public class DataProvider {
     	// If none, set start time to current server time--it'll be created soon
     	List<AssignmentWork> queryResult = Ebean.find(AssignmentWork.class)
                 .where()
-                .eq("assignment.assignmentId", assignmentId)
+                .eq("assignment.id", assignmentId)
                 .eq("studentId", studentId)
                 .eq("toolConsumerId", toolConsumerId)
                 .eq("contextId", contextId)

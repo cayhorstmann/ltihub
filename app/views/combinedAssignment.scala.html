@@ -221,9 +221,9 @@
                             response.show();
                         },
                         error: function(XMLHttpRequest, textStatus, errorThrown) {
-                            prompt("Error", "Error submitting grades: " + JSON.stringify(XMLHttpRequest) + "\n" +
-                            "Assignment ID: " + @assignmentId + "\n" +
-                            "User ID: " + @userId);
+                            console.log("Error submitting grades: " + JSON.stringify(XMLHttpRequest) + "\n" +
+                            "Assignment ID: @assignmentId\n" +
+                            "User ID: @userId");
                         }
                     });
                 }, 1000)
@@ -257,9 +257,9 @@
                         timeLeftInterval = setInterval(updateTimeLeftDisplay, 1000);
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
-                        prompt("Error", "Error getting start time: " + JSON.stringify(XMLHttpRequest) + "\n" +
-                                "Assignment ID: " + @assignmentId + "\n" +
-                                "User ID: " + @userId);
+                        console.log("Error getting start time: " + JSON.stringify(XMLHttpRequest) + "\n" +
+                                "Assignment ID: @assignmentId\n" +
+                                "User ID: @userId");
                     }
                 });
             }
