@@ -7,6 +7,7 @@ import io.ebean.Model;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 
 /**
  * The work of a student on an assignment.
@@ -17,7 +18,7 @@ public class AssignmentWork extends Model {
 	@Column public String studentId;
 	@Column	public String toolConsumerId;
 	@Column	public String contextId;
-	@Column public Assignment assignment;
+	@ManyToOne public Assignment assignment;
 	@Column public Date startTime = new Date();
 	@Column public int problemGroup;
 }
