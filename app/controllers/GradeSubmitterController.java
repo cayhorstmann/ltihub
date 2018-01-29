@@ -143,8 +143,8 @@ public class GradeSubmitterController extends Controller {
 		consumer.sign(request); // Throws OAuthMessageSignerException,
 				// OAuthExpectationFailedException,
 				// OAuthCommunicationException		
-		// Logger.info("Request after signing: {}", consumer.getRequestParameters());
-		// Logger.info("XML: {}", xml);
+		Logger.info("Request after signing: {}", consumer.getRequestParameters());
+		Logger.info("XML: {}", xml);
 
 
 		// POST the xml to the grade passback url
