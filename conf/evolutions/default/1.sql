@@ -14,6 +14,7 @@ create table assignment (
 
 create table assignment_work (
   id                            bigserial not null,
+  assignment_id                 bigint,
   student_id                    varchar(255),
   tool_consumer_id              varchar(255),
   context_id                    varchar(255),
