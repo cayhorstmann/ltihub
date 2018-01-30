@@ -28,9 +28,8 @@ POST    /sendScore   controllers.GradeSubmitterController.submitGradeToLMS()
 # Used by health check. DO NOT REMOVE.
 GET     /count                      controllers.Application.health
 
-# Canvas call to createAssignment (because of the XML config)
-# TODO: Does this have to be a distinct URL?
-POST    /createAssignment             controllers.HomeController.index
+# Canvas call to createAssignment (resource selection)
+POST    /createAssignment             controllers.HomeController.createAssignment
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

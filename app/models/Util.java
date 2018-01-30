@@ -1,5 +1,6 @@
 package models;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -17,7 +18,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.AbstractMap;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -25,9 +25,6 @@ import java.util.Scanner;
 import java.util.Set;
 
 import io.ebean.Ebean;
-
-import java.io.ByteArrayOutputStream;
-
 import net.oauth.OAuthAccessor;
 import net.oauth.OAuthConsumer;
 import net.oauth.OAuthMessage;
@@ -226,7 +223,6 @@ public class Util {
 				.where().eq("oauthConsumerKey", oauthConsumerKey).findOne();
 		String sharedSecret = "";
 		if (oauth != null) sharedSecret = oauth.sharedSecret;
-		Logger.info("shared secret for " + oauthConsumerKey + " is " + sharedSecret);
 		return sharedSecret;
 	}
 }

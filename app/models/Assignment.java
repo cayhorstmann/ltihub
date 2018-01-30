@@ -32,55 +32,12 @@ public class Assignment extends Model {
 	@OneToMany(mappedBy = "assignment")
 	public List<Problem> problems = new ArrayList<Problem>();
 
-	public Assignment() {
-	}
-
-	public Assignment(List<Problem> problems) {
-
-		this.problems = problems;
-	}
-
-	public long getId() {
-		return this.id;
-	}
-
 	public List<Problem> getProblems() {
 		return this.problems;
 	}
-
-	public void setDuration(int duration) {
-		this.duration = duration;
-	}
-
-	public int getDuration() {
-		return this.duration;
-	}
-
-	public void setProblems(List<Problem> problems) {
-		this.problems = problems;
-	}
-
-	public String getResourceLinkId() {
-		return this.resourceLinkId;
-	}
-
-	public void setResourceLinkId(String resourceLinkId) {
-		this.resourceLinkId = resourceLinkId;
-	}
-
-	public String getContextId() {
-		return this.contextId;
-	}
-
-	public void setContextId(String contextId) {
-		this.contextId = contextId;
-	}
-
-	public String getToolConsumerId() {
-		return this.toolConsumerId;
-	}
-
-	public void setToolConsumerId(String toolConsumerId) {
-		this.toolConsumerId = toolConsumerId;
+	
+	public String toString() { return "Assignment[id=" + id + ",contextId=" + contextId +
+			",resourceLinkId=" + resourceLinkId + ",toolConsumerId=" + toolConsumerId +
+			",duration=" + duration; 
 	}
 }

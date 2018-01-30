@@ -18,7 +18,7 @@
       <lticm:property name="privacy_level">anonymous</lticm:property>
       <lticm:property name="domain">@host</lticm:property>
       <lticm:options name="resource_selection">
-        <lticm:property name="url">https://@host/assignment</lticm:property>
+        <lticm:property name="url">https://@host/createAssignment</lticm:property>
         <lticm:property name="text">LTIHub</lticm:property>
         <lticm:property name="selection_width">800</lticm:property>
         <lticm:property name="selection_height">600</lticm:property>

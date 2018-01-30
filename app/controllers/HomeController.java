@@ -1,19 +1,16 @@
 package controllers;
 
-import io.ebean.Ebean;
-
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 
+import io.ebean.Ebean;
 import models.Assignment;
 import models.Problem;
 import models.Util;
 import play.Logger;
 import play.mvc.Controller;
-import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.Security;
 import views.html.combinedAssignment;
@@ -21,6 +18,17 @@ import views.html.createAssignment;
 import views.html.showAssignment;
 import views.html.studentSubmissionsViewer;
 
+/*
+ * For Canvas, a problem must be created through a separate pathway than /assignment
+ * because the context_id and resource_link_id are all the same until Canvas has received
+ * a callback from the launch presentation return URL.
+ * 
+ * In Moodle, there is no UI (or at least, I don't know of one) to customize an assignment.
+ * There, we create a blank assignment with the given context_id and resource_link_id (which
+ * are different for each link). The instructor then needs to visit that assignment 
+ * and customize it.    
+ */
+	    
 public class HomeController extends Controller {
     public Result config() throws UnknownHostException {
         String host = request().host() + getPrefix();
@@ -51,25 +59,21 @@ public class HomeController extends Controller {
 		String launchPresentationReturnURL = Util.getParam(postParams, "launch_presentation_return_url");
 	    String assignmentIdString = request().getQueryString("id");
 	    long assignmentId = assignmentIdString == null ? -1 : Long.parseLong(assignmentIdString);
-	    /*
-	     * For Canvas, the context_id and resource_link_id are all the same!
-	     * Canvas uses a launch presentation return URL
-	     */
-	    	    
-	    if (assignmentId == -1 && launchPresentationReturnURL == null) {  
+	    if (assignmentId == -1) {  
 	    	List<Assignment> assignments = Ebean.find(Assignment.class)
 	    			.where()
 	    			.eq("toolConsumerId", toolConsumerId)
 	    			.eq("contextId", contextId)
 	    			.eq("resourceLinkId", resourceLinkId)
 	    			.findList();
-	    	if (assignments.size() == 1) assignmentId = assignments.get(0).getId();
+	    	Logger.info("matching assignments: " + assignments); // TODO remove
+	    	if (assignments.size() == 1) assignmentId = assignments.get(0).id;
 	    }
 		
-	    boolean instructor = Util.isInstructor(role); 
+	    boolean isInstructor = Util.isInstructor(role); 
 	    
 		if (assignmentId == -1) {
-			if (instructor)		
+			if (isInstructor)		
 				return ok(createAssignment.render(contextId, resourceLinkId, 
 						toolConsumerId, launchPresentationReturnURL));
 			else {
@@ -81,19 +85,44 @@ public class HomeController extends Controller {
 		
 		if (Util.isEmpty(lisOutcomeServiceURL)) {
           	return badRequest("lis_outcome_service_url missing.");
-		} else if (!instructor && Util.isEmpty(lisResultSourcedId)) {
+		} else if (!isInstructor && Util.isEmpty(lisResultSourcedId)) {
 			return badRequest("lis_result_sourcedid missing.");
 		}
 		Assignment assignment = Ebean.find(Assignment.class, assignmentId);
 		
-		// This could happen if an assignment is accessed by someone who didn't set it up.
-		int duration = assignment.getDuration();
 		return ok(combinedAssignment.render(getPrefix(), assignmentId, userId, 
-				toolConsumerId, contextId,  
-				duration, Util.isInstructor(role),
+			toolConsumerId, contextId,  
+			assignment.duration, isInstructor,
 		    lisOutcomeServiceURL, lisResultSourcedId, oauthConsumerKey));
  	}
 
+    /*
+     * Called from Canvas and potentially other LMS with a "resource selection" interface
+     */
+    public Result createAssignment() throws UnsupportedEncodingException {    
+	 	Map<String, String[]> postParams = request().body().asFormUrlEncoded();
+	 	Logger.info("HomeController.createAssignment: " + Util.paramsToString(postParams));
+	 	if (!Util.validate(request())) {
+	 		session().clear();
+	 		return badRequest("Failed OAuth validation");
+	 	}	 	
+	 	
+		String role = Util.getParam(postParams, "roles");
+		if (!Util.isInstructor(role)) 
+			return badRequest("Instructor role is required to create an assignment.");
+    	String userId = Util.getParam(postParams, "user_id");
+		if (Util.isEmpty(userId)) 
+			return badRequest("No user id");
+		session().put("user", userId);
+
+		String contextId = Util.getParam(postParams, "context_id");
+		String resourceLinkId = Util.getParam(postParams, "resource_link_id");
+		String toolConsumerId = Util.getParam(postParams, "tool_consumer_instance_guid");
+		String launchPresentationReturnURL = Util.getParam(postParams, "launch_presentation_return_url");
+		return ok(createAssignment.render(contextId, resourceLinkId, 
+			toolConsumerId, launchPresentationReturnURL));			
+ 	}
+        
 	// This method gets called when an assignment has been created with createAssignment.scala.html.
 	public Result addAssignment() {
 		Map<String, String[]> postParams = request().body().asFormUrlEncoded();
@@ -101,22 +130,22 @@ public class HomeController extends Controller {
 		String problemlist = Util.getParam(postParams, "url");
        
 		Assignment assignment = new Assignment();
-		assignment.setContextId(Util.getParam(postParams, "context_id"));
-		assignment.setResourceLinkId(Util.getParam(postParams, "resource_link_id"));
-		assignment.setToolConsumerId(Util.getParam(postParams, "tool_consumer_id"));
+		assignment.contextId = Util.getParam(postParams, "context_id");
+		assignment.resourceLinkId = Util.getParam(postParams, "resource_link_id");
+		assignment.toolConsumerId = Util.getParam(postParams, "tool_consumer_id");
        
 		String duration = Util.getParam(postParams, "duration");
 		if(duration.equals(""))
-    	   assignment.setDuration(0);
+    	   assignment.duration = 0;
 		else
-    	   assignment.setDuration(Integer.parseInt(duration));
+    	   assignment.duration = Integer.parseInt(duration);
 		assignment.save();
    
         addNewProblemsFromFormSubmission(problemlist, assignment);
 
         String launchPresentationReturnURL = Util.getParam(postParams, "launch_presentation_return_url");
         List<Problem> problems = assignment.getProblems();
-        String assignmentURL = "https://" + request().host() + getPrefix() + "/assignment?id=" + assignment.getId();
+        String assignmentURL = "https://" + request().host() + getPrefix() + "/assignment?id=" + assignment.id;
         return ok(showAssignment.render(launchPresentationReturnURL, 
     		   Util.getParams(launchPresentationReturnURL), problems, assignmentURL));
     }
