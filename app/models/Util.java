@@ -220,9 +220,10 @@ public class Util {
 	
 	public static String getSharedSecret(String oauthConsumerKey) {
 		Oauth oauth = Ebean.find(Oauth.class)
-				.where().eq("oauthConsumerKey", oauthConsumerKey).findOne();
+				.where().eq("oauthConsumerKey", oauthConsumerKey).findOne();		
 		String sharedSecret = "";
 		if (oauth != null) sharedSecret = oauth.sharedSecret;
+		else Logger.warn("No shared secret for consumer key " + oauthConsumerKey);
 		return sharedSecret;
 	}
 }
