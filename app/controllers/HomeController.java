@@ -66,8 +66,12 @@ public class HomeController extends Controller {
 	    			.eq("contextId", contextId)
 	    			.eq("resourceLinkId", resourceLinkId)
 	    			.findList();
-	    	Logger.info("matching assignments: " + assignments); // TODO remove
 	    	if (assignments.size() == 1) assignmentId = assignments.get(0).id;
+	    	if (assignments.size() > 1) { 
+				String result = "No assignment id and multiple assignments with context_id " + contextId + ", resource_link_id " + resourceLinkId;
+				Logger.info(result);
+				return badRequest(result);
+	    	}
 	    }
 		
 	    boolean isInstructor = Util.isInstructor(role); 
@@ -158,8 +162,6 @@ public class HomeController extends Controller {
 		List<Problem> problems = assignment.getProblems();
 
 		return ok(studentSubmissionsViewer.render(assignmentId, problems));
-		//TODO: Make it viewable by student
-		//TODO: This is getting more complicated because different students have different problems
 	}
 
 	/**
