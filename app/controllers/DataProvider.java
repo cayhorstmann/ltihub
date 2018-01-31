@@ -140,13 +140,7 @@ public class DataProvider {
             submissionValues.put("submittedAt", submission.submittedAt);
             submissionValues.put("score", submission.score);
           	submissionValues.put("previous", submission.previous.id);
-
-            // TODO: Some values are stringifed strings, but the client is expecting just the strings themselves
-            submissionValues.put("content",
-                    submission.script.startsWith("\"") ?
-                            Json.parse(submission.script) : submission.script
-            );
-
+            submissionValues.put("content", submission.script);
             submissionsJsonList.add(Json.toJson(submissionValues));
         }
 

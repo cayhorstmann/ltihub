@@ -118,7 +118,7 @@ public class Util {
 	 		entries.add(entry);
 	 	int n = url.lastIndexOf("?"); if (n >= 0) url = url.substring(0, n); 
 	 	OAuthMessage oam = new OAuthMessage("POST", url, entries);
-        OAuthConsumer cons = new OAuthConsumer(null, key, "fred", null); // TODO
+        OAuthConsumer cons = new OAuthConsumer(null, key, "fred", null); 
         OAuthValidator oav = new SimpleOAuthValidator();
         OAuthAccessor acc = new OAuthAccessor(cons);
 	    try {
