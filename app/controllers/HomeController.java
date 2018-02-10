@@ -144,8 +144,11 @@ public class HomeController extends Controller {
 		else
     	   assignment.duration = Integer.parseInt(duration);
 		assignment.save();
-   
-        addNewProblemsFromFormSubmission(problemlist, assignment);
+		try {
+			addNewProblemsFromFormSubmission(problemlist, assignment);
+		} catch (Exception ex) {
+			return badRequest(ex.getMessage());
+		}
 
         String launchPresentationReturnURL = Util.getParam(postParams, "launch_presentation_return_url");
         List<Problem> problems = assignment.getProblems();
@@ -199,6 +202,7 @@ public class HomeController extends Controller {
 	            for (int i = 0; i < lines.length; i++) {
 	            	for (String token: lines[i].split("\\s+")) {
 	            		if (token.startsWith("https")) problemUrls[i] = token;
+	            		else if (token.startsWith("http")) problemUrls[i] = "https" + token.substring(4);
 	            		else if (token.endsWith("%")) weights[i] = 0.01 * Double.parseDouble(token.substring(0, token.length() - 1));
 	            		else throw new IllegalArgumentException("Bad token: " + token);
 	            	}	            	
