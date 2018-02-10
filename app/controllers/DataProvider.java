@@ -128,9 +128,9 @@ public class DataProvider {
     public Result getSubmissions(Long problemId, String studentId) {
         List<Submission> submissions = Ebean.find(Submission.class)
                 .where()
-                .eq("problem.id", problemId)
+                .eq("problemId", problemId)
                 .eq("studentId", studentId)
-                .orderBy("submissionId")
+                .orderBy("id")
                 .findList();
 
         List<JsonNode> submissionsJsonList = new ArrayList<>();
