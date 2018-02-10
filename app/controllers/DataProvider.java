@@ -139,7 +139,8 @@ public class DataProvider {
             submissionValues.put("submissionId", submission.id);
             submissionValues.put("submittedAt", submission.submittedAt);
             submissionValues.put("score", submission.score);
-          	submissionValues.put("previous", submission.previous.id);
+            if (submission.previous != null)
+            	submissionValues.put("previous", submission.previous.id);
             submissionValues.put("content", submission.script);
             submissionsJsonList.add(Json.toJson(submissionValues));
         }
