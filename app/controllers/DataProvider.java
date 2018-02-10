@@ -129,7 +129,7 @@ public class DataProvider {
         List<Submission> submissions = Ebean.find(Submission.class)
                 .where()
                 .eq("problem.id", problemId)
-                .eq("student.id", studentId)
+                .eq("studentId", studentId)
                 .orderBy("id")
                 .findList();
 
