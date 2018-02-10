@@ -128,8 +128,8 @@ public class DataProvider {
     public Result getSubmissions(Long problemId, String studentId) {
         List<Submission> submissions = Ebean.find(Submission.class)
                 .where()
-                .eq("problemId", problemId)
-                .eq("studentId", studentId)
+                .eq("problem.id", problemId)
+                .eq("student.id", studentId)
                 .orderBy("id")
                 .findList();
 
