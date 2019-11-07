@@ -34,8 +34,11 @@ public class HomeController extends Controller {
 	private Logger.ALogger logger = Logger.of("com.horstmann.ltihub");
     public Result config(Http.Request request) throws UnknownHostException {
         String host = request.host() + getPrefix();
+    	logger.info("HomeController.config: " + request.session().getOptional("id"));
+        
         if (host.endsWith("/")) host = host.substring(0, host.length() - 1);
-        return ok(views.xml.lti_config.render(host)).as("application/xml");
+        return ok(views.xml.lti_config.render(host)).as("application/xml")
+    			.addingToSession(request, "id", "fred");			
     }     
     
     public Result index(Http.Request request) throws UnsupportedEncodingException {    
