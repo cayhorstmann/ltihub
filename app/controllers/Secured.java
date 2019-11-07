@@ -1,20 +1,23 @@
 package controllers;
 
+import java.util.Optional;
+
 import play.Logger;
-import play.mvc.Http.Context;
+import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.Security;
 
 public class Secured extends Security.Authenticator {
+	private Logger.ALogger logger = Logger.of("com.horstmann.ltihub");
 
     @Override
-    public String getUsername(Context ctx) {
-    	// Logger.info("Secured.getUsername: " + ctx.session().get("user"));
-        return ctx.session().get("user");
+    public Optional<String> getUsername(Http.Request request) {
+    	logger.info("Secured.getUsername: " + request.session().getOptional("user"));
+        return request.session().getOptional("user");
     }
 
     @Override
-    public Result onUnauthorized(Context ctx) {
+    public Result onUnauthorized(Http.Request request) {
         return badRequest("Not logged in");
     }
 }

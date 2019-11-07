@@ -11,6 +11,7 @@ import models.Problem;
 import models.Util;
 import play.Logger;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.Security;
 import views.html.combinedAssignment;
@@ -30,18 +31,18 @@ import views.html.studentSubmissionsViewer;
  */
 	    
 public class HomeController extends Controller {
-    public Result config() throws UnknownHostException {
-        String host = request().host() + getPrefix();
+	private Logger.ALogger logger = Logger.of("com.horstmann.ltihub");
+    public Result config(Http.Request request) throws UnknownHostException {
+        String host = request.host() + getPrefix();
         if (host.endsWith("/")) host = host.substring(0, host.length() - 1);
         return ok(views.xml.lti_config.render(host)).as("application/xml");
     }     
     
-    public Result index() throws UnsupportedEncodingException {    
-	 	Map<String, String[]> postParams = request().body().asFormUrlEncoded();
-	 	Logger.info("HomeController.index: " + Util.paramsToString(postParams));
-	 	if (!Util.validate(request())) {
-	 		session().clear();
-	 		return badRequest("Failed OAuth validation");
+    public Result index(Http.Request request) throws UnsupportedEncodingException {    
+	 	Map<String, String[]> postParams = request.body().asFormUrlEncoded();
+	 	logger.info("HomeController.index: " + Util.paramsToString(postParams));
+	 	if (!Util.validate(request)) {
+	 		return badRequest("Failed OAuth validation").withNewSession();
 	 	}	 	
 	 	
     	String lisOutcomeServiceURL = Util.getParam(postParams, "lis_outcome_service_url");
@@ -50,14 +51,13 @@ public class HomeController extends Controller {
     	
     	String userId = Util.getParam(postParams, "user_id");
 		if (Util.isEmpty(userId)) return badRequest("No user id");
-		session().put("user", userId);
 
 		String contextId = Util.getParam(postParams, "context_id");
 		String resourceLinkId = Util.getParam(postParams, "resource_link_id");
 		String toolConsumerId = Util.getParam(postParams, "tool_consumer_instance_guid");
 		String role = Util.getParam(postParams, "roles");
 		String launchPresentationReturnURL = Util.getParam(postParams, "launch_presentation_return_url");
-	    String assignmentIdString = request().getQueryString("id");
+	    String assignmentIdString = request.getQueryString("id");
 	    long assignmentId = assignmentIdString == null ? -1 : Long.parseLong(assignmentIdString);
 	    if (assignmentId == -1) {  
 	    	List<Assignment> assignments = Ebean.find(Assignment.class)
@@ -69,7 +69,7 @@ public class HomeController extends Controller {
 	    	if (assignments.size() == 1) assignmentId = assignments.get(0).id;
 	    	if (assignments.size() > 1) { 
 				String result = "No assignment id and multiple assignments with context_id " + contextId + ", resource_link_id " + resourceLinkId;
-				Logger.info(result);
+				logger.info(result);
 				return badRequest(result);
 	    	}
 	    }
@@ -79,10 +79,11 @@ public class HomeController extends Controller {
 		if (assignmentId == -1) {
 			if (isInstructor)		
 				return ok(createAssignment.render(contextId, resourceLinkId, 
-						toolConsumerId, launchPresentationReturnURL));
+						toolConsumerId, launchPresentationReturnURL))
+						.addingToSession(request, "user", userId);
 			else {
 				String result = "No assignment id and no assignment with context_id " + contextId + ", resource_link_id " + resourceLinkId;
-				Logger.info(result);
+				logger.info(result);
 				return badRequest(result);
 			}
 		}
@@ -95,20 +96,20 @@ public class HomeController extends Controller {
 		Assignment assignment = Ebean.find(Assignment.class, assignmentId);
 		
 		return ok(combinedAssignment.render(getPrefix(), assignmentId, userId, 
-			toolConsumerId, contextId,  
-			assignment.duration, isInstructor,
-		    lisOutcomeServiceURL, lisResultSourcedId, oauthConsumerKey));
+				toolConsumerId, contextId,  
+				assignment.duration, isInstructor,
+				lisOutcomeServiceURL, lisResultSourcedId, oauthConsumerKey))
+			.addingToSession(request, "user", userId);
  	}
 
     /*
      * Called from Canvas and potentially other LMS with a "resource selection" interface
      */
-    public Result createAssignment() throws UnsupportedEncodingException {    
-	 	Map<String, String[]> postParams = request().body().asFormUrlEncoded();
-	 	Logger.info("HomeController.createAssignment: " + Util.paramsToString(postParams));
-	 	if (!Util.validate(request())) {
-	 		session().clear();
-	 		return badRequest("Failed OAuth validation");
+    public Result createAssignment(Http.Request request) throws UnsupportedEncodingException {    
+	 	Map<String, String[]> postParams = request.body().asFormUrlEncoded();
+	 	logger.info("HomeController.createAssignment: " + Util.paramsToString(postParams));
+	 	if (!Util.validate(request)) {
+	 		return badRequest("Failed OAuth validation").withNewSession();
 	 	}	 	
 	 	
 		String role = Util.getParam(postParams, "roles");
@@ -117,19 +118,19 @@ public class HomeController extends Controller {
     	String userId = Util.getParam(postParams, "user_id");
 		if (Util.isEmpty(userId)) 
 			return badRequest("No user id");
-		session().put("user", userId);
 
 		String contextId = Util.getParam(postParams, "context_id");
 		String resourceLinkId = Util.getParam(postParams, "resource_link_id");
 		String toolConsumerId = Util.getParam(postParams, "tool_consumer_instance_guid");
 		String launchPresentationReturnURL = Util.getParam(postParams, "launch_presentation_return_url");
 		return ok(createAssignment.render(contextId, resourceLinkId, 
-			toolConsumerId, launchPresentationReturnURL));			
+				toolConsumerId, launchPresentationReturnURL))
+			.addingToSession(request, "user", userId);			
  	}
         
 	// This method gets called when an assignment has been created with createAssignment.scala.html.
-	public Result addAssignment() {
-		Map<String, String[]> postParams = request().body().asFormUrlEncoded();
+	public Result addAssignment(Http.Request request) {
+		Map<String, String[]> postParams = request.body().asFormUrlEncoded();
 	 	
 		String problemlist = Util.getParam(postParams, "url");
        
@@ -152,7 +153,7 @@ public class HomeController extends Controller {
 
         String launchPresentationReturnURL = Util.getParam(postParams, "launch_presentation_return_url");
         List<Problem> problems = assignment.getProblems();
-        String assignmentURL = "https://" + request().host() + getPrefix() + "/assignment?id=" + assignment.id;
+        String assignmentURL = "https://" + request.host() + getPrefix() + "/assignment?id=" + assignment.id;
         return ok(showAssignment.render(launchPresentationReturnURL, 
     		   Util.getParams(launchPresentationReturnURL), problems, assignmentURL));
     }

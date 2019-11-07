@@ -28,6 +28,7 @@
    
    <logger name="play" level="INFO" />
    <logger name="application" level="INFO" />
+   <logger name="com.horstmann.ltihub" level="INFO" />
    <logger name="com.horstmann.codecheck" level="INFO" />
    <root level="INFO">
       <appender-ref ref="STDOUT" />

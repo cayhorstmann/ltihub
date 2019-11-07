@@ -5,6 +5,7 @@ logs/*
 conf/*
 
 .idea/
+bin/
 out/
 *.iml
 
