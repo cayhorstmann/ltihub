@@ -155,7 +155,7 @@
                         toolConsumerId: "@toolConsumerId",
                         contextId: "@contextId",
                         clientStamp: getClientStamp()
-                    };
+                    }
                     
 					const url = '@prefix/addSubmission'
 					
@@ -166,12 +166,12 @@
                         problemIdToContent[problemId] = {
                             score: currentScore,
                             state: currentStateString,
-                        };
+                        }
 
                         updateHighestScoreDisplay(problemId, result.submittedAt, result.highestScore);
                     })
                     
-    	    		xhr.addEventListener('load', error => {        		    
+    	    		xhr.addEventListener('error', event => {        		    
                         console.log("Error saving work: " + JSON.stringify(data) + "\n" +
 	                        "Problem ID: " + problemId + "\n" +
 	                        "User ID: @userId" + "\n" +
@@ -180,7 +180,7 @@
 	                        "Current state: " + currentStateString + "\n");
                     })
         			xhr.open('POST', url)
-                    xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+                    xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8')
         			xhr.send(JSON.stringify(data))                                     
                 }
             }
