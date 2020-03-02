@@ -2,37 +2,39 @@
 <html>
     <head>
         <link rel="stylesheet" href="@routes.Assets.at("stylesheets/main.css")">
-
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
         <script src="@routes.Assets.at("javascripts/shortest-edit-script.js")"></script>
 
         <script>
             function populateUserIdSelection() {
-                const userIdSelectionEl = document.getElementById('userIdSelection');
-
-                $.ajax({
-                    url: '@controllers.routes.DataProvider.getUserIdsForAssignment(assignmentId)',
-                    method: 'GET',
-                    success: function (userIds) {
-                        try {
-                            for (var i = 0; i < userIds.length; i++) {
-                                var userIdEl = document.createElement("option");
-                                userIdEl.text = userIds[i];
-                                userIdSelectionEl.add(userIdEl);
-                            }
-
-                            loadSubmissionsForSelectedUser();
-                        } catch (e) {
-                            prompt("Error:", "Error getting user IDs: " + e + "\n" +
-                                    "Assignment ID was: @assignmentId");
+                const userIdSelectionEl = document.getElementById('userIdSelection')
+ 				const url = '@controllers.routes.DataProvider.getUserIdsForAssignment(assignmentId)'
+				const xhr = new XMLHttpRequest()
+				xhr.responseType = 'json'
+				
+        		xhr.addEventListener('load', event => {        		    
+                    try {
+                        if (xhr.status != 200) throw Error(`${xhr.status}: ${xhr.statusText}`)
+                        const userIds = xhr.response
+        		    
+                        for (var i = 0; i < userIds.length; i++) {
+                            var userIdEl = document.createElement("option");
+                            userIdEl.text = userIds[i];
+                            userIdSelectionEl.add(userIdEl);
                         }
-                    },
-                    error: function(XMLHttpRequest, textStatus, errorThrown) {
-                        prompt("Error:", "Error getting user IDs: " + JSON.stringify(XMLHttpRequest) + "\n" +
-                                "Assignment ID was: @assignmentId");
+
+                        loadSubmissionsForSelectedUser();
+                    } catch (e) {
+	                    prompt("Error:", "Error getting user IDs from " + url)
                     }
-                });
+                })
+                xhr.addEventListener('error', event => {         		
+                    prompt("Error:", "Error getting user IDs from " + url)
+                })
+        		xhr.open('GET', url)
+        		xhr.send()                
             }
+            
+            
 
             // Maps each problem's ID to an array of the student's submissions
             var problemIdToSubmissions = {};
@@ -53,78 +55,78 @@
                     stateSelectionEl.disabled = true;
 
                     var stateEditScripts = [];
-                    $.ajax({
-                        url: '@controllers.routes.DataProvider.getSubmissions(problem.getId(), "")' + userId,
-                        method: 'GET',
-                        success: function (msg) {
-                            try {
-                                var submissions = msg.slice();
-                                if (submissions.length <= 0) {
-                                    userIdSelectionEl.disabled = false;
-                                    return;
-                                }
-
-                                // Find the state edit scripts
-                                var stateEditScriptsStack = [];
-                                var previousSubmissionId = submissions[submissions.length - 1].submissionId;
-                                while (submissions.length > 0) {
-                                    var submission = submissions.pop();
-
-                                    /*
-                                     The newer submissions should have a number as the previous property
-                                     If a submission's previous property is not a number, then automatically accept it
-                                     */
-                                    if (!submission.previous || isNaN(submission.previous) ||
-                                            (submission.submissionId == previousSubmissionId)) {
-                                        stateEditScriptsStack.push(submission.content);
-                                        previousSubmissionId = submission.previous;
-                                    }
-                                }
-
-                                // Build the state from the edit scripts and store each version in the map
-                                var state = "";
-                                problemIdToSubmissions['@problem.getId()'] = [];
-                                while(stateEditScriptsStack.length > 0) {
-                                    var editScript = stateEditScriptsStack.pop();
-                                    // Don't apply edit script if state didn't change
-                                    if (!editScript)
-                                        continue;
-
-                                    try {
-                                        state = applyEditScript(state, editScript);
-
-                                        problemIdToSubmissions['@problem.getId()'].push(JSON.parse(state));
-                                    } catch (e) {
-                                        prompt("Error:", "State is corrupted: " + e + "\n" +
-                                        "User ID was: " + userId + "\n" +
-                                        "State was: " + state + "\n" +
-                                        "Edit script that caused corruption was: " + editScript);
-                                    }
-                                }
-
-                                // Reassign stateSelectionEl variable because it might have changed since the request
-                                // was sent
-                                stateSelectionEl = document.getElementById('stateSelection-@problem.getId()');
-
-                                // Change the slider's max value to the number of submissions minus one
-                                stateSelectionEl.max =
-                                        problemIdToSubmissions['@problem.getId()'].length - 1;
-                                stateSelectionEl.value = stateSelectionEl.max;
-                                updateProblemState('@problem.getId()');
-
-                                stateSelectionEl.disabled = false;
-                            } catch (e) {
-                                prompt("Error:", "Error getting problem contents: " + e + "\n" +
-                                        "User ID was: " + userId + "\n" +
-                                        "Server message: " + JSON.stringify(msg));
+                    const url = '@controllers.routes.DataProvider.getSubmissions(problem.getId(), "")' + userId
+                	// TODO No slash in url?    
+					const xhr = new XMLHttpRequest()
+					xhr.responseType = 'json'					
+    	    		xhr.addEventListener('load', event => {        		    
+        	            try {
+            	            if (xhr.status != 200) throw Error(`${xhr.status}: ${xhr.statusText}`)
+                	        const result = xhr.response
+                            var submissions = result.slice();
+                            if (submissions.length <= 0) {
+                                userIdSelectionEl.disabled = false;
+                                return;
                             }
-                        },
-                        error: function(XMLHttpRequest, textStatus, errorThrown) {
-                            prompt("Error:", "Error getting problem contents: " + JSON.stringify(XMLHttpRequest) + "\n" +
-                                    "User ID was: " + userId + "\n");
-                        }
-                    });
 
+                            // Find the state edit scripts
+                            var stateEditScriptsStack = [];
+                            var previousSubmissionId = submissions[submissions.length - 1].submissionId;
+                            while (submissions.length > 0) {
+                                var submission = submissions.pop();
+
+                                /*
+                                 The newer submissions should have a number as the previous property
+                                 If a submission's previous property is not a number, then automatically accept it
+                                 */
+                                if (!submission.previous || isNaN(submission.previous) ||
+                                        (submission.submissionId == previousSubmissionId)) {
+                                    stateEditScriptsStack.push(submission.content);
+                                    previousSubmissionId = submission.previous;
+                                }
+                            }
+
+                            // Build the state from the edit scripts and store each version in the map
+                            var state = "";
+                            problemIdToSubmissions['@problem.getId()'] = [];
+                            while(stateEditScriptsStack.length > 0) {
+                                var editScript = stateEditScriptsStack.pop();
+                                // Don't apply edit script if state didn't change
+                                if (!editScript)
+                                    continue;
+
+                                try {
+                                    state = applyEditScript(state, editScript);
+
+                                    problemIdToSubmissions['@problem.getId()'].push(JSON.parse(state));
+                                } catch (e) {
+                                    prompt("Error:", "State is corrupted: " + e + "\n" +
+                                    "User ID was: " + userId + "\n" +
+                                    "State was: " + state + "\n" +
+                                    "Edit script that caused corruption was: " + editScript);
+                                }
+                            }
+
+                            // Reassign stateSelectionEl variable because it might have changed since the request
+                            // was sent
+                            stateSelectionEl = document.getElementById('stateSelection-@problem.getId()');
+
+                            // Change the slider's max value to the number of submissions minus one
+                            stateSelectionEl.max =
+                                    problemIdToSubmissions['@problem.getId()'].length - 1;
+                            stateSelectionEl.value = stateSelectionEl.max;
+                            updateProblemState('@problem.getId()');
+
+                            stateSelectionEl.disabled = false;
+                        } catch (e) {
+		                    prompt("Error:", "Error getting problem contents from " + url)
+                        }
+                    })
+	                xhr.addEventListener('error', event => {         		
+    	                prompt("Error:", "Error getting problem contents from " + url)
+        	        })
+        			xhr.open('GET', url)
+        			xhr.send()                
                 }
 
                 // TODO: Make this execute AFTER the last ajax call is done
