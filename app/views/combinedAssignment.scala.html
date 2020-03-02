@@ -118,8 +118,8 @@
                     problemIdToContent[problem.id] = {
                         score: 0,
                         state: "",
-                    };                                
-                });
+                    }                                
+                })
     			xhr.open('GET', url)
     			xhr.send()                                
             }
@@ -169,7 +169,7 @@
                         };
 
                         updateHighestScoreDisplay(problemId, result.submittedAt, result.highestScore);
-                    }
+                    })
                     
     	    		xhr.addEventListener('load', error => {        		    
                         console.log("Error saving work: " + JSON.stringify(data) + "\n" +
@@ -178,7 +178,7 @@
 	                        "Score: " + JSON.stringify(score) + "\n" +
 	                        "Previous state: " + previousStateString + "\n" +
 	                        "Current state: " + currentStateString + "\n");
-                    });
+                    })
                     xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
         			xhr.open('POST', url)
         			xhr.send(JSON.stringify(data))                                     
@@ -263,7 +263,7 @@
                 })
 	    		xhr.addEventListener('error', event => {
                     console.log("Error getting start time from " + url);
-                }
+                })
     			xhr.open('GET', url)
     			xhr.send()                                
             }
