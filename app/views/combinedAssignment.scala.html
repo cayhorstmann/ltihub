@@ -129,7 +129,7 @@
             function updateStatesFromProblems() {
                 for (const iframe of document.getElementsByClassName('exercise-iframe')) {
                     iframe.contentWindow.postMessage({query: 'getContent', problemId: iframe.id}, '*');
-                });
+                }
             }
             
             // If the state or the score changed since the last submission or this is a timed problem, then send the new state and score to the server
