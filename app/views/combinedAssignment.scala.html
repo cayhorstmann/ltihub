@@ -179,8 +179,8 @@
 	                        "Previous state: " + previousStateString + "\n" +
 	                        "Current state: " + currentStateString + "\n");
                     })
-                    xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
         			xhr.open('POST', url)
+                    xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
         			xhr.send(JSON.stringify(data))                                     
                 }
             }
@@ -225,8 +225,8 @@
                             "Assignment ID: @assignmentId\n" +
                             "User ID: @userId");
                     })
-                    xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
         			xhr.open('POST', url)
+                    xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
         			xhr.send(JSON.stringify(data))                                     
                 }, 1000)
             }
