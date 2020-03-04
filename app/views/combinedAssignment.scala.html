@@ -44,7 +44,7 @@
                     problemIframe.addEventListener('load', function() {
                         var message = {query: 'docHeight', id: problems[i].id };
                         problemIframe.contentWindow.postMessage(message, '*');
-                        restoreStateOfProblem(problems[i]);
+                        // CSH restoreStateOfProblem(problems[i].id);
                     })                        
                 }
             })
@@ -69,6 +69,13 @@
                     const state = event.data.state;
                     sendScoreAndState(problemId, score, state);
                 }
+            } else { // It's a request
+                const param = event.data.param
+            	if (event.data.query === 'receive') {
+            	  const problemId = param.filters[0].activityIds[0]
+            	    // TODO Old VitalSource API
+            	  restoreStateOfProblemId(problemId, event.data.request)
+            	}
             }
         }
 
@@ -79,7 +86,7 @@
         
     @if(isInstructor) {
     <script type="text/javascript">
-        function restoreStateOfProblem(problem) {}
+        function restoreStateOfProblem(problemId, request) {}
     </script>
     }               
         
@@ -95,27 +102,32 @@
 
             var problemIdToContent = {};
 
-            function restoreStateOfProblem(problem) {
-                const url = '@prefix/getWork/' + problem.id + '/@userId/@toolConsumerId/@contextId'
+            function restoreStateOfProblemId(problemId, request) {
+                const url = '@prefix/getWork/' + problemId + '/@userId/@toolConsumerId/@contextId'
 				const xhr = new XMLHttpRequest()
 				xhr.responseType = 'json'
 				
     			xhr.addEventListener('load', event => {
     				const result = xhr.response        		            
-                    problemIdToContent[problem.id] = {
+                    problemIdToContent[problemId] = {
                			score: result.score,
                    		state: result.state
                     }
                     if (result.state) { // If the state was empty, then don't try to restore it
-                        var iframe = document.getElementById('' + problem.id);
-                        iframe.contentWindow.postMessage({query: 'restoreState', state: JSON.parse(result.state)}, '*');
+                        var iframe = document.getElementById('' + problemId);
+                        const state = JSON.parse(result.state) 
+                        if (response === undefined) {
+	                      iframe.contentWindow.postMessage({query: 'restoreState', state }, '*');
+                        } else {
+                          iframe.contentWindow.postMessage({ request, param: { state }}, '*');                        
+                        }
                     }
-                    updateHighestScoreDisplay(problem.id, result.submittedAt, result.score);
+                    updateHighestScoreDisplay(problemId, result.submittedAt, result.score);
                 })
     			xhr.addEventListener('error', event => {
                     console.log("Error getting problem contents from " + url);
                     // Initializes the problem content so that it can be saved
-                    problemIdToContent[problem.id] = {
+                    problemIdToContent[problemId] = {
                         score: 0,
                         state: "",
                     }                                
