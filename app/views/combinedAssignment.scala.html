@@ -70,15 +70,16 @@
                     sendScoreAndState(problemId, score, state);
                 }
             } else { // It's a request
-                const param = event.data.param
-            	if (event.data.query === 'retrieve') {
-            	  // const problemId = param.filters[0].activityIds[0]
-            	  // TODO That's an id on the page, not an id in the
-            	  // database!
-            	  for (frame of document.getElementsByClassName('exercise-iframe')) {
-            	  	if (frame === event.source)            	  
-            	  	  restoreStateOfProblem(frame.id, event.data.request)
-            	}
+              const param = event.data.param
+              if (event.data.query === 'retrieve') {
+           	  // const problemId = param.filters[0].activityIds[0]
+           	  // TODO That's an id on the page, not an id in the
+           	  // database!
+           	  for (frame of document.getElementsByClassName('exercise-iframe')) {
+           	  	if (frame === event.source)            	  
+           	  	  restoreStateOfProblem(frame.id, event.data.request)
+                 }
+              }
             }
         }
 
