@@ -71,7 +71,7 @@
                 }
             } else { // It's a request
                 const param = event.data.param
-            	if (event.data.query === 'receive') {
+            	if (event.data.query === 'retrieve') {
             	  const problemId = param.filters[0].activityIds[0]
             	    // TODO Old VitalSource API
             	  restoreStateOfProblemId(problemId, event.data.request)
