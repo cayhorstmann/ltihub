@@ -76,7 +76,7 @@
            	  // TODO That's an id on the page, not an id in the
            	  // database!
            	  for (frame of document.getElementsByClassName('exercise-iframe')) {
-           	  	if (frame === event.source)            	  
+           	  	if (frame.contentWindow === event.source)            	  
            	  	  restoreStateOfProblem(frame.id, event.data.request)
                  }
               }
