@@ -31,13 +31,13 @@
                 	
                     var highestScoreEl = document.createElement('div');
                     highestScoreEl.id = "highestScore-" + problems[i].id;
-                    highestScoreEl.className = "highestScore message";
+                    highestScoreEl.className = "highestScore message"; 
 
                     document.body.appendChild(highestScoreEl);
                 	
                     let problemIframe = document.createElement('iframe');
                     problemIframe.id = problems[i].id;
-                    problemIframe.className = 'exercise-iframe';
+                    problemIframe.className = 'exercise-iframe'; 
                     problemIframe.src = problems[i].url;
 					document.body.appendChild(problemIframe);
 					
@@ -72,9 +72,12 @@
             } else { // It's a request
                 const param = event.data.param
             	if (event.data.query === 'retrieve') {
-            	  const problemId = param.filters[0].activityIds[0]
-            	    // TODO Old VitalSource API
-            	  restoreStateOfProblem(problemId, event.data.request)
+            	  // const problemId = param.filters[0].activityIds[0]
+            	  // TODO That's an id on the page, not an id in the
+            	  // database!
+            	  for (frame of document.getElementsByClassName('exercise-iframe')) {
+            	  	if (frame === event.source)            	  
+            	  	  restoreStateOfProblem(frame.id, event.data.request)
             	}
             }
         }
@@ -321,14 +324,14 @@
 
             // Delete the iframes of the problems in the assignment
             function deleteProblems() {
-                var highestScoreEls = Array.from(document.getElementsByClassName('highestScore'));
-                var problemIframes = Array.from(document.getElementsByClassName('exercise-iframe'));
+                var highestScoreEls = [...document.getElementsByClassName('highestScore')]
+                var problemIframes = [...document.getElementsByClassName('exercise-iframe')]
 
                 for (var i = 0; i < highestScoreEls.length; i++)
-                    highestScoreEls[i].remove();
+                    highestScoreEls[i].remove()
 
                 for (var i = 0; i < problemIframes.length; i++)
-                    problemIframes[i].remove();
+                    problemIframes[i].remove()
 
                 clearInterval(updateStatesInterval);
             }
