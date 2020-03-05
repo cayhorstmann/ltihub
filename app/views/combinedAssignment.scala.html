@@ -74,7 +74,7 @@
             	if (event.data.query === 'retrieve') {
             	  const problemId = param.filters[0].activityIds[0]
             	    // TODO Old VitalSource API
-            	  restoreStateOfProblemId(problemId, event.data.request)
+            	  restoreStateOfProblem(problemId, event.data.request)
             	}
             }
         }
