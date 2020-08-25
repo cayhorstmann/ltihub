@@ -48,7 +48,9 @@ function loadProblems() {
 				for (const frame of document.getElementsByClassName('exercise-iframe'))
 					if (frame !== problemIframe)
 						frame.style.display = 'none'
-				problemIframe.style.display = 'block'		
+				problemIframe.style.display = 'block'
+				const message = { query: 'docHeight', id: problems[i].id };
+				problemIframe.contentWindow.postMessage(message, '*');		
 				for (const btn of document.getElementsByClassName('exercise-button'))
 					if (btn !== button)
 						btn.classList.remove('active')
@@ -68,11 +70,10 @@ function loadProblems() {
 // Response from messages to iframe
 function receiveMessage(event) {
 	if (event.data.request) { // It's a response
+		console.log('received ' + JSON.stringify(event.data)); // TODO
 		if (event.data.request.query === 'docHeight') {
-			console.log('received ' + JSON.stringify(event.data));
-			const newHeight = event.data.docHeight + 200;
-			console.log(`Not setting ${event.data.request.id} to ${newHeight}px`)
-			// document.getElementById(event.data.request.id).style.height = newHeight + 'px'
+			const newHeight = event.data.docHeight;
+			document.getElementById(event.data.request.id).style.height = newHeight + 'px'
 		}
 		else if (event.data.request.query === 'getContent') {
 			const problemId = event.data.request.problemId;
