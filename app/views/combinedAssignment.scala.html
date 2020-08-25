@@ -1,10 +1,9 @@
-@import scala.collection.mutable.ListBuffer
 @(prefix: String, assignmentId: Long, userId: String, 
 	toolConsumerId: String, contextId: String,  
 	duration: Int, isInstructor: Boolean,
     lisOutcomeServiceURL: String, lisResultSourcedId: String,
     oauthConsumerKey: String)
-
+<html>
 <head>
     <link rel="stylesheet" href='@routes.Assets.at("stylesheets/main.css")'/>
     <script type="text/javascript">
@@ -26,7 +25,6 @@
 	<script type="text/javascript" src='@routes.Assets.at("javascripts/ltihub.js")'/>
         
 </head>
-
 <body>
     @if(isInstructor) {
         <p class="message">You are viewing this assignment as instructor.</p>
@@ -48,3 +46,4 @@
 <p>User ID: <code>@userId</code></p>
 <p>Assignment ID: <code>@assignmentId</code></p>
 </body>
+</html>
