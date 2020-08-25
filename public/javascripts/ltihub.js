@@ -14,18 +14,19 @@ function loadProblems() {
 	xhr.addEventListener('load', event => {
 		const problems = xhr.response;
 		const buttonDiv = document.createElement('div')
+		buttonDiv.id = 'buttons'
 		document.body.appendChild(buttonDiv)
 		
 		for (let i = 0; i < problems.length; i++) {
 			// TODO: Maybe put everything into a div?
 			// TODO: For instructors, show the group
 
-			const highestScoreEl = document.createElement('div');
+			/*const highestScoreEl = document.createElement('div');
 			highestScoreEl.id = "highestScore-" + problems[i].id;
 			highestScoreEl.className = "highestScore message";
 
 			document.body.appendChild(highestScoreEl); // TODO: ???
-
+			*/
 			const problemIframe = document.createElement('iframe');
 			problemIframe.id = problems[i].id;
 			problemIframe.className = 'exercise-iframe';
@@ -39,13 +40,19 @@ function loadProblems() {
 			})
 			problemIframe.style.display = i == 0 ? 'block' : 'none'
 			const button = document.createElement('button')
+			button.id = 'button-' + problems[i].id
+			button.className = 'exercise-button'
 			buttonDiv.appendChild(button)
 			button.textContent = "" + (i + 1) // TODO: Add %age
 			button.addEventListener('click', event => {
 				for (const frame of document.getElementsByClassName('exercise-iframe'))
 					if (frame != problemIframe)
 						frame.style.display = 'none'
-				problemIframe.style.display = 'block'			
+				problemIframe.style.display = 'block'		
+				for (const btn of document.getElementsByClassName('exercise-button'))
+					if (btn != button)
+						btn.classList.remove('active')
+				button.classList.add('active')	
 			})			
 		}
 	})
@@ -209,9 +216,17 @@ function formatTime(time) {
 
 // Update the highest score element to display the score from the given submission
 function updateHighestScoreDisplay(problemId, submittedAt, highestScore) {
+	/*
 	var highestScoreEl = document.getElementById('highestScore-' + problemId);
 	highestScoreEl.innerHTML = (submittedAt ? "<p>Submission saved at: " + new Date(submittedAt) : "") +
 		"</p><p>Highest recorded score: <b>" + (highestScore * 100.0).toFixed(2) + "%</b></p>"
+		*/
+    const button = document.getElementById('button-' + problemId);
+    const text = button.textContent
+    const index = text.indexOf(' (')
+	if (index < 0) index = text.length
+	button.textContent = text.substring(0, index) + ' (' + (highestScore * 100.0).toFixed(2) + ')' 
+    button.title = 'Submission saved at: ' + new Date(submittedAt)
 }
 
 

@@ -46,3 +46,23 @@ body {
 	counter-increment: problem;
 	content: counter(problem) ". "
 }
+
+.exercise-button {
+	margin: 1em;
+}
+
+.exercise-button.active {
+	background: green;
+}
+
+
+iframe {
+	height: 5000px;
+	overflow: hidden;
+	
+}
+
+body {
+	overflow: hidden;	
+}
+
