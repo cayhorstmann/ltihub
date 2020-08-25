@@ -97,8 +97,7 @@
 
                                 try {
                                     state = applyEditScript(state, editScript);
-
-                                    problemIdToSubmissions['@problem.getId()'].push(JSON.parse(state));
+                                    if (state) problemIdToSubmissions['@problem.getId()'].push(JSON.parse(state));
                                 } catch (e) {
                                     prompt("Error:", "State is corrupted: " + e + "\n" +
                                     "User ID was: " + userId + "\n" +

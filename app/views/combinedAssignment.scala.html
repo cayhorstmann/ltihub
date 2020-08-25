@@ -157,10 +157,11 @@
             }
             
             // If the state or the score changed since the last submission or this is a timed problem, then send the new state and score to the server
-            function sendScoreAndState(problemId, score, state) {            	
+            function sendScoreAndState(problemId, score, state) { 
+                if (!state) return        	
                 if (!problemIdToContent.hasOwnProperty(problemId)) // Haven't yet received first state
                     return;
-
+                    // TODO: v2 won't have maxscore but just the normalized score
                 const previousScore = problemIdToContent[problemId].score;
                 const currentCorrect = score.errors ? Math.max(score.correct - score.errors, 0) : score.correct;
                 const currentScore = score && score.correct && score.maxscore ?

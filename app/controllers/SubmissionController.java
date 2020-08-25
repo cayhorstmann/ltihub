@@ -17,17 +17,19 @@ import models.Util;
 import play.Logger;
 import play.libs.Json;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
 
 public class SubmissionController extends Controller {
+	private Logger.ALogger logger = Logger.of("com.horstmann.ltihub");
 
     // Save problem submission that is sent back from combinedAssignment
-    public Result addSubmission() {
-        JsonNode params = request().body().asJson();
+    public Result addSubmission(Http.Request request) {
+        JsonNode params = request.body().asJson();
         if (params == null)
-            return badRequest("SubmissionController.addSubmission: Expected Json data, received " + request());
+            return badRequest("SubmissionController.addSubmission: Expected Json data, received " + request);
 
-        Logger.info("SubmissionController.addSubmission: params=" + Json.stringify(params));
+        logger.info("SubmissionController.addSubmission: params=" + Json.stringify(params));
 
         try {
         	Problem problem = Ebean.find(Problem.class, params.get("problemId").asLong(0L));
@@ -86,7 +88,7 @@ public class SubmissionController extends Controller {
         	});        	
             return ok(Json.toJson(responseMap));
         } catch (Exception ex) {
-            Logger.info(Util.getStackTrace(ex));
+            logger.info(Util.getStackTrace(ex));
             return badRequest("Received problem content: " + Json.stringify(params) + "\n" +
                     "Exception message: " + ex.getMessage());
         }

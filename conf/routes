@@ -20,10 +20,10 @@ POST	/addAssignment		controllers.HomeController.addAssignment(request: Request)
 # GET	/timedAssignment	controllers.HomeController.showTimedAssignment(assignmentId: Long, userId: String, duration: Long)
 
 # Periodic score update from combinedAssignment.scala.html
-POST	/addSubmission		controllers.SubmissionController.addSubmission()
+POST	/addSubmission		controllers.SubmissionController.addSubmission(request: Request)
 
 # When the record grade button is pushed in combinedAssignment.scala.html 
-POST    /sendScore   controllers.GradeSubmitterController.submitGradeToLMS()
+POST    /sendScore   controllers.GradeSubmitterController.submitGradeToLMS(request: Request)
 
 # Used by health check. DO NOT REMOVE.
 GET     /count                      controllers.Application.health

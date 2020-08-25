@@ -34,6 +34,8 @@ import play.Logger;
 import play.mvc.Http;
 
 public class Util {
+	private static Logger.ALogger logger = Logger.of("com.horstmann.ltihub");
+
 	public static String getStackTrace(Throwable t) {
 		StringWriter out = new StringWriter();
 		t.printStackTrace(new PrintWriter(out));
@@ -92,7 +94,7 @@ public class Util {
 	      oav.validateMessage(oam, acc);
           return true;
         } catch (Exception e) {
-        	Logger.info("Did not validate: " + e.getLocalizedMessage() + "\nurl: " + url + "\nentries: " + entries);
+        	logger.info("Did not validate: " + e.getLocalizedMessage() + "\nurl: " + url + "\nentries: " + entries);
             return false;
         }
     }
@@ -223,7 +225,7 @@ public class Util {
 				.where().eq("oauthConsumerKey", oauthConsumerKey).findOne();		
 		String sharedSecret = "";
 		if (oauth != null) sharedSecret = oauth.sharedSecret;
-		else Logger.warn("No shared secret for consumer key " + oauthConsumerKey);
+		else logger.warn("No shared secret for consumer key " + oauthConsumerKey);
 		return sharedSecret;
 	}
 }

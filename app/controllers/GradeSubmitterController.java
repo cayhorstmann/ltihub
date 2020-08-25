@@ -28,17 +28,20 @@ import oauth.signpost.http.HttpParameters;
 import play.Logger;
 import play.libs.Json;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
 
 public class GradeSubmitterController extends Controller {
-	public Result submitGradeToLMS() throws UnsupportedEncodingException {
-        JsonNode params = request().body().asJson();
+	private static Logger.ALogger logger = Logger.of("com.horstmann.ltihub");
+    
+	public Result submitGradeToLMS(Http.Request request) throws UnsupportedEncodingException {
+        JsonNode params = request.body().asJson();
         if (params == null) {
-        	String result = "Expected JSON data. Received: " + request();
-        	Logger.info("GradeSubmitterController.submitGradeToLMS " + result);
+        	String result = "Expected JSON data. Received: " + request;
+        	logger.info("GradeSubmitterController.submitGradeToLMS " + result);
             return badRequest(result);
         }
-		Logger.info("GradeSubmitterController.submitGradeToLMS params: " + Json.stringify(params));
+		logger.info("GradeSubmitterController.submitGradeToLMS params: " + Json.stringify(params));
 
         long assignmentId = params.get("assignmentId").asLong();
         String userId = params.get("userId").asText();
@@ -51,7 +54,7 @@ public class GradeSubmitterController extends Controller {
         if (outcomeServiceUrl == null || outcomeServiceUrl.equals("")
                 || sourcedId == null || sourcedId.equals("")) {
         	String result = "Missing lis_outcome_service_url or lis_result_sourcedid";
-        	Logger.info(result);
+        	logger.info(result);
             return badRequest(result);
         }
 	
@@ -80,12 +83,12 @@ public class GradeSubmitterController extends Controller {
     		// org.imsglobal.pox.IMSPOXRequest.sendReplaceResult(outcomeServiceUrl, oauthConsumerKey, getSharedSecret(oauthConsumerKey), sourcedId, "" + score);
 
         } catch (Exception e) {
-    		Logger.info("score: " + score);        
-            Logger.info(Util.getStackTrace(e));
+    		logger.info("score: " + score);        
+            logger.info(Util.getStackTrace(e));
             return badRequest(e.getMessage());
         }
         String result = "Grade saved in gradebook. You achieved " + (int) Math.round(100 * score) + "% of the total score.";
-        Logger.info(result);
+        logger.info(result);
         return ok(result);
     }
 
@@ -143,8 +146,8 @@ public class GradeSubmitterController extends Controller {
 		consumer.sign(request); // Throws OAuthMessageSignerException,
 				// OAuthExpectationFailedException,
 				// OAuthCommunicationException		
-		Logger.info("Request after signing: {}", consumer.getRequestParameters());
-		Logger.info("XML: {}", xml);
+		logger.info("Request after signing: {}", consumer.getRequestParameters());
+		logger.info("XML: {}", xml);
 
 
 		// POST the xml to the grade passback url
@@ -154,16 +157,15 @@ public class GradeSubmitterController extends Controller {
 		out.close();
 
 		// request.connect();
-		Logger.info(request.getResponseCode() + " " + request.getResponseMessage());
+		logger.info(request.getResponseCode() + " " + request.getResponseMessage());
 		try {
 			InputStream in = request.getInputStream();
 			String body = new String(Util.readAllBytes(in), "UTF-8");
-			Logger.info("Response body received from LMS: " + body);
+			logger.info("Response body received from LMS: " + body);
 		} catch (Exception e) {			
 			InputStream in = request.getErrorStream();
 			String body = new String(Util.readAllBytes(in), "UTF-8");
-			Logger.info("Response error received from LMS: " + body);
+			logger.info("Response error received from LMS: " + body);
 		}
 	}
-
 }
