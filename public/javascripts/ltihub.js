@@ -38,7 +38,7 @@ function loadProblems() {
 				problemIframe.contentWindow.postMessage(message, '*');
 				// CSH restoreStateOfProblem(problems[i].id);
 			})
-			problemIframe.style.display = i == 0 ? 'block' : 'none'
+			problemIframe.style.display = i === 0 ? 'block' : 'none'
 			const button = document.createElement('button')
 			button.id = 'button-' + problems[i].id
 			button.className = 'exercise-button'
@@ -46,14 +46,16 @@ function loadProblems() {
 			button.textContent = "" + (i + 1) // TODO: Add %age
 			button.addEventListener('click', event => {
 				for (const frame of document.getElementsByClassName('exercise-iframe'))
-					if (frame != problemIframe)
+					if (frame !== problemIframe)
 						frame.style.display = 'none'
 				problemIframe.style.display = 'block'		
 				for (const btn of document.getElementsByClassName('exercise-button'))
-					if (btn != button)
+					if (btn !== button)
 						btn.classList.remove('active')
 				button.classList.add('active')	
-			})			
+			})
+			if (i === 0) button.classList.add('active')	
+			
 		}
 	})
 	xhr.addEventListener('error', event => {
@@ -69,7 +71,8 @@ function receiveMessage(event) {
 		if (event.data.request.query === 'docHeight') {
 			console.log('received ' + JSON.stringify(event.data));
 			const newHeight = event.data.docHeight + 200;
-			document.getElementById(event.data.request.id).style.height = newHeight + 'px'
+			console.log(`Not setting ${event.data.request.id} to ${newHeight}px`)
+			// document.getElementById(event.data.request.id).style.height = newHeight + 'px'
 		}
 		else if (event.data.request.query === 'getContent') {
 			const problemId = event.data.request.problemId;
