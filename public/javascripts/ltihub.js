@@ -13,27 +13,40 @@ function loadProblems() {
 	xhr.responseType = 'json'
 	xhr.addEventListener('load', event => {
 		const problems = xhr.response;
+		const buttonDiv = document.createElement('div')
+		document.body.appendChild(buttonDiv)
+		
 		for (let i = 0; i < problems.length; i++) {
 			// TODO: Maybe put everything into a div?
 			// TODO: For instructors, show the group
 
-			var highestScoreEl = document.createElement('div');
+			const highestScoreEl = document.createElement('div');
 			highestScoreEl.id = "highestScore-" + problems[i].id;
 			highestScoreEl.className = "highestScore message";
 
-			document.body.appendChild(highestScoreEl);
+			document.body.appendChild(highestScoreEl); // TODO: ???
 
-			let problemIframe = document.createElement('iframe');
+			const problemIframe = document.createElement('iframe');
 			problemIframe.id = problems[i].id;
 			problemIframe.className = 'exercise-iframe';
 			problemIframe.src = problems[i].url;
 			document.body.appendChild(problemIframe);
 
 			problemIframe.addEventListener('load', function() {
-				var message = { query: 'docHeight', id: problems[i].id };
+				const message = { query: 'docHeight', id: problems[i].id };
 				problemIframe.contentWindow.postMessage(message, '*');
 				// CSH restoreStateOfProblem(problems[i].id);
 			})
+			problemIframe.style.display = i == 0 ? 'block' : 'none'
+			const button = document.createElement('button')
+			buttonDiv.appendChild(button)
+			button.textContent = "" + (i + 1) // TODO: Add %age
+			button.addEventListener('click', event => {
+				for (const frame of document.getElementsByClassName('exercise-iframe'))
+					if (frame != problemIframe)
+						frame.style.display = 'none'
+				problemIframe.style.display = 'block'			
+			})			
 		}
 	})
 	xhr.addEventListener('error', event => {
@@ -58,12 +71,8 @@ function receiveMessage(event) {
 			sendScoreAndState(problemId, score, state);
 		}
 	} else { // It's a request
-		const param = event.data.param
 		if (event.data.query === 'retrieve') {
-			// const problemId = param.filters[0].activityIds[0]
-			// TODO That's an id on the page, not an id in the
-			// database!
-			for (frame of document.getElementsByClassName('exercise-iframe')) {
+			for (const frame of document.getElementsByClassName('exercise-iframe')) {
 				if (frame.contentWindow === event.source)
 					restoreStateOfProblem(frame.id, event.data.request)
 			}
