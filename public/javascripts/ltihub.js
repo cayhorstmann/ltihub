@@ -27,37 +27,40 @@ function loadProblems() {
 
 			document.body.appendChild(highestScoreEl); // TODO: ???
 			*/
-			const problemIframe = document.createElement('iframe');
-			problemIframe.id = problems[i].id;
-			problemIframe.className = 'exercise-iframe';
-			problemIframe.src = problems[i].url;
-			document.body.appendChild(problemIframe);
-
-			problemIframe.addEventListener('load', function() {
+			const frame = document.createElement('iframe');
+			frame.id = problems[i].id;
+			frame.className = 'exercise-iframe';
+			frame.src = problems[i].url;
+			document.body.appendChild(frame);
+			/*
+			frame.addEventListener('load', function() {
 				const message = { query: 'docHeight', id: problems[i].id };
-				problemIframe.contentWindow.postMessage(message, '*');
+				frame.contentWindow.postMessage(message, '*');
 				// CSH restoreStateOfProblem(problems[i].id);
 			})
-			problemIframe.style.display = i === 0 ? 'block' : 'none'
+			*/
+			frame.style.display = i === 0 ? 'block' : 'none'
+			if (i === 0) {
+				const message = { query: 'docHeight', id: frame.id };
+				frame.contentWindow.postMessage(message, '*');
+			}
 			const button = document.createElement('button')
 			button.id = 'button-' + problems[i].id
 			button.className = 'exercise-button'
 			buttonDiv.appendChild(button)
 			button.textContent = "" + (i + 1) // TODO: Add %age
 			button.addEventListener('click', event => {
-				for (const frame of document.getElementsByClassName('exercise-iframe'))
-					if (frame !== problemIframe)
-						frame.style.display = 'none'
-				problemIframe.style.display = 'block'
-				const message = { query: 'docHeight', id: problems[i].id };
-				problemIframe.contentWindow.postMessage(message, '*');		
+				for (const f of document.getElementsByClassName('exercise-iframe'))
+					if (f !== frame) f.style.display = 'none'
+				frame.style.display = 'block'
+				const message = { query: 'docHeight', id: frame.id };
+				frame.contentWindow.postMessage(message, '*');		
 				for (const btn of document.getElementsByClassName('exercise-button'))
 					if (btn !== button)
 						btn.classList.remove('active')
 				button.classList.add('active')	
 			})
-			if (i === 0) button.classList.add('active')	
-			
+			if (i === 0) button.classList.add('active')				
 		}
 	})
 	xhr.addEventListener('error', event => {
@@ -73,7 +76,14 @@ function receiveMessage(event) {
 		console.log('received ' + JSON.stringify(event.data)); // TODO
 		if (event.data.request.query === 'docHeight') {
 			const newHeight = event.data.docHeight;
-			document.getElementById(event.data.request.id).style.height = newHeight + 'px'
+			const frame = document.getElementById(event.data.request.id) 
+			if (newHeight > 50) // TODO: Eliminate fudge
+				frame.style.height = newHeight + 'px'
+			else
+				setTimeout(() => {
+					const message = { query: 'docHeight', id: frame.id };
+					frame.contentWindow.postMessage(message, '*');
+				}, 1000)
 		}
 		else if (event.data.request.query === 'getContent') {
 			const problemId = event.data.request.problemId;
@@ -330,15 +340,17 @@ function updateTimeLeftDisplay() {
 }
 
 // Delete the iframes of the problems in the assignment
+// TODO: Do we really want to do that? 
 function deleteProblems() {
-	var highestScoreEls = [...document.getElementsByClassName('highestScore')]
-	var problemIframes = [...document.getElementsByClassName('exercise-iframe')]
+	// TODO: Buttons???
+	//var highestScoreEls = [...document.getElementsByClassName('highestScore')]
+	var frames = [...document.getElementsByClassName('exercise-iframe')]
 
-	for (var i = 0; i < highestScoreEls.length; i++)
-		highestScoreEls[i].remove()
+	//for (var i = 0; i < highestScoreEls.length; i++)
+	//	highestScoreEls[i].remove()
 
-	for (var i = 0; i < problemIframes.length; i++)
-		problemIframes[i].remove()
+	for (var i = 0; i < frames.length; i++)
+		frames[i].remove()
 
 	clearInterval(updateStatesInterval);
 }
