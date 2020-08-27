@@ -5,8 +5,17 @@ function getClientStamp() {
 	return new Date().getTime() + clientStampCounter;
 }
 
-var problems = null;
+let problems = null;
 // Load the iframes for the problems of the assignment
+
+function queryDocHeight(frame) {
+	const delay = 2000
+	setTimeout(() => {
+		const message = { query: 'docHeight', id: frame.id };
+		frame.contentWindow.postMessage(message, '*');		
+	}, delay)	
+}
+
 function loadProblems() {
 	const url = assignment.submissionURL
 	const xhr = new XMLHttpRequest()
@@ -40,10 +49,7 @@ function loadProblems() {
 			})
 			*/
 			frame.style.display = i === 0 ? 'block' : 'none'
-			if (i === 0) {
-				const message = { query: 'docHeight', id: frame.id };
-				frame.contentWindow.postMessage(message, '*');
-			}
+			if (i === 0) queryDocHeight(frame)
 			const button = document.createElement('button')
 			button.id = 'button-' + problems[i].id
 			button.className = 'exercise-button'
@@ -53,7 +59,7 @@ function loadProblems() {
 				for (const f of document.getElementsByClassName('exercise-iframe'))
 					if (f !== frame) f.style.display = 'none'
 				frame.style.display = 'block'
-				const message = { query: 'docHeight', id: frame.id };
+				queryDocHeight(frame)
 				frame.contentWindow.postMessage(message, '*');		
 				for (const btn of document.getElementsByClassName('exercise-button'))
 					if (btn !== button)
@@ -69,30 +75,25 @@ function loadProblems() {
 	xhr.open('GET', url)
 	xhr.send()
 }
-
+	
 // Response from messages to iframe
 function receiveMessage(event) {
 	if (event.data.request) { // It's a response
-		console.log('received ' + JSON.stringify(event.data)); // TODO
-		if (event.data.request.query === 'docHeight') {
-			const newHeight = event.data.docHeight;
-			const frame = document.getElementById(event.data.request.id) 
-			if (newHeight > 50) // TODO: Eliminate fudge
-				frame.style.height = newHeight + 'px'
-			else
-				setTimeout(() => {
-					const message = { query: 'docHeight', id: frame.id };
-					frame.contentWindow.postMessage(message, '*');
-				}, 1000)
-		}
-		else if (event.data.request.query === 'getContent') {
+		console.log('received ', { event }); // TODO
+		if (event.data.request.query === 'getContent') {
 			const problemId = event.data.request.problemId;
 			const score = event.data.score;
 			const state = event.data.state;
 			sendScoreAndState(problemId, score, state);
 		}
 	} else { // It's a request
-		if (event.data.query === 'retrieve') {
+		if (event.data.request.query === 'docHeight') {
+			const newHeight = event.data.docHeight;
+			const frame = document.getElementById(event.data.request.id) 
+			if (newHeight > 50) // TODO: Eliminate fudge
+				frame.style.height = newHeight + 'px'
+		}
+		else if (event.data.query === 'retrieve') {
 			for (const frame of document.getElementsByClassName('exercise-iframe')) {
 				if (frame.contentWindow === event.source)
 					restoreStateOfProblem(frame.id, event.data.request)
