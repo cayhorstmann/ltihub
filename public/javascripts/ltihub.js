@@ -5,17 +5,6 @@ function getClientStamp() {
 	return new Date().getTime() + clientStampCounter;
 }
 
-let problems = null;
-// Load the iframes for the problems of the assignment
-
-function queryDocHeight(frame) {
-	const delay = 2000
-	setTimeout(() => {
-		const message = { query: 'docHeight', id: frame.id };
-		frame.contentWindow.postMessage(message, '*');		
-	}, delay)	
-}
-
 function loadProblems() {
 	const url = assignment.submissionURL
 	const xhr = new XMLHttpRequest()
@@ -27,29 +16,12 @@ function loadProblems() {
 		document.body.appendChild(buttonDiv)
 		
 		for (let i = 0; i < problems.length; i++) {
-			// TODO: Maybe put everything into a div?
-			// TODO: For instructors, show the group
-
-			/*const highestScoreEl = document.createElement('div');
-			highestScoreEl.id = "highestScore-" + problems[i].id;
-			highestScoreEl.className = "highestScore message";
-
-			document.body.appendChild(highestScoreEl); // TODO: ???
-			*/
-			const frame = document.createElement('iframe');
-			frame.id = problems[i].id;
-			frame.className = 'exercise-iframe';
-			frame.src = problems[i].url;
-			document.body.appendChild(frame);
-			/*
-			frame.addEventListener('load', function() {
-				const message = { query: 'docHeight', id: problems[i].id };
-				frame.contentWindow.postMessage(message, '*');
-				// CSH restoreStateOfProblem(problems[i].id);
-			})
-			*/
-			frame.style.display = i === 0 ? 'block' : 'none'
-			if (i === 0) queryDocHeight(frame)
+			const iframe = document.createElement('iframe');
+			iframe.id = problems[i].id;
+			iframe.className = 'exercise-iframe';
+			iframe.src = problems[i].url;
+			document.body.appendChild(iframe);
+			iframe.style.display = i === 0 ? 'block' : 'none'
 			const button = document.createElement('button')
 			button.id = 'button-' + problems[i].id
 			button.className = 'exercise-button'
@@ -57,10 +29,8 @@ function loadProblems() {
 			button.textContent = "" + (i + 1) // TODO: Add %age
 			button.addEventListener('click', event => {
 				for (const f of document.getElementsByClassName('exercise-iframe'))
-					if (f !== frame) f.style.display = 'none'
-				frame.style.display = 'block'
-				queryDocHeight(frame)
-				frame.contentWindow.postMessage(message, '*');		
+					if (f !== iframe) f.style.display = 'none'
+				iframe.style.display = 'block'
 				for (const btn of document.getElementsByClassName('exercise-button'))
 					if (btn !== button)
 						btn.classList.remove('active')
@@ -75,152 +45,109 @@ function loadProblems() {
 	xhr.open('GET', url)
 	xhr.send()
 }
+
+function sendingIframe(event) {
+	for (const f of document.getElementsByClassName('exercise-iframe'))
+    if (f.contentWindow === event.source) return f
+  return undefined
+}
 	
 // Response from messages to iframe
 function receiveMessage(event) {
-	if (event.data.request) { // It's a response
-		console.log('received ', { event }); // TODO
-		if (event.data.request.query === 'getContent') {
-			const problemId = event.data.request.problemId;
-			const score = event.data.score;
-			const state = event.data.state;
-			sendScoreAndState(problemId, score, state);
-		}
-	} else { // It's a request
-		if (event.data.request.query === 'docHeight') {
-			const newHeight = event.data.docHeight;
-			const frame = document.getElementById(event.data.request.id) 
-			if (newHeight > 50) // TODO: Eliminate fudge
-				frame.style.height = newHeight + 'px'
+	console.log('received ', { event }); // TODO
+	if (event.data.request) { // Receiving a response to our request, but we make no requests any more
+    return 
+	} else { // Receiving request from iframe
+    let iframe = sendingIframe(event)    
+		if (event.data.query === 'docHeight') {
+			const newHeight = event.data.param.docHeight;
+			if (newHeight > 50) // TODO: Eliminate fudge in codecheck
+				iframe.style.height = newHeight + 'px'
 		}
 		else if (event.data.query === 'retrieve') {
-			for (const frame of document.getElementsByClassName('exercise-iframe')) {
-				if (frame.contentWindow === event.source)
-					restoreStateOfProblem(frame.id, event.data.request)
-			}
+			restoreStateOfProblem(iframe.id, event.data)			
 		}
+		else if (event.data.query === 'send') 
+		  sendScoreAndState(iframe.id, event.data.param.score, event.data.param.state, event.data)
 	}
 }
 
+// TODO: style
 window.addEventListener("message", receiveMessage, false);
 
 window.onload = loadProblems;
 
 // Score and state handlers
 
-/*
- Periodically calls the function to request the updated states and scores of problems,
- that way if the score or the states changed, then we can report those changes to the server.
-*/
-var updateStatesInterval = setInterval(updateStatesFromProblems, 60 * 1000);
+function restoreStateOfProblem(problemId, request) {
+  const iframe = document.getElementById('' + problemId);
 
-var problemIdToContent = {};
-
-function restoreStateOfProblemId(problemId, request) {
 	if (assignment.isInstructor) {
-		const iframe = document.getElementById('' + problemId);
-		const state = undefined
-		if (request === undefined) {
-			iframe.contentWindow.postMessage({ query: 'restoreState', state }, '*');
-		} else {
-			iframe.contentWindow.postMessage({ request, param: { state } }, '*');
-		}
+		iframe.contentWindow.postMessage({ request }, '*'); // TODO: param undefined, or should there be param.state???
 		return
 	}
 
-	const url = 'assignment.prefix/getWork/' + problemId + '/assignment.userId/assignment.toolConsumerId/assignment.contextId'
+  // TODO: For consistency, let Play make URL
+	const url = assignment.prefix + '/getWork/' + problemId + '/' + assignment.userId + '/' + assignment.toolConsumerId + '/' + assignment.contextId
 	const xhr = new XMLHttpRequest()
 	xhr.responseType = 'json'
 
 	xhr.addEventListener('load', event => {
 		const result = xhr.response
-		problemIdToContent[problemId] = {
-			score: result.score,
-			state: result.state
-		}
-		if (result.state) { // If the state was empty, then don't try to restore it
-			var iframe = document.getElementById('' + problemId);
-			const state = JSON.parse(result.state)
-			if (request === undefined) {
-				iframe.contentWindow.postMessage({ query: 'restoreState', state }, '*');
-			} else {
-				iframe.contentWindow.postMessage({ request, param: { state } }, '*');
-			}
-		}
-		updateHighestScoreDisplay(problemId, result.submittedAt, result.score);
+		// TODO: This should come as JSON from the server
+		const state = typeof result.state === 'string' || result.state instanceof String ? JSON.parse(result.state) : result.state 
+		iframe.contentWindow.postMessage({ request, param: state }, '*');
+		updateScoreDisplay(problemId, result.score, result.submittedAt);
 	})
 	xhr.addEventListener('error', event => {
 		console.log("Error getting problem contents from " + url);
 		// Initializes the problem content so that it can be saved
-		problemIdToContent[problemId] = {
-			score: 0,
-			state: "",
-		}
 	})
 	xhr.open('GET', url)
 	xhr.send()
 }
 
-
-// Tell the iframes to report their state back.
-function updateStatesFromProblems() {
-	for (const iframe of document.getElementsByClassName('exercise-iframe')) {
-		iframe.contentWindow.postMessage({ query: 'getContent', problemId: iframe.id }, '*');
+function sendScoreAndState(problemId, score, state, request) {
+	if (!state) { // TODO: Needed???
+		iframe.contentWindow.postMessage({ request }, '*');
+    return
 	}
-}
-
-// If the state or the score changed since the last submission or this is a timed problem, then send the new state and score to the server
-function sendScoreAndState(problemId, score, state) {
-	if (!state) return
-	if (!problemIdToContent.hasOwnProperty(problemId)) // Haven't yet received first state
-		return;
-	// TODO: v2 won't have maxscore but just the normalized score
-	const previousScore = problemIdToContent[problemId].score;
-	const currentCorrect = score.errors ? Math.max(score.correct - score.errors, 0) : score.correct;
-	const currentScore = score && score.correct && score.maxscore ?
-		currentCorrect / score.maxscore : 0.0;
-
-	const previousStateString = problemIdToContent[problemId].state;
-	const currentStateString = state ? JSON.stringify(state) : "";
-
-	if (currentScore !== previousScore || previousStateString !== currentStateString) {
-		const data = {
-			problemId: problemId,
-			score: currentScore,
-			state: currentStateString,
-			assignmentId: assignment.assignmentId,
-			userId: assignment.userId,
-			toolConsumerId: assignment.toolConsumerId,
-			contextId: assignment.contextId,
-			clientStamp: getClientStamp()
-		}
-
-		const url = 'assignment.prefix/addSubmission'
-
-		const xhr = new XMLHttpRequest()
-		xhr.responseType = 'json'
-		xhr.addEventListener('load', event => {
-			const result = xhr.response
-			problemIdToContent[problemId] = {
-				score: currentScore,
-				state: currentStateString,
-			}
-
-			updateHighestScoreDisplay(problemId, result.submittedAt, result.highestScore);
-		})
-
-		xhr.addEventListener('error', event => {
-			console.log("Error saving work: " + JSON.stringify(data) + "\n" +
-				"Problem ID: " + problemId + "\n" +
-				"User ID: " + assignment.userId + "\n" +
-				"Score: " + JSON.stringify(score) + "\n" +
-				"Previous state: " + previousStateString + "\n" +
-				"Current state: " + currentStateString + "\n");
-		})
-		xhr.open('POST', url)
-		xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8')
-		xhr.send(JSON.stringify(data))
+  const iframe = document.getElementById('' + problemId);
+	const data = {
+		problemId,
+		score,
+		state,
+		assignmentId: assignment.assignmentId,
+		userId: assignment.userId,
+		toolConsumerId: assignment.toolConsumerId,
+		contextId: assignment.contextId,
+		clientStamp: getClientStamp()
 	}
+  // TODO: For consistency, let Play make URL
+	const url = assignment.prefix + '/addSubmission'
+
+	const xhr = new XMLHttpRequest()
+	xhr.responseType = 'json'
+	xhr.addEventListener('load', event => {
+		const result = xhr.response
+    iframe.contentWindow.postMessage({ request, param: result }, '*');
+    // TODO: We don't want the highest score anymore
+		updateScoreDisplay(problemId, result.highestScore, result.submittedAt); 		
+	})
+
+	xhr.addEventListener('error', event => {
+		const error = "Error saving work: " + JSON.stringify(data) + "\n" +
+      "Problem ID: " + problemId + "\n" +
+      "User ID: " + assignment.userId + "\n" +
+      "Score: " + JSON.stringify(score) + "\n" +
+      "Previous state: " + previousStateString + "\n" +
+      "Current state: " + currentStateString + "\n"
+    iframe.contentWindow.postMessage({ request, error }, '*');
+		console.log(error);
+	})
+	xhr.open('POST', url)
+	xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8')
+	xhr.send(JSON.stringify(data))
 }
 
 function formatTime(time) {
@@ -229,53 +156,47 @@ function formatTime(time) {
 	else return Math.round(time / 1000) + " seconds";
 }
 
-// Update the highest score element to display the score from the given submission
-function updateHighestScoreDisplay(problemId, submittedAt, highestScore) {
-	/*
-	var highestScoreEl = document.getElementById('highestScore-' + problemId);
-	highestScoreEl.innerHTML = (submittedAt ? "<p>Submission saved at: " + new Date(submittedAt) : "") +
-		"</p><p>Highest recorded score: <b>" + (highestScore * 100.0).toFixed(2) + "%</b></p>"
-		*/
-    const button = document.getElementById('button-' + problemId);
-    const text = button.textContent
-    const index = text.indexOf(' (')
+function updateScoreDisplay(problemId, score, submittedAt) {
+  const button = document.getElementById('button-' + problemId);
+  const text = button.textContent
+  let index = text.indexOf(' (')
 	if (index < 0) index = text.length
-	button.textContent = text.substring(0, index) + ' (' + (highestScore * 100.0).toFixed(2) + ')' 
+	button.textContent = text.substring(0, index) + ' (' + (Math.round(score * 100.0)).toFixed(0) + '%)'
+	if (submittedAt !== undefined) 
     button.title = 'Submission saved at: ' + new Date(submittedAt)
 }
 
 
-// Save work and report score
+// Report score
 function submitGrades() {
-	updateStatesFromProblems();
-	setTimeout(function() {
-		document.getElementById("response").style.display = "none";
-		const data = {
-			assignmentId: assignment.assignmentId,
-			userId: assignment.userId,
-			toolConsumerId: assignment.toolConsumerId,
-			contextId: assignment.contextId,
-			lisOutcomeServiceUrl: assignment.lisOutcomeServiceURL,
-			lisResultSourcedId: assignment.lisResultSourcedId,
-			oauthConsumerKey: assignment.oauthConsumerKey
-		};
-		const url = assignment.prefix / sendScore
-		const xhr = new XMLHttpRequest()
-		xhr.addEventListener('load', event => {
-			const response = document.getElementById("response");
-			response.innerHTML = xhr.responseText;
-			response.style.display = "block";
-		})
-		xhr.addEventListener('error', event => {
-			console.log("Error submitting grades: " + JSON.stringify(data) + "\n" +
-				"Assignment ID: " + assignment.assignmentId + "\nUser ID: " + assignment.userId);
-		})
-		xhr.open('POST', url)
-		xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
-		xhr.send(JSON.stringify(data))
-	}, 1000)
+	document.getElementById("response").style.display = "none";
+	const data = {
+		assignmentId: assignment.assignmentId,
+		userId: assignment.userId,
+		toolConsumerId: assignment.toolConsumerId,
+		contextId: assignment.contextId,
+		lisOutcomeServiceUrl: assignment.lisOutcomeServiceURL,
+		lisResultSourcedId: assignment.lisResultSourcedId,
+		oauthConsumerKey: assignment.oauthConsumerKey
+	};
+	// TODO: For consistency, let Play make URL
+	const url = assignment.prefix + '/sendScore'
+	const xhr = new XMLHttpRequest()
+	xhr.addEventListener('load', event => {
+		const result = xhr.response    
+		const responseElement = document.getElementById("response")		
+		responseElement.innerHTML = "Score saved in gradebook. You achieved " + Math.round(100 * result.score) + "% of the total score."
+		responseElement.style.display = "block"
+	})
+	xhr.addEventListener('error', event => {
+		console.log("Error submitting grade: " + JSON.stringify(data) + "\n" +
+			"Assignment ID: " + assignment.assignmentId + "\nUser ID: " + assignment.userId);
+	})
+	xhr.responseType = 'json'
+	xhr.open('POST', url)
+	xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+	xhr.send(JSON.stringify(data))
 }
-
 
 // Timed assignment specific code 
 const durationInMilliseconds = assignment.duration * 60 * 1000;
@@ -345,13 +266,13 @@ function updateTimeLeftDisplay() {
 function deleteProblems() {
 	// TODO: Buttons???
 	//var highestScoreEls = [...document.getElementsByClassName('highestScore')]
-	var frames = [...document.getElementsByClassName('exercise-iframe')]
+	var iframes = [...document.getElementsByClassName('exercise-iframe')]
 
 	//for (var i = 0; i < highestScoreEls.length; i++)
 	//	highestScoreEls[i].remove()
 
-	for (var i = 0; i < frames.length; i++)
-		frames[i].remove()
+	for (var i = 0; i < iframes.length; i++)
+		iframes[i].remove()
 
 	clearInterval(updateStatesInterval);
 }

@@ -8,6 +8,7 @@
     <link rel="stylesheet" href='@routes.Assets.at("stylesheets/main.css")'/>
     <script type="text/javascript">
 	const assignment = { 
+	  prefix: '@prefix',
 	  assignmentId: '@assignmentId',
 	  userId: '@userId',
 	  toolConsumerId: '@toolConsumerId',
@@ -36,14 +37,15 @@
     @if(!isInstructor) {
         <div id="record-score">
         <p>
-            If you are done with all questions, click on "Record my score" to save your score in the gradebook.
+            When you are done, click <button onclick="submitGrades()">Record my score</button> to save your score in the gradebook.
         </p>
 
-        <button onclick="submitGrades()">Record my score</button> <span style='display:none' class='message' id='response'></span>
-        </div>
+        <p style='display:none' class='message' id='response'></p>
     }
 <hr/>
 <p>User ID: <code>@userId</code></p>
 <p>Assignment ID: <code>@assignmentId</code></p>
+<hr/>
+<p>Click on the buttons below to work on all parts of this assignment.</p>
 </body>
 </html>

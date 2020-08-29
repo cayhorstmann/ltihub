@@ -36,7 +36,8 @@ public class SubmissionController extends Controller {
         	String userId = params.get("userId").textValue();
         	String toolConsumerId = params.get("toolConsumerId").textValue();
         	String contextId = params.get("contextId").textValue();
-        	String state = params.get("state").textValue();
+        	JsonNode stateNode = params.get("state"); // TODO: This should always be an object in v2
+        	String state = stateNode.isTextual() ? stateNode.textValue() : stateNode.toString();
         	double score = params.get("score").asDouble(); 
         	long clientStamp = params.get("clientStamp").asLong(0L);
             Map<String, Object> responseMap = new HashMap<>();

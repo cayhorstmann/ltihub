@@ -10,7 +10,9 @@ import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -87,9 +89,11 @@ public class GradeSubmitterController extends Controller {
             logger.info(Util.getStackTrace(e));
             return badRequest(e.getMessage());
         }
-        String result = "Grade saved in gradebook. You achieved " + (int) Math.round(100 * score) + "% of the total score.";
-        logger.info(result);
-        return ok(result);
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("score", score);
+        String result = "Score saved in gradebook. You achieved " + (int) Math.round(100 * score) + "% of the total score.";
+        logger.info(result); // TODO
+        return ok(Json.toJson(responseMap));
     }
 
 	/**
