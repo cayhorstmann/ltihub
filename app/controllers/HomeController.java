@@ -158,7 +158,6 @@ public class HomeController extends Controller {
     		   Util.getParams(launchPresentationReturnURL), problems, assignmentURL));
     }
 	
-	
 	@Security.Authenticated(Secured.class)
 	public Result getSubmissionViewer(Long assignmentId) {
 

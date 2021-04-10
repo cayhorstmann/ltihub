@@ -22,9 +22,7 @@ data.
 
 */
 
-if (window.parent !== window.top) 
-{ // iframe
-
+if (window.self !== window.top) { // iframe
   if (!('EPUB' in window))
     window.EPUB = {}
   if (!('Education' in window.EPUB)) {
@@ -33,27 +31,40 @@ if (window.parent !== window.top)
       retrieveCallback: undefined, // LTIHub v1
       retrieve: (request, callback) => {
         window.EPUB.Education.retrieveCallback = callback // LTIHub v1
-        // Make nonce and register callback
+        if ('stateToRestore' in window.EPUB.Education) { // LTIHub v1, restore data already arrived
+          callback({ data: [ { data: window.EPUB.Education.stateToRestore } ] })
+          delete window.EPUB.Education.stateToRestore
+          return
+        }
+        // Register callback
         const nonce = generateUUID()
         window.EPUB.Education.nonceMap[nonce] = callback
-        // Pass request and nonce to parent
-        // TODO: Change from VitalSource format
-        const qid = request.filters[0].activityIds[0]
-        const param = { qid }
-        const data = { query: 'retrieve', param, nonce }
-        console.log('Posting to parent', data)
-        window.parent.postMessage(data, '*' )
-        // TODO: What when no response on retrieve message?
-        // Invoke nonceMap with null after timeout?
-        // If so, ensure that retrieveCallback doesn't happen twice
+        if (window.EPUB.Education.version !== 1) { // LTIHub v1
+          // Pass request and nonce to parent
+          // TODO: VitalSource format
+          const qid = request.filters[0].activityIds[0]
+          const param = { qid }
+          const data = { query: 'retrieve', param, nonce }
+          window.parent.postMessage(data, '*' )
+        }
+        const MESSAGE_TIMEOUT = 5000
+        setTimeout(() => {
+          if ('stateToRestore' in window.EPUB.Education) { // LTIHub v1, restore data already arrived and delivered
+            delete window.EPUB.Education.stateToRestore
+            return              
+          }            
+
+          if (!(nonce in window.EPUB.Education.nonceMap)) return
+          delete window.EPUB.Education.nonceMap[nonce]
+          // TODO: VitalSource format
+          callback({ data: [ { data: null } ] })
+        }, MESSAGE_TIMEOUT)
       },
       send: (request, callback) => {
-        const nonce = generateUUID()
-        window.EPUB.Education.nonceMap[nonce] = callback
-        // TODO: Change from VitalSource format
-        const param = { state: request.data[0].state.data, score: request.data[0].results[0].score }
-        const data = { query: 'send', param, nonce }
-        console.log('Posting to parent', data)
+        if (window.EPUB.Education.version === 1) return // LTIHub v1
+        // TODO: VitalSource format
+        const param = { state: request.data[0].state.data, score: request.data[0].results[0].score, qid: request.data[0].activityId }
+        const data = { query: 'send', param }
         window.parent.postMessage(data, '*' )
       },
     }
@@ -87,14 +98,13 @@ if (window.parent !== window.top)
             return cl && (ty === 'div' && cl.indexOf('horstmann_') == 0 || ty === 'ol' && (cl.indexOf('multiple-choice') == 0 || cl.indexOf('horstmann_ma') == 0))
           })    
     element = interactiveElements[0]
-    
-    document.body.style.height = '100%'
-    document.body.style.overflow = 'hidden' 
+
+    document.body.style.overflow = 'hidden'         
     const resizeObserver = new ResizeObserver(entries => {
       if (window.EPUB.Education.version !== 1) { // TODO
-        const docHeight = document.documentElement.scrollHeight 
+        const FUDGE = 50
+        const docHeight = document.body.children[0].scrollHeight + FUDGE
         const data = { query: 'docHeight', param: { docHeight } }
-        console.log('Posting to parent', data)
         window.parent.postMessage(data, '*' )
       }
     })
@@ -107,7 +117,6 @@ if (window.parent !== window.top)
   })
 
   window.addEventListener("message", event => {    
-    console.log('Received from parent', event.data)
     if ('request' in event.data) { // It's a response
       const request = event.data.request    
       if (request.query === 'retrieve') { // LTIHub v2        
@@ -115,60 +124,42 @@ if (window.parent !== window.top)
         // TODO Old VitalSource API
         // let state = response.data[0].data
         const arg = { data: [ { data: state } ] }
-        window.EPUB.Education.nonceMap[request.nonce](arg)
-        delete window.EPUB.Education[request.nonce]
+        if (request.nonce in window.EPUB.Education.nonceMap) {
+          // If not, already timed out
+          window.EPUB.Education.nonceMap[request.nonce](arg)
+          delete window.EPUB.Education.nonceMap[request.nonce]
+        }
       }
       // Handle other responses  
     } else { // It's a request   
       if (event.data.query === 'docHeight') { // LTIHub v1
-        const body = document.body
-        const html = document.documentElement;
         const docHeight = document.body.children[0].scrollHeight
+        document.documentElement.style.height = docHeight + 'px'
         document.body.style.height = docHeight + 'px'
-        document.body.style.overflow = 'hidden' 
+        document.body.style.overflow = 'auto' 
         let response = { request: event.data, docHeight }
-        console.log('Posting to parent', response)
         event.source.postMessage(response, '*' )
-        window.EPUB.Education.send = () => {}
         window.EPUB.Education.version = 1
-        if (window.EPUB.Education.retrieveCallback !== undefined) {
-          // It is possible that the parent never sends restoreState
-          setTimeout(() => {
-            if (window.EPUB.Education.retrieveCallback !== undefined) {
-              window.EPUB.Education.retrieve = (request, callback) => {
-                callback({ data: [ { data: null } ] })
-                const docHeight = document.body.children[0].scrollHeight
-                document.body.style.height = docHeight + 'px'
-              }
-              window.EPUB.Education.retrieve(null, window.EPUB.Education.retrieveCallback)
-              delete window.EPUB.Education.retrieveCallback
-            }
-          }, 5000)
-        }
       }
       else if (event.data.query === 'getContent') { // LTIHub v1
         const docHeight = document.body.children[0].scrollHeight
+        document.documentElement.style.height = docHeight + 'px'
         document.body.style.height = docHeight + 'px'
         const id = element.closest('li').id
         const score = { correct: Math.min(element.correct, element.maxscore), errors: element.errors, maxscore: element.maxscore, activity: id }
         let response = { request: event.data, score: score, state: element.state }
-        console.log('Posting to parent', response)
         event.source.postMessage(response, '*' )          
       } else if (event.data.query === 'restoreState') { // LTIHub v1
-        const restoredState = event.data.state        
-        window.EPUB.Education.retrieve = (request, callback) => {
-          callback({ data: [ { data: restoredState } ] })
-          const docHeight = document.body.children[0].scrollHeight
-          document.body.style.height = docHeight + 'px'
-        }                  
+        window.EPUB.Education.stateToRestore = event.data.state 
         /*
           It is possible that the element already made a
           retrieve request (which goes unanswered by the parent). 
         */
-        if (window.EPUB.Education.retrieveCallback !== undefined) {
+        if (window.EPUB.Education.retrieveCallback !== undefined) { // retrieve request already made
           window.EPUB.Education.retrieve(undefined, window.EPUB.Education.retrieveCallback)
-          delete window.EPUB.Education.retrieveCallback
-        }        
+          // delete window.EPUB.Education.retrieveCallback
+          // Not deleting--in the instructor view assignments, called more than once
+        }                  
       }
     }
   }, false)
